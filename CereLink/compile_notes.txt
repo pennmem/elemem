@@ -1,0 +1,6 @@
+mkdir build
+cd build
+cmake -G "MinGW Makefiles" .. -DQt5_DIR=/D/QtCreator/5.13.0/mingw73_64/lib/cmake/Qt5
+cd ../dist/
+ls
+
