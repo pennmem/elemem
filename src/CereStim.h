@@ -53,10 +53,10 @@ namespace CML {
   class CSException : public std::runtime_error {
     public:
     CSException(int error_code_)
-      : error_code(error_code_),
-        error_message(CodeToString(error_code_)),
-        std::runtime_error(std::string("CereStim Error ") +
-          std::to_string(error_code_) + ", " + CodeToString(error_code_)) {
+      : std::runtime_error(std::string("CereStim Error ") +
+          std::to_string(error_code_) + ", " + CodeToString(error_code_)),
+        error_code(error_code_),
+        error_message(CodeToString(error_code_)) {
     }
 
     CS_Result GetEnum() { return (CS_Result)error_code; }

@@ -1,2 +1,9 @@
 Qt5Cored.dll
+Qt5Guid.dll
+Qt5Svgd.dll
+Qt5Widgetsd.dll
+libEGLd.dll
+libGLESV2d.dll
+platforms/qwindowsd.dll
+styles/qwindowsvistastyled.dll
 *.exe
