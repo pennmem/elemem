@@ -26,7 +26,7 @@
 #elif defined(WIN32)
 #include <winsock2.h>
 #include <windows.h>
-#include <Dbghelp.h>
+#include <dbghelp.h>
 #include <tchar.h>
 #endif
 #endif // RC_NO_STACKTRACE
@@ -120,9 +120,9 @@ namespace RC {
         SymInitialize(process, NULL, true);
 
         // Allocate this variable length SYMBOL_INFO structure on stack.
-        size_t symbolnamelen = 255;
+        const size_t symbolnamelen = 255;
         char symboldata[sizeof(SYMBOL_INFO)+(symbolnamelen+1)];
-        SYMBOL_INFO *symbol = (SYMBOL_INFO*)symboldata;
+        SYMBOL_INFO *symbol = reinterpret_cast<SYMBOL_INFO*>(symboldata);
         symbol->MaxNameLen = symbolnamelen;
         symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
@@ -131,12 +131,12 @@ namespace RC {
 
         for(int i=0; i<backtrace_cnt; i++) {
           offset += R_Safe_snprintf(stacktrace_txt+offset,
-            ErrorMsg_text_bufsize-offset, "\r\n\t0x%lx : ", (long unsigned
-            int)bt_buffer[i]);
-          if (SymFromAddr(process, (DWORD64)bt_buffer[i], 0, symbol)) {
+            ErrorMsg_text_bufsize-offset, "\r\n\t0x%lx : ",
+              static_cast<long unsigned int>(size_t(bt_buffer[i])));
+          if (SymFromAddr(process, DWORD64(bt_buffer[i]), 0, symbol)) {
             offset += R_Safe_snprintf(stacktrace_txt+offset,
               ErrorMsg_text_bufsize-offset, "%s [0x%lx]", symbol->Name,
-              (long unsigned int)symbol->Address);
+              static_cast<long unsigned int>(size_t(symbol->Address)));
           }
           else {
             offset += R_Safe_snprintf(stacktrace_txt+offset,

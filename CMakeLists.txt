@@ -27,7 +27,7 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${CMAKE_CURRENT_SOURCE_DIR}/dist)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_CURRENT_SOURCE_DIR}/dist)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/dist)
 
-set (CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused -Wnull-dereference -Werror -std=c++17 -O3 -ffast-math")
+set (CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-error=unused -Wno-error=unused-parameter -Wno-error=unused-but-set-variable -Wno-zero-as-null-pointer-constant -Wnull-dereference -Werror -std=c++17 -O3 -ffast-math")
 
 ##############
 # Source files
