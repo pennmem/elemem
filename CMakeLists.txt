@@ -38,9 +38,15 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
 
   src/About.cpp
   src/About.h
+  src/APITests.cpp
+  src/APITests.h
   src/CereStim.cpp
   src/CereStim.h
   src/Cerebus.h
+  src/EEGAcq.cpp
+  src/EEGAcq.h
+  src/GUIParts.cpp
+  src/GUIParts.h
   src/Handler.cpp
   src/Handler.h
   src/MainWindow.cpp
@@ -49,6 +55,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Popup.h
   src/RCQApplication.cpp
   src/RCQApplication.h
+  src/StimWorker.h
+  src/StimWorker.cpp
 
   src/RC/APtr.h
   src/RC/Bitfield2D.h

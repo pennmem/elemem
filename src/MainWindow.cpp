@@ -1,6 +1,8 @@
 #include "About.h"
+#include "GuiParts.h"
 #include "MainWindow.h"
 #include <QAction>
+#include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QMenu>
@@ -54,6 +56,13 @@ namespace CML {
     // waveform_disp = new WaveformDisplay();
 
     QHBoxLayout *control_and_display = new QHBoxLayout();
+
+    RC::Ptr<Button> cerebus_test = new Button(hndl->CerebusTest, "Cerebus Test");
+    RC::Ptr<Button> cerestim_test = new Button(hndl->CereStimTest, "CereStim Test");
+
+    control_and_display->addWidget(cerebus_test);
+    control_and_display->addWidget(cerestim_test);
+
     central->setLayout(control_and_display);
 
     setCentralWidget(central);

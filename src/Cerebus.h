@@ -127,7 +127,11 @@ namespace CML {
     protected:
 
     void ClearChannels() {
-      return; // TODO - How should this be done?
+      first_chan=-1;  // unset
+      last_chan=0;
+
+      return; // TODO - How should this be done?  Is the rest needed?
+
       cbPKT_CHANINFO channel_info;
 
       cbSdkResult res;
