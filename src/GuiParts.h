@@ -207,7 +207,7 @@ namespace CML {
 
     protected slots:
     void IndexChangedSlot(int index) {
-      IndexChanged(index);
+      IndexChanged(u64(index));
     }
     protected:
     virtual void IndexChanged(u64 index) = 0;
@@ -224,7 +224,7 @@ namespace CML {
       }
     }
     protected:
-    void IndexChanged(u64 index) { callback((Enum)index); }
+    void IndexChanged(u64 index) { callback(Enum(index)); }
     RC::Caller<void, const Enum&> callback;
   };
 

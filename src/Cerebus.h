@@ -35,12 +35,13 @@ namespace CML {
       if (res != CBSDKRESULT_SUCCESS) {
         throw std::runtime_error(
             std::string("cbSdkOpen failed, instance ") +
-            std::to_string(instance)
+            std::to_string(instance) + ", error " +
+            std::to_string(res)
         );
       }
 
-      for (int i=0; i<cbNUM_ANALOG_CHANS; i++) {
-        trial.samples[i] = channel_data[i].data();
+      for (size_t i=0; i<cbNUM_ANALOG_CHANS; i++) {
+        trial.samples[i] = reinterpret_cast<void*>(channel_data[i].data());
       }
     }
 
@@ -72,7 +73,7 @@ namespace CML {
 
       ClearChannels();
 
-      for (uint32_t c=first_channel; c<last_channel; c++) {
+      for (uint16_t c=first_channel; c<last_channel; c++) {
         ConfigureChannel(c);
       }
 
@@ -127,11 +128,11 @@ namespace CML {
     protected:
 
     void ClearChannels() {
-      first_chan=-1;  // unset
+      first_chan=uint16_t(-1);  // unset
       last_chan=0;
 
       return; // TODO - How should this be done?  Is the rest needed?
-
+/*
       cbPKT_CHANINFO channel_info;
 
       cbSdkResult res;
@@ -148,7 +149,7 @@ namespace CML {
             std::string("cbSdk clear channel config failed, instance ") +
             std::to_string(instance)
         );
-      }
+      }*/
     }
 
     void ConfigureChannel(uint16_t channel) {
@@ -189,7 +190,7 @@ namespace CML {
     }
 
     uint32_t instance;
-    uint16_t first_chan=-1;  // unset
+    uint16_t first_chan=uint16_t(-1);  // unset
     uint16_t last_chan=0;
 
     std::vector<std::vector<int16_t>> channel_data{cbNUM_ANALOG_CHANS,
