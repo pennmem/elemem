@@ -9,8 +9,10 @@
 #include "Cerebus.h"
 
 namespace CML {
-  std::string CSException::CodeToString(cbSdkResult err) {
-    int err_i = int(err)
+  CBException::~CBException() { }
+
+  std::string CBException::CodeToString(cbSdkResult err) {
+    int err_i = int(err);
     switch(err_i) {
       case 3:
         return "If file conversion is needed";

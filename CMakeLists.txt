@@ -42,6 +42,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/APITests.h
   src/CereStim.cpp
   src/CereStim.h
+  src/Cerebus.cpp
   src/Cerebus.h
   src/EEGAcq.cpp
   src/EEGAcq.h

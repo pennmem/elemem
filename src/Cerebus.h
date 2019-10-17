@@ -24,6 +24,30 @@
 #endif
 
 namespace CML {
+  class CBException : public std::runtime_error {
+    public:
+    CBException(cbSdkResult error_code_, std::string attempted="",
+        uint32_t instance=uint32_t(-1))
+      : std::runtime_error(std::string("Cerebus ") + attempted + " Error " +
+          std::to_string(int(error_code_)) + ", " +
+          ((instance!=uint32_t(-1)) ? std::string("instance ") +
+            std::to_string(instance) + ", " : std::string("")) +
+          CodeToString(error_code_)),
+        error_code(error_code_),
+        error_message(CodeToString(error_code_)) {
+    }
+    virtual ~CBException(); // to specify translation unit for v-table.
+
+    cbSdkResult GetErrorCode() { return error_code; }
+    std::string GetErrorMsg() { return error_message; }
+
+    static std::string CodeToString(cbSdkResult err);
+
+    private:
+    cbSdkResult error_code;
+    std::string error_message;
+  };
+
   // All channel numbers are zero-based.  For user-interfacing use one-based.
   class Cerebus {
     public:
@@ -193,31 +217,6 @@ namespace CML {
         std::vector<int16_t>(cbSdk_CONTINUOUS_DATA_SAMPLES)};
 
     cbSdkTrialCont trial{};
-  };
-
-
-  class CBException : public std::runtime_error {
-    public:
-    CSException(cbSdkResult error_code_, std::string attempted="",
-        uint32_t instance=uint32_t(-1))
-      : std::runtime_error(std::string("Cerebus ") + attempted + " Error " +
-          std::to_string(int(error_code_)) + ", " +
-					((instance!=uint32_t(-1)) ? std::string("instance ") +
-						std::to_string(instance) + ", " : std::string("")) +
-					CodeToString(error_code_)),
-        error_code(error_code_),
-        error_message(CodeToString(error_code_)) {
-    }
-
-    CS_Result GetEnum() { return (CS_Result)error_code; }
-    cbSdkResult GetErrorCode() { return error_code; }
-    std::string GetErrorMsg() { return error_message; }
-
-    static std::string CodeToString(cbSdkResult err);
-
-    private:
-    cbSdkResult error_code;
-    std::string error_message;
   };
 }
 
