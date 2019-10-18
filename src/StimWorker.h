@@ -16,10 +16,15 @@ namespace CML {
     RCqt::TaskCaller<> Stimulate =
       TaskHandler(StimWorker::Stimulate_Handler);
 
+    RCqt::TaskBlocker<> CloseCereStim =
+      TaskHandler(StimWorker::CloseCereStim_Handler);
+
     protected:
 
     void ConfigureStimulation_Handler(CSStimProfile& profile);
     void Stimulate_Handler();
+
+    void CloseCereStim_Handler();
 
     CereStim cerestim;
   };

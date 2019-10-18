@@ -16,6 +16,13 @@
 
 namespace CML {
   CereStim::CereStim() {
+  }
+
+  void CereStim::Open() {
+    if (is_open) {
+      Close();
+    }
+
     uint64_t num_devices = 1024;
     std::vector<uint32_t> device_serial_nums(num_devices);
     ErrorCheck(
@@ -37,6 +44,8 @@ namespace CML {
       CS_Connect()
     );
 
+    is_open = true;
+
     stim_width_us = 300;
     CSMaxValues max_vals;
     max_vals.voltage = 15; // (0.5 + 0.6*15)V = 9.5V
@@ -46,17 +55,35 @@ namespace CML {
     max_vals.frequency = 1000; // Hz
     was_active = false;
 
-    SetMaxValues(max_vals);
+    SetMaxValues(max_vals);    
   }
 
   CereStim::~CereStim() {
-    if (was_active) {
-      CS_Stop();
+    if (is_open) {
+      Close();
     }
-    CS_Disconnect();
+  }
+
+  void CereStim::Close() {
+    if (is_open) {
+      if (was_active) {
+        CS_Stop();
+      }
+      CS_Disconnect();
+
+      is_open = false;
+    }
+  }
+
+  void CereStim::BeOpen() {
+    if (!is_open) {
+      Open();
+    }
   }
 
   CSMaxValues CereStim::GetMaxValues() {
+    BeOpen();
+
     CSMaxValues ret;
 
     ErrorCheck(
@@ -68,6 +95,8 @@ namespace CML {
   }
 
   void CereStim::SetMaxValues(CSMaxValues max_vals) {
+    BeOpen();
+
     ErrorCheck(
       CS_SetMaxValues(max_vals.voltage, max_vals.amplitude,
         max_vals.phase_charge, max_vals.frequency)
@@ -75,6 +104,8 @@ namespace CML {
   }
 
   void CereStim::ConfigureStimulation(CSStimProfile profile) {
+    BeOpen();
+
     StopStimulation();
 
     struct FreqDurAmp {
@@ -192,6 +223,8 @@ namespace CML {
   }
 
   void CereStim::Stimulate() {
+    BeOpen();
+
     StopStimulation();
 
     was_active = true;
@@ -201,6 +234,8 @@ namespace CML {
   }
 
   void CereStim::StopStimulation() {
+    BeOpen();
+
     if (was_active) {
       ErrorCheck(
         CS_Stop()
@@ -217,6 +252,9 @@ namespace CML {
     throw CSException(err);
   }
 
+
+  CSException::~CSException() {
+  }
 
   std::string CSException::CodeToString(int err) {
     switch(err) {

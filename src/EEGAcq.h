@@ -14,6 +14,9 @@ namespace CML {
     
     EEGAcq();
 
+    RCqt::TaskCaller<uint32_t> SetInstance =
+      TaskHandler(EEGAcq::SetInstance_Handler);
+
     RCqt::TaskCaller<ChannelList> SetChannels =
       TaskHandler(EEGAcq::SetChannels_Handler);
 
@@ -26,12 +29,21 @@ namespace CML {
     RCqt::TaskCaller<> SaveMore =
       TaskHandler(EEGAcq::SaveMore_Handler);
 
+
+    RCqt::TaskBlocker<> CloseCerebus =
+      TaskHandler(EEGAcq::CloseCerebus_Handler);
+
     protected:
 
+    void SetInstance_Handler(uint32_t& instance);
     void SetChannels_Handler(ChannelList& channels);
     void StartSaving_Handler(RC::RStr& output_path);
     void StopSaving_Handler();
     void SaveMore_Handler();
+
+    void StopEverything();
+
+    void CloseCerebus_Handler();
 
     Cerebus cereb;
 

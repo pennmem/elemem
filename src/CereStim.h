@@ -35,6 +35,9 @@ namespace CML {
     CereStim(const CereStim& other) = delete;
     CereStim& operator=(const CereStim& other) = delete;
 
+    void Open();  // Automatic at first use.
+    void Close();
+
     CSMaxValues GetMaxValues();
     void SetMaxValues(CSMaxValues max_vals);
 
@@ -43,10 +46,12 @@ namespace CML {
     void StopStimulation();
       
     private:
+    void BeOpen();
     void ErrorCheck(int err);
 
     uint16_t stim_width_us = 300;
     bool was_active = false;
+    bool is_open = false;
   };
 
 
@@ -58,6 +63,7 @@ namespace CML {
         error_code(error_code_),
         error_message(CodeToString(error_code_)) {
     }
+    virtual ~CSException(); // to specify translation unit for v-table.
 
     CS_Result GetEnum() { return (CS_Result)error_code; }
     int GetErrorCode() { return error_code; }

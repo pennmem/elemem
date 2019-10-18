@@ -15,5 +15,9 @@ namespace CML {
     // TODO - log event
     cerestim.Stimulate();
   }
+
+  void StimWorker::CloseCereStim_Handler() {
+    cerestim.Close();
+  }
 }
 

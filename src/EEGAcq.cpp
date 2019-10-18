@@ -6,8 +6,16 @@ namespace CML {
   EEGAcq::EEGAcq() {
   }
 
+  void EEGAcq::SetInstance_Handler(uint32_t& instance) {
+    StopEverything();
+
+    cereb.SetInstance(instance);
+  }
+
 
   void EEGAcq::SetChannels_Handler(ChannelList& channels) {
+    StopEverything();
+
     std::vector<uint16_t> channel_vect(channels.size());
 
     for (size_t i=0; i<channels.size(); i++) {
@@ -19,6 +27,8 @@ namespace CML {
 
 
   void EEGAcq::StartSaving_Handler(RC::RStr& output_path) {
+    StopSaving_Handler();
+
     if ( ! eeg_out.Open(output_path) ) {
       Throw_RC_Type(File, "Could not write to EEG File");
     }
@@ -30,13 +40,19 @@ namespace CML {
 
 
   void EEGAcq::StopSaving_Handler() {
-    saving_data = false;
+    if (saving_data) {
+      saving_data = false;
 
-    eeg_out.Close();
+      eeg_out.Close();
+    }
   }
 
 
   void EEGAcq::SaveMore_Handler() {
+    if (!saving_data) {
+      return;
+    }
+
     auto& data = cereb.GetData();
 
     for(size_t c=0; c<data.size(); c++) {
@@ -52,6 +68,16 @@ namespace CML {
 
     RC::Time::Sleep(0.010);
     SaveMore();
+  }
+
+  void EEGAcq::StopEverything() {
+    if (saving_data) {
+      StopSaving_Handler();
+    }
+  }
+
+  void EEGAcq::CloseCerebus_Handler() {
+    cereb.Close();
   }
 }
 

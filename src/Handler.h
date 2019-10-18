@@ -25,15 +25,17 @@ namespace CML {
     RCqt::TaskCaller<> CereStimTest =
       TaskHandler(Handler::CereStimTest_Handler);
 
-    EEGAcq ecg_acq;
+    EEGAcq eeg_acq;
     StimWorker stim_worker;
 
     private:
 
     RC::Ptr<MainWindow> main_window;
 
-    void CerebusTest_Handler() { APITests::CereLinkTest(); }
-    void CereStimTest_Handler() { APITests::CereStimTest(); }
+    void CerebusTest_Handler();
+    void CereStimTest_Handler();
+
+    bool stim_test_warning = true;
   };
 }
 
