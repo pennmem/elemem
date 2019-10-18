@@ -41,45 +41,41 @@ namespace APITests {
   }
 
   void CereStimTest() {
-    try {
-      cout << "Stimulation Test:" << endl;
+    cout << "Stimulation Test:" << endl;
 
-      CereStim cerestim;
+    CereStim cerestim;
 
-      cout << "Connected." << endl;
+    cout << "Connected." << endl;
 
-      cout << "Configuring." << endl;
+    cout << "Configuring." << endl;
 
-      CSStimProfile prof;
-      CSStimChannel chan;
+    CSStimProfile prof;
+    CSStimChannel chan;
 
-      chan.electrode_pos = 1;
-      chan.electrode_neg = 2;
-      chan.amplitude = 1000; // Unit 1uA, granularity 100uA for macro.
-      chan.frequency = 100; // Unit Hz.
-      chan.duration = 1000000;  // Unit us.
+    chan.electrode_pos = 1;
+    chan.electrode_neg = 2;
+    chan.amplitude = 1000; // Unit 1uA, granularity 100uA for macro.
+    chan.frequency = 100; // Unit Hz.
+    chan.duration = 1000000;  // Unit us.
 
-      prof += chan;
+    prof += chan;
 
-      chan.electrode_pos = 3;
-      chan.electrode_neg = 4;
-      chan.amplitude = 2000; // Unit 1uA, granularity 100uA for macro.
-      chan.frequency = 50; // Unit Hz.
-      chan.duration = 1000000;  // Unit us.
+    chan.electrode_pos = 3;
+    chan.electrode_neg = 4;
+    chan.amplitude = 2000; // Unit 1uA, granularity 100uA for macro.
+    chan.frequency = 50; // Unit Hz.
+    chan.duration = 1000000;  // Unit us.
 
-      prof += chan;
+    prof += chan;
 
-      cerestim.ConfigureStimulation(prof);
+    cerestim.ConfigureStimulation(prof);
 
-      cout << "Stimulating." << endl;
-      cerestim.Stimulate();
+    cout << "Stimulating." << endl;
+    cerestim.Stimulate();
 
-      sleep(2);
-    }
-    catch(std::exception& ex) {
-      cerr << ex.what() << endl;
-      exit(-1);
-    }
+    sleep(2);
+
+    cout << "Done." << endl;
   }
 
   void CereLinkTest() {

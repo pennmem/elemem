@@ -269,7 +269,8 @@ namespace CML {
       case -4:
         return "Null pointer";
       case -5:
-        return "Invalid intrface specified or interface not supported";
+        return "CereStim unit not found";
+        //return "Invalid intrface specified or interface not supported";
       case -6:
         return "Timeout in creating the interface";
       case -7:
