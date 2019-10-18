@@ -99,6 +99,7 @@ namespace CML {
 
 
   Cerebus::~Cerebus() {
+    Close();
   }
 
 
@@ -116,12 +117,18 @@ namespace CML {
     for (size_t i=0; i<cbNUM_ANALOG_CHANS; i++) {
       trial.samples[i] = reinterpret_cast<void*>(channel_data[i].data());
     }
+
+    is_open = true;
   }
 
 
   void Cerebus::Close() {
     if (is_open) {
+      ClearChannels();
+
       cbSdkClose(instance);
+
+      is_open = false;
     }
   }
 
@@ -140,6 +147,8 @@ namespace CML {
 
 
   void Cerebus::SetChannel(uint16_t channel) {
+    BeOpen();
+
     ClearChannels();
 
     ConfigureChannel(channel);
@@ -155,6 +164,8 @@ namespace CML {
       throw std::runtime_error("Invalid channel range");
     }
 
+    BeOpen();
+
     first_chan = first_channel;
     last_chan = last_channel;
 
@@ -169,6 +180,8 @@ namespace CML {
 
 
   void Cerebus::SetChannels(std::vector<uint16_t> channel_list) {
+    BeOpen();
+
     ClearChannels();
 
     for (size_t i=0; i<channel_list.size(); i++) {
@@ -186,6 +199,8 @@ namespace CML {
       throw std::runtime_error("Set channels before getting data");
     }
 
+    BeOpen();
+
     // Set vector sizes to maximum allowed.
     for (uint32_t c=first_chan; c<=last_chan; c++) {
       channel_data[c].resize(cbSdk_CONTINUOUS_DATA_SAMPLES);
@@ -200,10 +215,7 @@ namespace CML {
     }
 
     if (res != CBSDKRESULT_SUCCESS) {
-      throw std::runtime_error(
-          std::string("cbSdkGetTrialData failed, instance ") +
-          std::to_string(instance)
-      );
+      throw CBException(res, "cbSdkGetTrialData", instance);
     }
 
     // Set vector sizes to actually acquired data.
@@ -253,10 +265,7 @@ namespace CML {
     }
 
     if (res != CBSDKRESULT_SUCCESS) {
-      throw std::runtime_error(
-          std::string("cbSdk channel config failed, instance ") +
-          std::to_string(instance) + ", channel " + std::to_string(channel+1)
-      );
+      throw CBException(res, "channel config", instance);
     }
   }
 
@@ -266,7 +275,7 @@ namespace CML {
         0, 0, false, 0, cbSdk_CONTINUOUS_DATA_SAMPLES, 0, 0, 0, true);
 
     if (res != CBSDKRESULT_SUCCESS) {
-      throw std::runtime_error("cbSdkSetTrialConfig failed");
+      throw CBException(res, "cbSdkSetTrialConfig", instance);
     }
 
     // Set size of data to 0 ahead of time for inactive channels.

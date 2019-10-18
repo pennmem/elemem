@@ -59,9 +59,7 @@ namespace CML {
   }
 
   CereStim::~CereStim() {
-    if (is_open) {
-      Close();
-    }
+    Close();
   }
 
   void CereStim::Close() {

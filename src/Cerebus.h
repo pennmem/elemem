@@ -90,7 +90,7 @@ namespace CML {
 
     cbSdkTrialCont trial{};
 
-    bool is_open;
+    bool is_open = false;
   };
 }
 
