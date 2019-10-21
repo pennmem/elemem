@@ -28,12 +28,17 @@ namespace CML {
     EEGAcq eeg_acq;
     StimWorker stim_worker;
 
+    RCqt::TaskCaller<const f64> TestLabel =
+      TaskHandler(Handler::TestLabel_Handler);
+
     private:
 
     RC::Ptr<MainWindow> main_window;
 
     void CerebusTest_Handler();
     void CereStimTest_Handler();
+
+    void TestLabel_Handler(const f64& x) { std::cout << x << std::endl; }
 
     bool stim_test_warning = true;
   };

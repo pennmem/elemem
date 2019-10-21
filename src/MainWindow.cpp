@@ -59,9 +59,11 @@ namespace CML {
 
     RC::Ptr<Button> cerebus_test = new Button(hndl->CerebusTest, "Cerebus Test");
     RC::Ptr<Button> cerestim_test = new Button(hndl->CereStimTest, "CereStim Test");
+    RC::Ptr<LabeledF64> test_label = new LabeledF64(hndl->TestLabel, "Test Label");
 
     control_and_display->addWidget(cerebus_test);
     control_and_display->addWidget(cerestim_test);
+    control_and_display->addWidget(test_label);
 
     central->setLayout(control_and_display);
 

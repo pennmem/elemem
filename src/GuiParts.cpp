@@ -1,4 +1,5 @@
 #include "GuiParts.h"
+#include "RC/RCBits.h"
 
 using namespace RC;
 
@@ -50,7 +51,7 @@ namespace CML {
 
   LabeledF64::LabeledF64(Caller<void, const f64&> callback,
                          const RStr &label_text)
-    : LabeledEdit(label_text), callback(callback) {
+    : LabeledEdit(label_text), callbackf64(callback) {
 
     SetRange(-RC::MAX_VAL<f64>(), RC::MAX_VAL<f64>());
     Set(0);
@@ -95,12 +96,12 @@ namespace CML {
   }
 
   void LabeledI64::Set_Handler(const i64& val) {
-    spin.setValue(val);
+    spin.setValue(RC::CappedCast<int>(val));
   }
 
   void LabeledI64::SetRange(i64 new_min, i64 new_max) {
-    spin.setMinimum(new_min);
-    spin.setMaximum(new_max);
+    spin.setMinimum(RC::CappedCast<int>(new_min));
+    spin.setMaximum(RC::CappedCast<int>(new_max));
   }
 
 ////////////////////////////
@@ -131,7 +132,7 @@ namespace CML {
   }
 
   void ComboBox::Set_Handler(const u64& index) {
-    setCurrentIndex(index);
+    setCurrentIndex(RC::CappedCast<int>(index));
   }
 }
 

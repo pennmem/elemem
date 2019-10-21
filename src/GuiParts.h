@@ -48,7 +48,7 @@ namespace CML {
       RC::RStr val = edit.text().toStdString();
       callback(val);
     }
-    virtual void Validate(RC::RStr &str) { }
+    virtual void Validate(RC::RStr &/*str*/) { }
 
     QLabel label;
     QLineEdit edit;
@@ -84,7 +84,7 @@ namespace CML {
         edit.setText(RC::RStr(val).c_str());
       }
       last_val = val;
-      callback(val);
+      callbackf64(val);
     }
 
     void Validate(RC::RStr &str);
@@ -92,7 +92,7 @@ namespace CML {
     f64 min, max;
     f64 last_val;
 
-    RC::Caller<void, const f64&> callback;
+    RC::Caller<void, const f64&> callbackf64;
   };
 
 
@@ -147,7 +147,7 @@ namespace CML {
     }
 
     protected slots:
-    void ClickedSlot(bool checked) {
+    void ClickedSlot(bool /*checked*/) {
       Clicked();
     }
     protected:
