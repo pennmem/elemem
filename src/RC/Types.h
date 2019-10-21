@@ -40,11 +40,9 @@ typedef long double f80;  ///< 80-bit float.  (Note:  Usually takes 16 bytes.)
 #endif
 #endif
 #if (__SIZEOF_INT128__ == 16)
-#ifndef __clang__
 /// Defined if the 128-bit float was found available on this system.
 #define RC_HAVE_F128
 typedef __float128 f128;  ///< 128-bit float.
-#endif
 #endif
 
 #ifdef RC_HAVE_F128

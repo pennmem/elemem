@@ -11,9 +11,11 @@
 #define RC_RCBITS_H
 
 #include "RCconfig.h"
+#include "Errors.h"
 #ifdef CPP11
 #include "Tuple.h"
 #endif
+#include "Types.h"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -405,6 +407,60 @@ class DynamicFunction {
  */
 #define RC_DYNAMIC_LOAD_FUNC(FuncName,DynLib) \
   static RC::DynamicFunction<decltype(FuncName)> FuncName{DynLib, #FuncName};
+
+
+#ifdef CPP11
+/// For integer and floating point types, Throws RC::ErrorMsgBounds if
+/// the value of x does not fit into T.  Use as CheckedCast<T>(x)
+template<class T, class T2>
+inline T CheckedCast(const T2 &x) {
+  bool out_of_bounds = false;
+
+  if (IsIntegerType<T>()) {
+    if (intmax_t(x) < intmax_t(LOW_VAL<T>())) {
+      out_of_bounds = true;
+    } 
+    else if (x > 0 && uintmax_t(x) > uintmax_t(MAX_VAL<T>())) {
+      out_of_bounds = true;
+    }
+  }
+  else {
+    if (fBIGGEST(x) < fBIGGEST(LOW_VAL<T>())) {
+      out_of_bounds = true;
+    }
+    else if (fBIGGEST(x) > fBIGGEST(MAX_VAL<T>())) {
+      out_of_bounds = true;
+    }
+  }
+  if (out_of_bounds) {
+    Throw_RC_Type(Bounds, "Cast out of bounds");
+  }
+  return T(x);
+}
+
+/// For integer and floating point types, caps the cast value of x to
+/// be within bounds of type T.  Use as CappedCast<T>(x)
+template<class T, class T2>
+inline T CappedCast(const T2 &x) {
+  if (IsIntegerType<T>()) {
+    if (intmax_t(x) < intmax_t(LOW_VAL<T>())) {
+      return LOW_VAL<T>();
+    } 
+    if (x > 0 && uintmax_t(x) > uintmax_t(MAX_VAL<T>())) {
+      return MAX_VAL<T>();
+    }
+  }
+  else {
+    if (fBIGGEST(x) < fBIGGEST(LOW_VAL<T>())) {
+      return LOW_VAL<T>();
+    }
+    if (fBIGGEST(x) > fBIGGEST(MAX_VAL<T>())) {
+      return MAX_VAL<T>();
+    }
+  }
+  return T(x);
+}
+#endif
 
 }
 

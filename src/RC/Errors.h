@@ -151,24 +151,27 @@ namespace RC {
 #endif // WIN32
 #endif // RC_NO_STACKTRACE
 
+      int written = 0;
       if (filename != NULL && filename[0] != '\0') {
-        UnusedVar(snprintf(what_msg, ErrorMsg_what_bufsize,
+        written = snprintf(what_msg, ErrorMsg_what_bufsize,
           "%s, %s, line %d%s", err_msg, filename, line_number,
-          stacktrace_txt));
+          stacktrace_txt);
       }
       else {
-        UnusedVar(snprintf(what_msg, ErrorMsg_what_bufsize, "%s%s", err_msg,
-          stacktrace_txt));
+        written = snprintf(what_msg, ErrorMsg_what_bufsize, "%s%s", err_msg,
+          stacktrace_txt);
+      }
+      if (written >= int(ErrorMsg_what_bufsize)) {
+        for (size_t i=ErrorMsg_what_bufsize-4; i<ErrorMsg_what_bufsize-1;
+             i++) {
+          what_msg[i] = '.';
+        }
+        what_msg[ErrorMsg_what_bufsize-1] = '\0';
       }
     }
 
     #undef R_Safe_snprintf
 
-    /// The destructor.
-    virtual ~ErrorMsg() RC_NOEXCEPT {
-    }
-
-    RC_DefaultCopyMove(ErrorMsg)
 
     /// Provides the reason given for the error.
     /** @return The reason for the exception being thrown.
@@ -238,9 +241,6 @@ namespace RC {
       : RC::ErrorMsg(new_err_msg, filename, line_number) {\
       snprintf(type_msg, ErrorMsg_type_bufsize, #Type);\
     }\
-    /** \brief The destructor. */ \
-    virtual ~ErrorMsg##Type() RC_NOEXCEPT {} \
-    RC_DefaultCopyMove(ErrorMsg##Type) \
   };
       
 

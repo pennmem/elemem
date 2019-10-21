@@ -8,13 +8,13 @@
 /////////////////////////////////////////////////////////////////////
 
 #ifdef RC_VERSION
-#if RC_VERSION != 201909271138ul
+#if RC_VERSION != 201910201008ul
 #error "Included two different RC library versions"
 #endif
 #endif
 /// \def RC_VERSION
 /// The date-time stamped version number for this release.
-#define RC_VERSION 201909271138ul
+#define RC_VERSION 201910201008ul
 
 #ifndef RC_CONFIG_H
 /// @cond UNDOC
