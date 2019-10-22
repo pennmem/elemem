@@ -6,6 +6,9 @@
 #include "Handler.h"
 #include <QMainWindow>
 
+class QVBoxLayout;
+class QScrollArea;
+
 namespace CML {
   class MainWindow : public QMainWindow, public RCqt::Worker {
     Q_OBJECT
@@ -19,6 +22,8 @@ namespace CML {
     protected:
 
     void PrepareMenus();
+    RC::Ptr<QVBoxLayout> BuildStimConfig();
+    RC::Ptr<QScrollArea> BuildStimGrid();
     void BuildLayout();
 
     template<class T>
