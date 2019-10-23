@@ -31,6 +31,10 @@ namespace CML {
     RCqt::TaskCaller<const f64> TestLabel =
       TaskHandler(Handler::TestLabel_Handler);
 
+    // Break into vector of handlers
+    RCqt::TaskCaller<> TestStim =
+      TaskHandler(Handler::TestStim_Handler);
+
     private:
 
     RC::Ptr<MainWindow> main_window;
@@ -39,6 +43,7 @@ namespace CML {
     void CereStimTest_Handler();
 
     void TestLabel_Handler(const f64& x) { std::cout << x << std::endl; }
+    void TestStim_Handler() { }
 
     bool stim_test_warning = true;
   };

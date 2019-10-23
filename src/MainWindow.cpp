@@ -7,6 +7,7 @@
 #include <QVBoxLayout>
 #include <QGridLayout>
 #include <QScrollArea>
+#include <QGroupBox>
 #include <QMenu>
 #include <QMenuBar>
 
@@ -52,11 +53,11 @@ namespace CML {
   }
 
 
-  RC::Ptr<QVBoxLayout> MainWindow::BuildStimConfig() {
-    RC::Ptr<QVBoxLayout> stim_conf = new QVBoxLayout();
-
+  RC::Ptr<QGroupBox> MainWindow::BuildStimConfig() {
     // Store this label so it can be set at config load.
-    stim_conf->addWidget(new QLabel("LA8-LA9"));
+    RC::Ptr<QGroupBox> stim_conf_box = new QGroupBox("LA8-LQ9");
+
+    RC::Ptr<QVBoxLayout> stim_conf = new QVBoxLayout();
 
     RC::Ptr<QHBoxLayout> anode_cath = new QHBoxLayout();
     anode_cath->addWidget(new QLabel("Anode"));
@@ -73,27 +74,26 @@ namespace CML {
     RC::Ptr<LabeledF64> dur = new LabeledF64(hndl->TestLabel, "Duration");
     stim_conf->addWidget(dur);
 
-    return stim_conf;
+    RC::Ptr<Button> test_stim = new Button(hndl->TestStim, "Test Stim");
+    stim_conf->addWidget(test_stim);
+
+    stim_conf_box->setLayout(stim_conf);
+    return stim_conf_box;
   }
 
 
-  RC::Ptr<QScrollArea> MainWindow::BuildStimGrid() {
+  RC::Ptr<QGridLayout> MainWindow::BuildStimGrid() {
     int stim_cols = 2;
     int stim_rows = 3;
     RC::Ptr<QGridLayout> stim_grid = new QGridLayout();
     for (int r=0; r<stim_rows; r++) {
       for (int c=0; c<stim_cols; c++) {
         // TODO Adjust for hooks for stim config
-        stim_grid->addLayout(BuildStimConfig(), r, c);
+        stim_grid->addWidget(BuildStimConfig(), r, c);
       }
     }
 
-    RC::Ptr<QScrollArea> border = new QScrollArea();
-    border->setFrameStyle(QFrame::Panel);
-    RC::Ptr<QWidget> container = new QWidget();
-    container->setLayout(stim_grid);
-    border->setWidget(container);
-    return border;
+    return stim_grid;
   }
 
 
@@ -104,7 +104,7 @@ namespace CML {
 
     RC::Ptr<QHBoxLayout> control_and_display = new QHBoxLayout();
 
-    control_and_display->addWidget(BuildStimGrid());
+    control_and_display->addLayout(BuildStimGrid());
 
     RC::Ptr<QVBoxLayout> test_layout = new QVBoxLayout();
     RC::Ptr<Button> cerebus_test = new Button(hndl->CerebusTest, "Cerebus Test");
