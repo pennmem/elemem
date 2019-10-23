@@ -54,6 +54,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/MainWindow.h
   src/Popup.cpp
   src/Popup.h
+  src/QtStyle.cpp
+  src/QtStyle.h
   src/RCQApplication.cpp
   src/RCQApplication.h
   src/StimWorker.h

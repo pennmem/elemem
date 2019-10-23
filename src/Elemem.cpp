@@ -5,6 +5,7 @@
 #include "RC/RStr.h"
 #include "RC/Errors.h"
 #include "RCQApplication.h"
+#include "QtStyle.h"
 
 #include <iostream>
 #include <stdlib.h>
@@ -17,6 +18,7 @@ int main (int argc, char *argv[]) {
 
   try {
     RCQApplication app(argc, argv);
+    app.setStyleSheet(Resource::QtStyle_css.c_str());
 
     RC::APtr<CML::Handler> hndl(new CML::Handler());
 
