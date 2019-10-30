@@ -27,7 +27,13 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${CMAKE_CURRENT_SOURCE_DIR}/dist)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_CURRENT_SOURCE_DIR}/dist)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/dist)
 
-set (CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-error=unused -Wno-error=unused-parameter -Wno-error=unused-but-set-variable -Wno-zero-as-null-pointer-constant -Wnull-dereference -Werror -std=c++17 -O3 -ffast-math")
+set (CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-error=unused -Wno-error=unused-parameter")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=unused-variable")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=unused-but-set-variable")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-zero-as-null-pointer-constant")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnull-dereference -Werror")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRC_HAVE_QT")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -ffast-math")
 
 ##############
 # Source files
@@ -44,16 +50,23 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/CereStim.h
   src/Cerebus.cpp
   src/Cerebus.h
+  src/CImage.cpp
+  src/CImage.h
   src/EEGAcq.cpp
   src/EEGAcq.h
+  src/EEGDisplay.cpp
+  src/EEGDisplay.h
   src/GUIParts.cpp
   src/GUIParts.h
   src/Handler.cpp
   src/Handler.h
   src/MainWindow.cpp
   src/MainWindow.h
+  src/Palette.h
+  src/Palette.cpp
   src/Popup.cpp
   src/Popup.h
+  src/QtFileFunctions.h
   src/QtStyle.cpp
   src/QtStyle.h
   src/RCQApplication.cpp
@@ -103,8 +116,8 @@ target_include_directories (${PROJECT_NAME} PRIVATE
 ####################
 # External libraries
 
-find_package (Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent)
-qt5_use_modules(${PROJECT_NAME} Core Gui Widgets Concurrent)
+find_package (Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Svg PrintSupport)
+qt5_use_modules(${PROJECT_NAME} Core Gui Widgets Concurrent Svg PrintSupport)
 
 find_library (CBSDK_LIB "cbsdk" PATHS ${PROJECT_SOURCE_DIR}/lib64)
 if (NOT CBSDK_LIB)

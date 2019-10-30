@@ -8,6 +8,7 @@
 
 class QGroupBox;
 class QGridLayout;
+class EEGDisplay;
 
 namespace CML {
   class MainWindow : public QMainWindow, public RCqt::Worker {
@@ -18,7 +19,13 @@ namespace CML {
     MainWindow(RC::Ptr<Handler> hndl);
 
     RC::Ptr<Handler> hndl;
-    
+
+    public slots:
+
+    //void FileOpenClicked();
+
+    void HelpAboutClicked();
+
     protected:
 
     void PrepareMenus();
@@ -31,11 +38,8 @@ namespace CML {
       const RC::RStr &tip, T qt_slot,
       const QKeySequence &shortcut = QKeySequence::UnknownKey);
 
-    public slots:
 
-    //void FileOpenClicked();
-
-    void HelpAboutClicked();
+    RC::Ptr<EEGDisplay> eeg_disp;
   };
 }
 

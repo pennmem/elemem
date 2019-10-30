@@ -231,6 +231,10 @@ namespace CML {
     first_chan=uint16_t(-1);  // unset
     last_chan=0;
 
+    for (uint32_t c=0; c<cbNUM_ANALOG_CHANS; c++) {
+      channel_data[c].resize(0);
+    }
+
     return; // TODO - How should this be done?  Is the rest needed?
 /*
     cbPKT_CHANINFO channel_info;

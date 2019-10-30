@@ -1,7 +1,6 @@
 #ifndef CIMAGE_H
 #define CIMAGE_H
 
-#include "ImageData.h"
 #include "Palette.h"
 #include "RC/RC.h"
 #include "RCqt/Worker.h"
@@ -14,7 +13,7 @@ using namespace std;
 using namespace RC;
 
 
-namespace PhasorApp {
+namespace CML {
   class Frame;
 
   class CImage : public QLabel, public RCqt::Worker {
@@ -24,14 +23,14 @@ namespace PhasorApp {
     virtual ~CImage();
 
     protected:
-    void SetData_Handler(ImageData& new_data);
-    ImageData GetData_Handler();
+    //void SetData_Handler(ImageData& new_data);
+    //ImageData GetData_Handler();
     void ReDraw_Handler();
     void SetPalette_Handler(const PaletteType& type);
 
     public:
-    RCqt::TaskCaller<ImageData> SetData = TaskHandler(CImage::SetData_Handler);
-    RCqt::TaskGetter<ImageData> GetData = TaskHandler(CImage::GetData_Handler);
+    //RCqt::TaskCaller<ImageData> SetData = TaskHandler(CImage::SetData_Handler);
+    //RCqt::TaskGetter<ImageData> GetData = TaskHandler(CImage::GetData_Handler);
     RCqt::TaskCaller<> ReDraw = TaskHandler(CImage::ReDraw_Handler);
     RCqt::TaskCaller<const PaletteType> SetPalette =
       TaskHandler(CImage::SetPalette_Handler);
@@ -54,15 +53,14 @@ namespace PhasorApp {
     void DrawGeneral(RC::Ptr<QPaintDevice> device);
 
     virtual void DrawBackground();
-    virtual void DrawImage();
     virtual void DrawOnTop();
 
     void SetPen(u32 color, f32 width=1);
 
-    virtual void MouseLeftClicked(int x, int y) { }
-    virtual void MouseLeftDragged(int x, int y) { }
-    virtual void MouseRightClicked(int x, int y) { }
-    virtual void MouseRightDragged(int x, int y) { }
+    virtual void MouseLeftClicked(int /* x */, int /* y */) { }
+    virtual void MouseLeftDragged(int /* x */, int /* y */) { }
+    virtual void MouseRightClicked(int /* x */, int /* y */) { }
+    virtual void MouseRightDragged(int /* x */, int /* y */) { }
 
     void ImagePos(QMouseEvent *event, int &x, int &y);
 
@@ -75,7 +73,6 @@ namespace PhasorApp {
 
     bool SaveImage(FileWrite& fwr, const RStr& format);
 
-    ImageData image_data;
     Palette palette;
 
     int width;

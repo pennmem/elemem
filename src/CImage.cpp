@@ -1,6 +1,4 @@
 #include "CImage.h"
-#include "ImageData.h"
-#include "Notebook.h"
 #include "Palette.h"
 #include "Popup.h"
 #include "QtFileFunctions.h"
@@ -14,7 +12,7 @@
 using namespace RC;
 
 
-namespace PhasorApp {
+namespace CML {
   CImage::CImage()
     : width (1)
     , height (1) {
@@ -29,12 +27,13 @@ namespace PhasorApp {
 
 
   void CImage::DrawAll() {
+    width = QLabel::width();
+    height = QLabel::height();
+
     mypixmap = QPixmap(width, height);
 
     DrawGeneral(&mypixmap);
 
-//    mypixmap = mypixmap.scaled(QLabel::width(), QLabel::height(),
-//                               Qt::KeepAspectRatio);
     setPixmap(mypixmap);
   }
 
@@ -50,22 +49,9 @@ namespace PhasorApp {
                            QPainter::SmoothPixmapTransform);
 
     DrawBackground();
-    DrawImage();
     DrawOnTop();
 
     painter.end();
-  }
-
-
-  void CImage::SetData_Handler(ImageData& new_data) {
-    image_data = new_data;
-    width = image_data.size1();
-    height = image_data.size2();
-  }
-
-
-  ImageData CImage::GetData_Handler() {
-    return image_data;
   }
 
 
@@ -76,56 +62,6 @@ namespace PhasorApp {
 
   void CImage::SetPalette_Handler(const PaletteType& type) {
     palette.SetPalette(type);
-  }
-
-
-  void CImage::DrawImage() {
-    painter.drawImage(QPoint(0,0), ToQImage());
-  }
-
-
-  QImage CImage::ToQImage() {
-    size_t x, y;
-    Color c;
-    float val;
-    float alpha;
-    u8 alpha_u8;
-    float trueval;
-    float disp_thresh = 10;
-    int rmax;
-    Data1D<u8> highlight_color;
-
-    if (image_data.IsEmpty()) {
-      return QImage();
-    }
-
-    QImage qimage(QSize(image_data.size1(),
-          image_data.size2()), QImage::Format_ARGB32);
-
-    for (y = 0; y < image_data.size2(); y++) {
-      Data1D<u32> rowdata(image_data.size1(), (u32*)qimage.scanLine(y));
-      for (x = 0; x < image_data.size1(); x++) {
-        val = image_data[y][x];
-
-        if (val < PALETTE_VAL_THRESH) {
-          rowdata[x] = 0;
-          continue;
-        }
-
-        alpha = 1.0;
-        if (image_data.soften_lowvals) {
-          trueval = val * image_data.max_val;
-          if (trueval < disp_thresh) {
-            alpha = trueval / disp_thresh;
-          }
-        }
-        alpha_u8 = 255.999*alpha;
-
-        rowdata[x] = palette.GetARGB(val, alpha_u8, image_data.adjust_scale);
-      }
-    }
-
-    return qimage;
   }
 
 
@@ -140,7 +76,7 @@ namespace PhasorApp {
   void CImage::SetPen(u32 color, f32 width) {
     QColor qcolor = QColor::fromRgba(color);
     QPen qpen(qcolor);
-    qpen.setWidthF(width);
+    qpen.setWidthF(qreal(width));
     painter.setPen(qpen);
   }
 
@@ -185,7 +121,7 @@ namespace PhasorApp {
     QFont font = painter.font();
     font.setPixelSize(17);
     painter.setFont(font);
-    SetPen(palette.GetFG_ARGB(0.9));
+    SetPen(palette.GetFG_ARGB(0.9f));
     painter.drawText(0, 2, width-5, height-5, Qt::AlignTop | Qt::AlignRight, str.ToQString());
   }
 

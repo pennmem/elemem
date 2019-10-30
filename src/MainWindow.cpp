@@ -1,4 +1,5 @@
 #include "About.h"
+#include "EEGDisplay.h"
 #include "GuiParts.h"
 #include "MainWindow.h"
 #include <QAction>
@@ -109,6 +110,9 @@ namespace CML {
     RC::Ptr<QVBoxLayout> test_layout = new QVBoxLayout();
     RC::Ptr<Button> cerebus_test = new Button(hndl->CerebusTest, "Cerebus Test");
     RC::Ptr<Button> cerestim_test = new Button(hndl->CereStimTest, "CereStim Test");
+
+    eeg_disp = new EEGDisplay(600, 600);
+    control_and_display->addWidget(eeg_disp);
 
     test_layout->addWidget(cerebus_test);
     test_layout->addWidget(cerestim_test);
