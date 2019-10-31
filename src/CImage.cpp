@@ -29,6 +29,7 @@ namespace CML {
   void CImage::DrawAll() {
     width = QLabel::width();
     height = QLabel::height();
+    std::cout << "width: " << width << ", height: " << height << std::endl;
 
     mypixmap = QPixmap(width, height);
 

@@ -113,6 +113,11 @@ namespace CML {
 
     eeg_disp = new EEGDisplay(600, 600);
     control_and_display->addWidget(eeg_disp);
+    for (uint32_t i=0; i<4; i++) {
+      EEGChan chan(i);
+      eeg_disp->SetChannel(chan);
+    }
+    eeg_disp->ReDraw();
 
     test_layout->addWidget(cerebus_test);
     test_layout->addWidget(cerestim_test);
