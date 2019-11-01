@@ -54,6 +54,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/CImage.h
   src/EEGAcq.cpp
   src/EEGAcq.h
+  src/EEGData.h
   src/EEGDisplay.cpp
   src/EEGDisplay.h
   src/GUIParts.cpp

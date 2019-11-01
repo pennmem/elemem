@@ -6,6 +6,12 @@ namespace CML {
   EEGAcq::EEGAcq() {
   }
 
+  EEGAcq::~EEGAcq() {
+    if (acq_timer.IsSet()) {
+      acq_timer->stop();
+    }
+  }
+
   void EEGAcq::SetInstance_Handler(uint32_t& instance) {
     StopEverything();
 
@@ -70,14 +76,37 @@ namespace CML {
     SaveMore();
   }
 
+
+  void EEGAcq::RegisterCallback_Handler(RC::RStr& tag, EEGCallback& callback) {
+    RemoveCallback_Handler(tag);
+
+    data_callbacks += TaggedCallback{tag, callback};
+
+    // TODO activate timer if not running, allocate if needed.
+  }
+
+
+  void EEGAcq::RemoveCallback_Handler(RC::RStr& tag) {
+    for (size_t i=0; i<data_callbacks.size(); i++) {
+      if (data_callbacks[i].tag == tag) {
+        data_callbacks.Remove(i);
+        i--;
+      }
+    }
+
+    // Disable timer if empty.
+  }
+
+
+  void EEGAcq::CloseCerebus_Handler() {
+    cereb.Close();
+  }
+
+
   void EEGAcq::StopEverything() {
     if (saving_data) {
       StopSaving_Handler();
     }
-  }
-
-  void EEGAcq::CloseCerebus_Handler() {
-    cereb.Close();
   }
 }
 

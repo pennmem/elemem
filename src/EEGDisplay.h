@@ -2,13 +2,12 @@
 #define EEGDISPLAY_H
 
 #include "CImage.h"
+#include "EEGData.h"
 #include "RC/Data1D.h"
 #include <vector>
 
 
 namespace CML {
-  typedef RC::Data1D<RC::Data1D<float>> EEGData;
-
   class EEGChan {
     public:
     EEGChan(uint32_t channel=0, RC::RStr label="")

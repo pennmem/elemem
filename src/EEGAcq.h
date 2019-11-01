@@ -4,15 +4,22 @@
 #include "RC/File.h"
 #include "RC/RStr.h"
 #include "RCqt/Worker.h"
+#include "EEGData.h"
 #include "Cerebus.h"
+#include <QTimer>
 
 namespace CML {
   using ChannelList = RC::Data1D<uint16_t>;
+  using EEGCallback = RC::Caller<void, EEGData>;
 
   class EEGAcq : public RCqt::WorkerThread {
     public:
     
     EEGAcq();
+    ~EEGAcq();
+    // Rule of 3.
+    EEGAcq(const EEGAcq&) = delete;
+    EEGAcq& operator=(const EEGAcq&) = delete;
 
     RCqt::TaskCaller<uint32_t> SetInstance =
       TaskHandler(EEGAcq::SetInstance_Handler);
@@ -29,6 +36,12 @@ namespace CML {
     RCqt::TaskCaller<> SaveMore =
       TaskHandler(EEGAcq::SaveMore_Handler);
 
+    RCqt::TaskCaller<RC::RStr, EEGCallback>
+      RegisterCallback =
+      TaskHandler(EEGAcq::RegisterCallback_Handler);
+
+    RCqt::TaskCaller<RC::RStr> RemoveCallback =
+      TaskHandler(EEGAcq::RemoveCallback_Handler);
 
     RCqt::TaskBlocker<> CloseCerebus =
       TaskHandler(EEGAcq::CloseCerebus_Handler);
@@ -40,15 +53,26 @@ namespace CML {
     void StartSaving_Handler(RC::RStr& output_path);
     void StopSaving_Handler();
     void SaveMore_Handler();
+    void RegisterCallback_Handler(RC::RStr& tag, EEGCallback& callback);
+    void RemoveCallback_Handler(RC::RStr& tag);
+    void CloseCerebus_Handler();
 
     void StopEverything();
-
-    void CloseCerebus_Handler();
 
     Cerebus cereb;
 
     RC::FileWrite eeg_out;
+    RC::APtr<QTimer> acq_timer;
+    int polling_interval_ms = 10;
 
+    struct TaggedCallback {
+      RC::RStr tag;
+      EEGCallback callback;
+    };
+    RC::Data1D<TaggedCallback> data_callbacks;
+
+    // Change this to timer_running, restructure.
+    // Move data saving to another object.
     bool saving_data = false;
   };
 }
