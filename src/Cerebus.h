@@ -48,6 +48,12 @@ namespace CML {
     std::string error_message;
   };
 
+  struct TrialData {
+    uint16_t chan;
+    std::vector<int16_t> data =
+        std::vector<int16_t>(cbSdk_CONTINUOUS_DATA_SAMPLES);
+  };
+
   // All channel numbers are zero-based.  For user-interfacing use one-based.
   class Cerebus {
     public:
@@ -70,7 +76,7 @@ namespace CML {
     void SetChannelRange(uint16_t first_channel, uint16_t last_channel);
     void SetChannels(std::vector<uint16_t> channel_list);
 
-    const std::vector<std::vector<int16_t>>& GetData();
+    const std::vector<TrialData>& GetData();
 
 
     protected:
@@ -85,8 +91,7 @@ namespace CML {
     uint16_t first_chan=uint16_t(-1);  // unset
     uint16_t last_chan=0;
 
-    std::vector<std::vector<int16_t>> channel_data{cbNUM_ANALOG_CHANS,
-        std::vector<int16_t>(cbSdk_CONTINUOUS_DATA_SAMPLES)};
+    std::vector<TrialData> channel_data{cbNUM_ANALOG_CHANS};
 
     cbSdkTrialCont trial{};
 

@@ -12,6 +12,7 @@ namespace CML {
     data.Resize(num_data_chans);
     for (size_t i=0; i<data.size(); i++) {
       data[i].Resize(data_samples);
+      data[i].Zero();
     }
   }
 
@@ -37,7 +38,8 @@ namespace CML {
     int margin_bot = 2;
     int margin_betw = 5;
 
-    float yrange = 1.0f; // up and down
+    // TODO correct scale for this.
+    float yrange = 400.0f; // up and down
 
     int num_channels = RC::CappedCast<int>(eeg_channels.size());
     int draw_height = (height - margin_top - margin_bot -
@@ -69,18 +71,18 @@ namespace CML {
 
   void EEGDisplay::UpdateData_Handler(EEGData& new_data) {
     size_t max_len = 0;
-    size_t max_chans = std::max(new_data.size(), data.size());
+    size_t max_chans = std::min(new_data.size(), data.size());
 
     for (size_t c=0; c<max_chans; c++) {
       max_len = std::max(max_len, new_data[c].size());
     }
 
-    for (size_t c=0; c<new_data.size(); c++) {
+    for (size_t c=0; c<max_chans; c++) {
       size_t i=0;
       size_t data_i = data_offset;
       auto inc_data_i = [&](){
         data_i++;
-        if (data_i > data[c].size()) {
+        if (data_i >= data[c].size()) {
           data_i = 0;
         }
       };
@@ -97,6 +99,8 @@ namespace CML {
 
     data_offset += max_len;
     data_offset = data_offset % data_samples;
+
+    ReDraw();
   }
 
 

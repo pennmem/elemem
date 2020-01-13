@@ -8,6 +8,9 @@
 
 #include "Cerebus.h"
 
+#include <iostream>  // TODO remove
+
+
 namespace CML {
   CBException::~CBException() { }
 
@@ -115,7 +118,7 @@ namespace CML {
     }
 
     for (size_t i=0; i<cbNUM_ANALOG_CHANS; i++) {
-      trial.samples[i] = reinterpret_cast<void*>(channel_data[i].data());
+      trial.samples[i] = reinterpret_cast<void*>(channel_data[i].data.data());
     }
 
     is_open = true;
@@ -185,6 +188,7 @@ namespace CML {
     ClearChannels();
 
     for (size_t i=0; i<channel_list.size(); i++) {
+      std::cerr << "SetChannels " << i << ", " << channel_list[i] << std::endl;
       first_chan = std::min(first_chan, channel_list[i]);
       last_chan = std::max(last_chan, channel_list[i]);
       ConfigureChannel(channel_list[i]);
@@ -194,7 +198,7 @@ namespace CML {
   }
 
 
-  const std::vector<std::vector<int16_t>>& Cerebus::GetData() {
+  const std::vector<TrialData>& Cerebus::GetData() {
     if (first_chan > last_chan) {
       throw std::runtime_error("Set channels before getting data");
     }
@@ -202,8 +206,8 @@ namespace CML {
     BeOpen();
 
     // Set vector sizes to maximum allowed.
-    for (uint32_t c=first_chan; c<=last_chan; c++) {
-      channel_data[c].resize(cbSdk_CONTINUOUS_DATA_SAMPLES);
+    for (uint32_t c=0; c<channel_data.size(); c++) {
+      channel_data[c].data.resize(cbSdk_CONTINUOUS_DATA_SAMPLES);
     }
 
     cbSdkResult res = cbSdkInitTrialData(instance, 1, nullptr, &trial,
@@ -219,8 +223,13 @@ namespace CML {
     }
 
     // Set vector sizes to actually acquired data.
-    for (uint32_t c=first_chan; c<=last_chan; c++) {
-      channel_data[c].resize(trial.num_samples[c]);
+    for (uint32_t c=0; c<trial.count; c++) {
+      channel_data[c].chan = trial.chan[c]-1;
+      channel_data[c].data.resize(trial.num_samples[c]);
+    }
+    for (uint32_t c=trial.count; c<channel_data.size(); c++) {
+      channel_data[c].chan = uint16_t(-1);
+      channel_data[c].data.resize(0);
     }
 
     return channel_data;
@@ -232,7 +241,7 @@ namespace CML {
     last_chan=0;
 
     for (uint32_t c=0; c<cbNUM_ANALOG_CHANS; c++) {
-      channel_data[c].resize(0);
+      channel_data[c].data.resize(0);
     }
 
     return; // TODO - How should this be done?  Is the rest needed?
@@ -263,7 +272,8 @@ namespace CML {
     res = cbSdkGetChannelConfig(instance, channel+1, &channel_info);
 
     if (res == CBSDKRESULT_SUCCESS) {
-      channel_info.smpgroup = 5; // Continuous sampling, 30kHz rate.
+      // 0=None, 1=500Hz, 2=1kHz, 3=2kHz, 4=10kHz, 5=30kHz
+      channel_info.smpgroup = 2; // Continuous sampling, 1kHz rate.
 
       res = cbSdkSetChannelConfig(instance, channel+1, &channel_info);
     }
@@ -280,13 +290,6 @@ namespace CML {
 
     if (res != CBSDKRESULT_SUCCESS) {
       throw CBException(res, "cbSdkSetTrialConfig", instance);
-    }
-
-    // Set size of data to 0 ahead of time for inactive channels.
-    for (uint32_t c=0; c<channel_data.size(); c++) {
-      if (c < first_chan || c > last_chan) {
-        channel_data[c].resize(0);
-      }
     }
   }
 }

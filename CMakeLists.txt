@@ -33,7 +33,9 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=unused-but-set-variable")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-zero-as-null-pointer-constant")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnull-dereference -Werror")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRC_HAVE_QT")
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -ffast-math")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
+set (CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math")
 
 ##############
 # Source files

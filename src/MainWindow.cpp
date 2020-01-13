@@ -118,6 +118,9 @@ namespace CML {
       eeg_disp->SetChannel(chan);
     }
     eeg_disp->ReDraw();
+    Data1D<uint16_t> channels{32, 33, 34, 35};
+    hndl->eeg_acq.SetChannels(channels);
+    hndl->eeg_acq.RegisterCallback("EEGDisplay", eeg_disp->UpdateData);
 
     test_layout->addWidget(cerebus_test);
     test_layout->addWidget(cerestim_test);

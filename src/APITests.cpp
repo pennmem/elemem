@@ -89,7 +89,7 @@ namespace APITests {
       auto& data = cereb.GetData();
   //    for (size_t c=0; c<data.size(); c++) {
       for(size_t c=0; c<8; c++) {
-        auto& chan = data[c];
+        auto& chan = data[c].data;
         cout << "Channel " << (c+1) << endl;
         for (size_t d=0; d<chan.size(); d++) {
           cout << "  " << chan[d] << endl;
