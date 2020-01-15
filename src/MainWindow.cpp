@@ -118,7 +118,11 @@ namespace CML {
       eeg_disp->SetChannel(chan);
     }
     eeg_disp->ReDraw();
-    Data1D<uint16_t> channels{32, 33, 34, 35};
+    Data1D<uint16_t> channels{32, 36, 39, 42, 4, 5, 0, 1, 2};
+//    Data1D<uint16_t> channels;
+//    for (uint16_t c=0; c<128; c++) {
+//      channels += c;
+//    }
     hndl->eeg_acq.SetChannels(channels);
     hndl->eeg_acq.RegisterCallback("EEGDisplay", eeg_disp->UpdateData);
 

@@ -10,7 +10,6 @@
 
 #include <iostream>  // TODO remove
 
-
 namespace CML {
   CBException::~CBException() { }
 
@@ -188,7 +187,6 @@ namespace CML {
     ClearChannels();
 
     for (size_t i=0; i<channel_list.size(); i++) {
-      std::cerr << "SetChannels " << i << ", " << channel_list[i] << std::endl;
       first_chan = std::min(first_chan, channel_list[i]);
       last_chan = std::max(last_chan, channel_list[i]);
       ConfigureChannel(channel_list[i]);
@@ -242,27 +240,24 @@ namespace CML {
 
     for (uint32_t c=0; c<cbNUM_ANALOG_CHANS; c++) {
       channel_data[c].data.resize(0);
+
+      cbPKT_CHANINFO channel_info;
+
+      cbSdkResult res;
+      res = cbSdkGetChannelConfig(instance, uint16_t(c+1), &channel_info);
+
+      // Enable hardware line noise correction.
+      // Enable DC offset correction.
+      channel_info.ainpopts = cbAINP_LNC_RUN_HARD | cbAINP_OFFSET_CORRECT;
+
+      if (res == CBSDKRESULT_SUCCESS) {
+        // 0=None, 1=500Hz, 2=1kHz, 3=2kHz, 4=10kHz, 5=30kHz
+        channel_info.smpgroup = 0; // Disable.
+
+        res = cbSdkSetChannelConfig(instance, uint16_t(c+1), &channel_info);
+      }
+      // Ignore errors, not all channels are valid.
     }
-
-    return; // TODO - How should this be done?  Is the rest needed?
-/*
-    cbPKT_CHANINFO channel_info;
-
-    cbSdkResult res;
-    res = cbSdkGetChannelConfig(instance, 0, &channel_info);  // 0 == all
-
-    if (res == CBSDKRESULT_SUCCESS) {
-      channel_info.smpgroup = 0;
-
-      res = cbSdkSetChannelConfig(instance, 0, &channel_info);
-    }
-
-    if (res != CBSDKRESULT_SUCCESS) {
-      throw std::runtime_error(
-          std::string("cbSdk clear channel config failed, instance ") +
-          std::to_string(instance)
-      );
-    }*/
   }
 
   void Cerebus::ConfigureChannel(uint16_t channel) {

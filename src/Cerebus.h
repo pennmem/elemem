@@ -91,7 +91,8 @@ namespace CML {
     uint16_t first_chan=uint16_t(-1);  // unset
     uint16_t last_chan=0;
 
-    std::vector<TrialData> channel_data{cbNUM_ANALOG_CHANS};
+    std::vector<TrialData> channel_data =
+        std::vector<TrialData>(cbNUM_ANALOG_CHANS);
 
     cbSdkTrialCont trial{};
 

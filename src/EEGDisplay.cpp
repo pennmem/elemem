@@ -70,6 +70,17 @@ namespace CML {
   }
 
   void EEGDisplay::UpdateData_Handler(EEGData& new_data) {
+    static size_t count = 0;
+    static auto last_time = RC::Time::Get();
+    if (count % 20 == 0) {
+      std::cout << "Updating data, " << count << "th run.\n";
+      std::cout << "Time interval: " << (RC::Time::Get()-last_time) << "\n";
+      std::cout << "new_data[0].size() == " << new_data[0].size() << std::endl;
+
+    }
+    count++;
+    last_time = RC::Time::Get();
+
     size_t max_len = 0;
     size_t max_chans = std::min(new_data.size(), data.size());
 
@@ -77,7 +88,12 @@ namespace CML {
       max_len = std::max(max_len, new_data[c].size());
     }
 
-    for (size_t c=0; c<max_chans; c++) {
+    for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
+      uint32_t c = eeg_channels[chan_i].channel;
+      if (c >= new_data.size() || c >= data.size()) {
+        continue;
+      }
+
       size_t i=0;
       size_t data_i = data_offset;
       auto inc_data_i = [&](){
@@ -100,7 +116,9 @@ namespace CML {
     data_offset += max_len;
     data_offset = data_offset % data_samples;
 
-    ReDraw();
+    if (count % 2 == 0) {
+      ReDraw();
+    }
   }
 
 
@@ -110,6 +128,9 @@ namespace CML {
 
 
   void EEGDisplay::UnsetChannel_Handler(EEGChan& chan) {
+    if (chan.channel < data.size()) {
+      data[chan.channel].Zero();
+    }
     for (size_t i=0; i<eeg_channels.size(); i++) {
       if (chan.channel == eeg_channels[i].channel) {
         eeg_channels.Remove(i);

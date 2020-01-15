@@ -22,7 +22,7 @@ namespace CML {
 
       for(size_t i=0; i<cereb_chandata.size(); i++) {
         auto cereb_chan = cereb_chandata[i].chan;
-        if (cereb_chan > data.size()) {
+        if (cereb_chan >= data.size()) {
           continue;
         }
         auto& cereb_data = cereb_chandata[i].data;
@@ -33,6 +33,12 @@ namespace CML {
         }
       }
 
+      // TODO delete
+      static size_t count=0;
+      if (count % 100 == 0) {
+        std::cout << "Calling " << data_callbacks.size() << " callbacks.\n";
+      }
+      count++;
       for (size_t i=0; i<data_callbacks.size(); i++) {
         data_callbacks[i].callback(data);
       }
@@ -154,6 +160,8 @@ namespace CML {
   void EEGAcq::BeAllocatedTimer() {
     if (acq_timer.IsNull()) {
       acq_timer = new QTimer();
+      acq_timer->setTimerType(Qt::PreciseTimer);
+      std::cout << "Timer type: " << acq_timer->timerType() << std::endl;
     }
 
     QObject::connect(acq_timer.Raw(), &QTimer::timeout, this,
