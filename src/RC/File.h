@@ -1357,8 +1357,8 @@ namespace RC {
 
 
     /// Returns a list of entries in the directory path.
-    /** If qualified is true, the entries are fully qualified pathnames.
-     *  Throws ErrorMsgFile if the directory cannot be read.
+    /** If qualified is true, the returned entries are fully qualified
+     *  pathnames.  Throws ErrorMsgFile if the directory cannot be read.
      */
     static inline Data1D<RStr> DirList(const RStr &path,
                                        bool qualified=false) {

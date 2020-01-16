@@ -98,6 +98,13 @@ namespace RC {
     }
 
 
+    /// Extract APtr<const T> and revokes ownership from this object.
+    inline APtr<const T> ExtractConst() {
+      APtr<const T> retptr(helper->t_ptr);
+      helper->Revoke();
+      return retptr;
+    }
+
 #include "PtrSharedCommon.h"
 #include "PtrCommon.h"
 

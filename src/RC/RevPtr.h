@@ -121,6 +121,8 @@ namespace RC {
 
     /// Manually revoke the pointer, setting it equal to NULL for all shared
     /// RevPtr objects.
+    /** This does not delete the pointer.
+     */
     inline void Revoke() {
       helper->Revoke();
     }
