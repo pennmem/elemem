@@ -39,15 +39,15 @@ namespace CML {
     int margin_betw = 5;
 
     // TODO correct scale for this.
-    float yrange = 400.0f; // up and down
+    float yrange = 32768.0f/2.5f; // up and down
 
     int num_channels = RC::CappedCast<int>(eeg_channels.size());
     int draw_height = (height - margin_top - margin_bot -
                        margin_betw * num_channels) / num_channels;
     int draw_step = draw_height + margin_betw;
-    int draw_mid = height - margin_top - draw_height + draw_step/2;
-    xscale = (float(width - 1 - margin_left - margin_right)) /
-        (data.size()-1);
+    int draw_mid = margin_top + draw_step/2;
+    xscale = (float(width - 1e-4 - margin_left - margin_right)) /
+        (data_samples-1);
 
     for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
       yscale = float(draw_height) / (2*yrange);
@@ -56,15 +56,21 @@ namespace CML {
       if (data[chan].size() > 0) {
         SetPen(palette.NormToARGB(0.0f, 0.4f, 1.0f, 1.0f));
         QPointF last(qreal(margin_left), qreal(draw_mid - (data[chan][0]*yscale)));
-        for (x = 1; x < data.size(); x++) {
+        for (x = 1; x < data_samples; x++) {
           QPointF current(qreal(x * xscale), qreal(draw_mid - (data[chan][x] * yscale)));
           painter.drawLine(last, current);
           last = current;
         }
       }
 
-      draw_mid -= draw_step;
+      draw_mid += draw_step;
     }
+    SetPen(palette.NormToARGB(1.0f, 0.0f, 0.2f, 0.7f), 2);
+    QPointF offset_bot{qreal(data_offset * xscale),
+          qreal(height - margin_bot)};
+    QPointF offset_top{qreal(data_offset * xscale),
+          qreal(margin_top)};
+    painter.drawLine(offset_bot, offset_top);
 
     //CornerText(RStr("max: ") + max);
   }
@@ -72,16 +78,16 @@ namespace CML {
   void EEGDisplay::UpdateData_Handler(RC::APtr<const EEGData>& new_data_ptr) {
     auto& new_data = *new_data_ptr;
 
-    static size_t count = 0;
-    static auto last_time = RC::Time::Get();
-    if (count % 20 == 0) {
-      std::cout << "Updating data, " << count << "th run.\n";
-      std::cout << "Time interval: " << (RC::Time::Get()-last_time) << "\n";
-      std::cout << "new_data[0].size() == " << new_data[0].size() << std::endl;
+//    static size_t count = 0;
+//    static auto last_time = RC::Time::Get();
+//    if (count % 20 == 0) {
+//      std::cout << "Updating data, " << count << "th run.\n";
+//      std::cout << "Time interval: " << (RC::Time::Get()-last_time) << "\n";
+//      std::cout << "new_data[0].size() == " << new_data[0].size() << std::endl;
 
-    }
-    count++;
-    last_time = RC::Time::Get();
+//    }
+//    count++;
+//    last_time = RC::Time::Get();
 
     size_t max_len = 0;
     size_t max_chans = std::min(new_data.size(), data.size());
@@ -118,9 +124,7 @@ namespace CML {
     data_offset += max_len;
     data_offset = data_offset % data_samples;
 
-    if (count % 2 == 0) {
-      ReDraw();
-    }
+    ReDraw();
   }
 
 

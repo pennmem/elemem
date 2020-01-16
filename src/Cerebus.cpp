@@ -221,6 +221,9 @@ namespace CML {
     }
 
     // Set vector sizes to actually acquired data.
+    if (trial.count > channel_data.size()) {
+      channel_data.resize(trial.count);
+    }
     for (uint32_t c=0; c<trial.count; c++) {
       channel_data[c].chan = trial.chan[c]-1;
       channel_data[c].data.resize(trial.num_samples[c]);

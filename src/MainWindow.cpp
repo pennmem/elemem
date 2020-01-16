@@ -113,16 +113,19 @@ namespace CML {
 
     eeg_disp = new EEGDisplay(600, 600);
     control_and_display->addWidget(eeg_disp);
-    for (uint32_t i=0; i<4; i++) {
+    for (uint32_t i=32; i<32+8; i++) {
       EEGChan chan(i);
       eeg_disp->SetChannel(chan);
     }
     eeg_disp->ReDraw();
-    Data1D<uint16_t> channels{32, 36, 39, 42, 4, 5, 0, 1, 2};
-//    Data1D<uint16_t> channels;
-//    for (uint16_t c=0; c<128; c++) {
+//    Data1D<uint16_t> channels{4, 5, 0, 1, 2};
+//    for (uint16_t c=32; c<32+8; c++) {
 //      channels += c;
 //    }
+    Data1D<uint16_t> channels;
+    for (uint16_t c=0; c<128; c++) {
+      channels += c;
+    }
     hndl->eeg_acq.SetChannels(channels);
     hndl->eeg_acq.RegisterCallback("EEGDisplay", eeg_disp->UpdateData);
 

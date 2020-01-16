@@ -70,7 +70,7 @@ namespace CML {
 
     RC::FileWrite eeg_out;
     RC::APtr<QTimer> acq_timer;
-    int polling_interval_ms = 50;
+    int polling_interval_ms = 20;
 
     struct TaggedCallback {
       RC::RStr tag;
