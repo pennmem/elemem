@@ -16,7 +16,9 @@ namespace CML {
   void EEGAcq::GetData_Slot() {
     try {
 
-      EEGData data(cbNUM_ANALOG_CHANS);
+      RC::APtr<EEGData> data_aptr = new EEGData(cbNUM_ANALOG_CHANS);
+      auto& data = *data_aptr;
+      //EEGData data(cbNUM_ANALOG_CHANS);
 
       auto& cereb_chandata = cereb.GetData();
 
@@ -39,8 +41,10 @@ namespace CML {
         std::cout << "Calling " << data_callbacks.size() << " callbacks.\n";
       }
       count++;
+
+      auto data_captr = data_aptr.ExtractConst();
       for (size_t i=0; i<data_callbacks.size(); i++) {
-        data_callbacks[i].callback(data);
+        data_callbacks[i].callback(data_captr);
       }
     }
     catch (...) {

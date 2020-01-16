@@ -10,7 +10,7 @@
 
 namespace CML {
   using ChannelList = RC::Data1D<uint16_t>;
-  using EEGCallback = RC::Caller<void, EEGData>;
+  using EEGCallback = RC::Caller<void, RC::APtr<const EEGData>>;
 
   class EEGAcq : public RCqt::WorkerThread, public QObject {
     public:

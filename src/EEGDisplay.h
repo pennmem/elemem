@@ -23,7 +23,7 @@ namespace CML {
     EEGDisplay(int width, int height);
     virtual ~EEGDisplay();
 
-    RCqt::TaskCaller<EEGData> UpdateData =
+    RCqt::TaskCaller<RC::APtr<const EEGData>> UpdateData =
       TaskHandler(EEGDisplay::UpdateData_Handler);
 
     RCqt::TaskCaller<EEGChan> SetChannel =
@@ -34,7 +34,7 @@ namespace CML {
 
     protected:
 
-    void UpdateData_Handler(EEGData& new_data);
+    void UpdateData_Handler(RC::APtr<const EEGData>& new_data);
     void SetChannel_Handler(EEGChan& chan);
     void UnsetChannel_Handler(EEGChan& chan);
 

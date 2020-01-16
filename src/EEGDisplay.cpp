@@ -69,7 +69,9 @@ namespace CML {
     //CornerText(RStr("max: ") + max);
   }
 
-  void EEGDisplay::UpdateData_Handler(EEGData& new_data) {
+  void EEGDisplay::UpdateData_Handler(RC::APtr<const EEGData>& new_data_ptr) {
+    auto& new_data = *new_data_ptr;
+
     static size_t count = 0;
     static auto last_time = RC::Time::Get();
     if (count % 20 == 0) {
