@@ -162,10 +162,10 @@ namespace CML {
       acq_timer = new QTimer();
       acq_timer->setTimerType(Qt::PreciseTimer);
       std::cout << "Timer type: " << acq_timer->timerType() << std::endl;
-    }
 
-    QObject::connect(acq_timer.Raw(), &QTimer::timeout, this,
+      QObject::connect(acq_timer.Raw(), &QTimer::timeout, this,
                      &EEGAcq::GetData_Slot);
+    }
   }
 }
 
