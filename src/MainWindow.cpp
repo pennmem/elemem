@@ -55,7 +55,7 @@ namespace CML {
   void MainWindow::PrepareMenus() {
     Ptr<QMenu> file_menu = menuBar()->addMenu(tr("&File"));
 
-    SubMenuEntry(file_menu, "&Open", "Open a configuration file",
+    SubMenuEntry(file_menu, "&Open Config", "Open a configuration file",
                  &MainWindow::FileOpenClicked, QKeySequence::Open);
     //SubMenuEntry(file_menu, "&Quit", "Exit the application",
     //             &MainWindow::close, QKeySequence::Quit);
