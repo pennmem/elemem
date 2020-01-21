@@ -22,7 +22,7 @@ namespace CML {
 
     filename = QFileDialog::getOpenFileName(main_window.Raw(),
                QObject::tr("Open File"),
-               main_window->GetLastDir().ToQString());
+               main_window->GetLastOpenDir().ToQString());
 
 
     if (filename != "") {

@@ -11,6 +11,7 @@
 #include <QGroupBox>
 #include <QMenu>
 #include <QMenuBar>
+#include <QStandardPaths>
 
 using namespace RC;
 using namespace std;
@@ -18,7 +19,17 @@ using namespace std;
 
 namespace CML {
   MainWindow::MainWindow(RC::Ptr<Handler> hndl)
-    : hndl (hndl) {
+    : hndl (hndl),
+      open_config_dialog (new OpenConfigDialog(this)) {
+
+    auto dirlist = QStandardPaths::standardLocations(
+          QStandardPaths::DesktopLocation);
+    if (dirlist.size() < 1) {
+      last_open_dir = RC::File::CurrentDir();
+    }
+    else {
+      last_open_dir = dirlist[0];
+    }
 
     PrepareMenus();
     BuildLayout();
@@ -40,8 +51,8 @@ namespace CML {
   void MainWindow::PrepareMenus() {
     Ptr<QMenu> file_menu = menuBar()->addMenu(tr("&File"));
 
-    //SubMenuEntry(file_menu, "&Open", "Open a configuration file",
-    //             &MainWindow::FileOpenClicked, QKeySequence::Open);
+    SubMenuEntry(file_menu, "&Open", "Open a configuration file",
+                 &MainWindow::FileOpenClicked, QKeySequence::Open);
     //SubMenuEntry(file_menu, "&Quit", "Exit the application",
     //             &MainWindow::close, QKeySequence::Quit);
 
@@ -140,8 +151,23 @@ namespace CML {
   }
 
 
+  void MainWindow::FileOpenClicked() {
+    RC::FileRead fr = open_config_dialog->GetFile();
+    SetLastOpenDir(fr.GetFilename());
+
+    if (fr.IsOpen()) {
+      hndl->OpenConfig(fr);
+    }
+  }
+
+
   void MainWindow::HelpAboutClicked() {
     AboutWin();
+  }
+
+
+  void MainWindow::SetLastOpenDir(const RStr& filename) {
+    last_open_dir = RC::File::Dirname(filename);
   }
 }
 

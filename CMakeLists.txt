@@ -66,6 +66,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Handler.h
   src/MainWindow.cpp
   src/MainWindow.h
+  src/OpenConfigDialog.cpp
+  src/OpenConfigDialog.h
   src/Palette.h
   src/Palette.cpp
   src/Popup.cpp

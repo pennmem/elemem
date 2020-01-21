@@ -34,5 +34,9 @@ namespace CML {
 
     APITests::CereStimTest();
   }
+
+  void Handler::OpenConfig_Handler(RC::FileRead& fr) {
+    // TODO
+  }
 }
 

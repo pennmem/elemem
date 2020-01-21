@@ -35,6 +35,9 @@ namespace CML {
     RCqt::TaskCaller<> TestStim =
       TaskHandler(Handler::TestStim_Handler);
 
+    RCqt::TaskCaller<RC::FileRead> OpenConfig =
+      TaskHandler(Handler::OpenConfig_Handler);
+
     private:
 
     RC::Ptr<MainWindow> main_window;
@@ -44,6 +47,8 @@ namespace CML {
 
     void TestLabel_Handler(const f64& x) { std::cout << x << std::endl; }
     void TestStim_Handler() { }
+
+    void OpenConfig_Handler(RC::FileRead& fr);
 
     bool stim_test_warning = true;
   };

@@ -4,6 +4,7 @@
 #include "RC/Ptr.h"
 #include "RCqt/Worker.h"
 #include "Handler.h"
+#include "OpenConfigDialog.h"
 #include <QMainWindow>
 
 class QGroupBox;
@@ -18,12 +19,13 @@ namespace CML {
 
     MainWindow(RC::Ptr<Handler> hndl);
 
+    RC::RStr GetLastOpenDir() const { return last_open_dir; }
+
     RC::Ptr<Handler> hndl;
 
     public slots:
 
-    //void FileOpenClicked();
-
+    void FileOpenClicked();
     void HelpAboutClicked();
 
     protected:
@@ -37,9 +39,13 @@ namespace CML {
     void SubMenuEntry(RC::Ptr<QMenu> menu_entry, const RC::RStr &title,
       const RC::RStr &tip, T qt_slot,
       const QKeySequence &shortcut = QKeySequence::UnknownKey);
-
+    void SetLastOpenDir(const RC::RStr& filename);
 
     RC::Ptr<EEGDisplay> eeg_disp;
+
+    RC::APtr<OpenConfigDialog> open_config_dialog;
+
+    RC::RStr last_open_dir;
   };
 }
 
