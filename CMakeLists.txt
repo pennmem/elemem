@@ -54,6 +54,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Cerebus.h
   src/CImage.cpp
   src/CImage.h
+  src/ConfigFile.h
   src/EEGAcq.cpp
   src/EEGAcq.h
   src/EEGData.h
