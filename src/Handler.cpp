@@ -12,6 +12,10 @@ namespace CML {
   Handler::Handler() {
   }
 
+  // Defaulting this here after ConfigFile is included ensures
+  // proper deletion of the forward delcared APtr elements.
+  Handler::~Handler() = default;
+
   void Handler::SetMainWindow(Ptr<MainWindow> new_main) {
     main_window = new_main;
   }

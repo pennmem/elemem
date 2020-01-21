@@ -18,6 +18,7 @@ namespace CML {
     public:
 
     Handler();
+    ~Handler();
 
     void SetMainWindow(RC::Ptr<MainWindow> new_main);
 
