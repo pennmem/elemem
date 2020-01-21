@@ -21,7 +21,7 @@ namespace CML {
     QString filename;
 
     filename = QFileDialog::getOpenFileName(main_window.Raw(),
-               QObject::tr("Open File"),
+               QObject::tr("Open Config File"),
                main_window->GetLastOpenDir().ToQString());
 
 
