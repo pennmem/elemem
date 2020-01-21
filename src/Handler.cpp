@@ -1,3 +1,4 @@
+#include "ConfigFile.h"
 #include "Handler.h"
 #include "MainWindow.h"
 #include "Popup.h"
@@ -36,7 +37,16 @@ namespace CML {
   }
 
   void Handler::OpenConfig_Handler(RC::FileRead& fr) {
-    // TODO
+    APtr<JSONFile> conf = new JSONFile();
+    conf->Load(fr);
+    exp_config = conf.ExtractConst();
+
+    std::string elecfilename;
+    exp_config->Get(elecfilename, "electrode_config_file");
+
+    APtr<CSVFile> elecs = new CSVFile();
+    elecs->Load(elecfilename);
+    elec_config = elecs.ExtractConst();
   }
 }
 

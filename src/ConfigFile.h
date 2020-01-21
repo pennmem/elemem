@@ -68,19 +68,27 @@ namespace CML {
     void Load(RC::RStr pathname) {
       filename = pathname;
       RC::FileRead fr(pathname);
+      Load(fr);
+    }
+
+    void Load(RC::FileRead& fr) {
       RC::Data1D<RC::RStr> lines;
       fr.ReadAllLines(lines);
       RemoveComments(lines);
       json = json.parse(RC::RStr::Join(lines, "\n").c_str());
     }
 
-    void Save(RC::RStr pathname) {
+    void Save(RC::RStr pathname) const {
       RC::FileWrite fw(pathname);
+      Save(fw);
+    }
+
+    void Save(RC::FileWrite& fw) const {
       fw.WriteStr(json.dump(2));
     }
 
     template<class T, class... Keys>
-    void Get(T& data, Keys... keys) {
+    void Get(T& data, Keys... keys) const {
       GetRecurse(data, RC::RStr("Could not get ")+filename+" key, ", json, keys...);
     }
 
@@ -91,7 +99,7 @@ namespace CML {
 
     template<class T, class JSONT, class... Keys>
     void GetRecurse(T& data, RC::RStr err_msg, JSONT& node,
-        Keys... keys) {
+        Keys... keys) const {
       try {
         node.get_to(data);
       }
@@ -102,7 +110,7 @@ namespace CML {
 
     template<class T, class JSONT, class Key, class... Keys>
     void GetRecurse(T& data, RC::RStr err_msg, JSONT& node,
-        Key key, Keys... keys) {
+        Key key, Keys... keys) const {
       err_msg += RC::RStr(key) + ":";
       auto itr = node.find(key);
       if (itr == node.end()) {
@@ -149,7 +157,7 @@ namespace CML {
       }
     }
 
-    void Save(RC::RStr pathname) {
+    void Save(RC::RStr pathname) const {
       RC::FileWrite fw(pathname);
       fw.WriteStr(RC::RStr::MakeCSV(data));
     }

@@ -1313,7 +1313,7 @@ namespace RC {
     /// Makes a new directory dirname.
     /** @return True if it succeeded.
      *  If return_true_if_exists is true, success is if the directory exists
-     *  upon return.  If it's false, success if if the directory was newly
+     *  upon return.  If it's false, success is if the directory was newly
      *  created.
      */
     static inline bool MakeDir(const RStr& dirname,

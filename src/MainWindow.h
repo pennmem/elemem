@@ -46,6 +46,7 @@ namespace CML {
     RC::APtr<OpenConfigDialog> open_config_dialog;
 
     RC::RStr last_open_dir;
+    RC::RStr elemem_dir;
   };
 }
 

@@ -3,6 +3,7 @@
 #include "GuiParts.h"
 #include "MainWindow.h"
 #include <QAction>
+#include <QDir>
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -30,6 +31,9 @@ namespace CML {
     else {
       last_open_dir = dirlist[0];
     }
+
+    elemem_dir = File::FullPath(RStr{QDir::homePath()}, "ElememData");
+    File::MakeDir(elemem_dir);
 
     PrepareMenus();
     BuildLayout();

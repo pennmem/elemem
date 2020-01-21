@@ -11,6 +11,8 @@
 
 namespace CML {
   class MainWindow;
+  class JSONFile;
+  class CSVFile;
   
   class Handler : public RCqt::WorkerThread {
     public:
@@ -37,6 +39,9 @@ namespace CML {
 
     RCqt::TaskCaller<RC::FileRead> OpenConfig =
       TaskHandler(Handler::OpenConfig_Handler);
+
+    RC::APtr<const JSONFile> exp_config;
+    RC::APtr<const CSVFile> elec_config;
 
     private:
 
