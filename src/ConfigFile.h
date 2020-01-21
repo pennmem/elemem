@@ -1,11 +1,12 @@
 #ifndef EXPCONFIG_H
 #define EXPCONFIG_H
 
-#include <nlohmann/json.hpp>
-#include <RC/RC.h>
+#include "nlohmann/json.hpp"
+#include "RC/RC.h"
 
 
 namespace CML {
+  // Removes # and // comments, left/right whitespace, and blank lines.
   void RemoveComments(RC::Data1D<RC::RStr>& lines) {
     for (size_t i=0; i<lines.size(); i++) {
       bool in_quote = false;
@@ -45,6 +46,12 @@ namespace CML {
             }
           }
         }
+      }
+
+      line.Trim();
+      if (line.empty()) {
+        lines.Remove(i);
+        i--;
       }
     }
   }
@@ -103,6 +110,53 @@ namespace CML {
       }
       GetRecurse(data, err_msg, *itr, keys...);
     }
+
+    RC::RStr filename;
+  };
+
+
+  class CSVFile {
+    public:
+    CSVFile() {}
+
+    CSVFile(RC::RStr pathname) {
+      Load(pathname);
+    }
+
+    void Load(RC::RStr pathname) {
+      filename = pathname;
+      RC::FileRead fr(pathname);
+      RC::Data1D<RC::RStr> lines;
+      fr.ReadAllLines(lines);
+      RemoveComments(lines);
+      
+      data.Clear();
+      if (lines.size() == 0) {
+        return;
+      }
+
+      size_t xsize = lines[0].SplitCSV().size();
+      data.Resize(xsize, lines.size());
+
+      for (size_t i=0; i<lines.size(); i++) {
+        auto row = lines[i].SplitCSV();
+        if (row.size() != xsize) {
+          Throw_RC_Type(File, (RC::RStr("CSV dimension mismatch in ") +
+              filename + ", data line " + RC::RStr(i) + ", \"" + lines[i] +
+              "\"\n").c_str());
+        }
+        data[i] = row;
+      }
+    }
+
+    void Save(RC::RStr pathname) {
+      RC::FileWrite fw(pathname);
+      fw.WriteStr(RC::RStr::MakeCSV(data));
+    }
+
+    RC::Data2D<RC::RStr> data;
+
+    protected:
 
     RC::RStr filename;
   };
