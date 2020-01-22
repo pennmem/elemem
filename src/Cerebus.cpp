@@ -8,7 +8,6 @@
 
 #include "Cerebus.h"
 
-#include <iostream>  // TODO remove
 
 namespace CML {
   CBException::~CBException() { }
