@@ -174,22 +174,22 @@ namespace CML {
             "stimulus.");
       }
       uint8_t pulses = uint8_t(pulses_64);
-      std::cout << "Configuring pattern " << i << std::endl;
-      std::cout << (int)pulses << ", " << afd.amplitude << ", " << stim_width_us << ", " << afd.frequency << ", " << interphase << std::endl;
+      //std::cout << "Configuring pattern " << i << std::endl;
+      //std::cout << (int)pulses << ", " << afd.amplitude << ", " << stim_width_us << ", " << afd.frequency << ", " << interphase << std::endl;
       // Anodic/positive first waveform
       ErrorCheck(
         CS_ConfigureStimulusPattern(uint16_t(2*i+1), 0, pulses, afd.amplitude,
           afd.amplitude, stim_width_us, stim_width_us, afd.frequency,
           interphase)
       );
-      std::cout << "Between." << std::endl;
+      //std::cout << "Between." << std::endl;
       // Cathodic/negative first waveform
       ErrorCheck(
         CS_ConfigureStimulusPattern(uint16_t(2*i+2), 1, pulses, afd.amplitude,
           afd.amplitude, stim_width_us, stim_width_us, afd.frequency,
           interphase)
       );
-      std::cout << "Done." << std::endl;
+      //std::cout << "Done." << std::endl;
     }
 
     ErrorCheck(
