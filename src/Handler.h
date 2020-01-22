@@ -51,7 +51,7 @@ namespace CML {
     void CerebusTest_Handler();
     void CereStimTest_Handler();
 
-    void TestLabel_Handler(const f64& x) { std::cout << x << std::endl; }
+    void TestLabel_Handler(const f64& x) { /* std::cout << x << std::endl; */ }
     void TestStim_Handler() { }
 
     void OpenConfig_Handler(RC::FileRead& fr);
