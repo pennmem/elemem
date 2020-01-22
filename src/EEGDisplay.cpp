@@ -45,13 +45,21 @@ namespace CML {
     int draw_height = (height - margin_top - margin_bot -
                        margin_betw * num_channels) / num_channels;
     int draw_step = draw_height + margin_betw;
-    int draw_mid = margin_top + draw_step/2;
+    int draw_mid_first = margin_top + draw_step/2;
+    int draw_mid = draw_mid_first;
     xscale = (float(width - 1e-4 - margin_left - margin_right)) /
         (data_samples-1);
 
     for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
       yscale = float(draw_height) / (2*yrange);
       size_t chan = eeg_channels[chan_i].channel;
+      float dmax = std::numeric_limits<float>::lowest()/4;
+      float dmin = std::numeric_limits<float>::max()/4;
+      for (size_t i=0; i<data[chan].size(); i++) {
+        dmax = std::max(dmax, data[chan][i]);
+        dmin = std::min(dmin, data[chan][i]);
+      }
+      yscale = float(draw_height) / (dmax - dmin);
 
       if (data[chan].size() > 0) {
         SetPen(palette.NormToARGB(0.0f, 0.4f, 1.0f, 1.0f));
@@ -62,9 +70,9 @@ namespace CML {
           last = current;
         }
       }
-
       draw_mid += draw_step;
     }
+
     SetPen(palette.NormToARGB(1.0f, 0.0f, 0.2f, 0.7f), 2);
     QPointF offset_bot{qreal(data_offset * xscale),
           qreal(height - margin_bot)};
@@ -72,7 +80,18 @@ namespace CML {
           qreal(margin_top)};
     painter.drawLine(offset_bot, offset_top);
 
-    //CornerText(RStr("max: ") + max);
+    draw_mid  = draw_mid_first;
+    for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
+
+      QFont font = painter.font();
+      font.setPixelSize(14);
+      painter.setFont(font);
+      SetPen(palette.GetFG_ARGB(0.9f));
+      painter.drawText(4, draw_mid-draw_height/2, width-2, draw_height,
+        Qt::AlignTop | Qt::AlignLeft, eeg_channels[chan_i].label.ToQString());
+
+      draw_mid += draw_step;
+    }
   }
 
   void EEGDisplay::UpdateData_Handler(RC::APtr<const EEGData>& new_data_ptr) {

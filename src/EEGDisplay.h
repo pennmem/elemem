@@ -12,6 +12,9 @@ namespace CML {
     public:
     EEGChan(uint32_t channel=0, RC::RStr label="")
       : channel(channel), label(label) {
+      if (label.empty()) {
+        this->label = RC::RStr(channel+1);
+      }
     }
     uint32_t channel;
     RC::RStr label;
