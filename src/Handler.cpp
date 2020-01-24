@@ -40,6 +40,10 @@ namespace CML {
     APITests::CereStimTest();
   }
 
+  void Handler::SetStimSettings_Handler(const StimSettings& settings_callback) {
+    // TODO - implement
+  }
+
   void Handler::OpenConfig_Handler(RC::FileRead& fr) {
     APtr<JSONFile> conf = new JSONFile();
     conf->Load(fr);

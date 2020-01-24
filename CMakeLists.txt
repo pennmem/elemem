@@ -77,6 +77,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/QtStyle.h
   src/RCQApplication.cpp
   src/RCQApplication.h
+  src/StimGUIConfig.h
+  src/StimGUIConfig.cpp
   src/StimWorker.h
   src/StimWorker.cpp
 

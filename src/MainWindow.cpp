@@ -2,6 +2,7 @@
 #include "EEGDisplay.h"
 #include "GuiParts.h"
 #include "MainWindow.h"
+#include "StimGUIConfig.h"
 #include <QAction>
 #include <QDir>
 #include <QPushButton>
@@ -69,6 +70,7 @@ namespace CML {
   }
 
 
+  // TODO delete
   RC::Ptr<QGroupBox> MainWindow::BuildStimConfig() {
     // Store this label so it can be set at config load.
     RC::Ptr<QGroupBox> stim_conf_box = new QGroupBox("LA8-LQ9");
@@ -105,7 +107,10 @@ namespace CML {
     for (int r=0; r<stim_rows; r++) {
       for (int c=0; c<stim_cols; c++) {
         // TODO Adjust for hooks for stim config
-        stim_grid->addWidget(BuildStimConfig(), r, c);
+//        stim_grid->addWidget(BuildStimConfig(), r, c);
+        RC::Ptr<StimConfigBox> box = new StimConfigBox(hndl->SetStimSettings,
+                                                       hndl->TestStim);
+        stim_grid->addWidget(box, r, c);
       }
     }
 

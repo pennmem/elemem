@@ -4,41 +4,47 @@
 using namespace RC;
 
 namespace CML {
-  StimConfigBox::StimConfigBox(Caller<void, const CSStimChannel&> callback)
-    : callback(callback) {
-    Initialize();
+  StimConfigBox::StimConfigBox(
+      Caller<void, const StimSettings&> settings_callback,
+      Caller<void> test_stim_callback)
+    : settings_callback(settings_callback) {
+
+    // Store this label so it can be set at config load.
+    setTitle("Not configured");
+
+    RC::Ptr<QVBoxLayout> stim_conf = new QVBoxLayout();
+
+    label = new LabeledEdit(MakeCaller(this, &StimConfigBox::LabelChanged),
+                            "Label");
+    stim_conf->addWidget(label);
+    amp = new LabeledF64(MakeCaller(this, &StimConfigBox::AmpChanged),
+                         "Amplitude (ms)");
+    stim_conf->addWidget(amp);
+    freq = new LabeledI64(MakeCaller(this, &StimConfigBox::FreqChanged),
+                          "Frequency (Hz)");
+    stim_conf->addWidget(freq);
+    dur = new LabeledI64(MakeCaller(this, &StimConfigBox::DurChanged),
+                         "Duration (ms)");
+    stim_conf->addWidget(dur);
+
+    RC::Ptr<Button> test_stim = new Button(test_stim_callback, "Test Stim");
+    stim_conf->addWidget(test_stim);
+
+    setLayout(stim_conf);
   }
 
 
-  void StimConfigBox::Initialize() {
-    // TODO From BuildStimConfig
-    edit.setAlignment(Qt::AlignRight);
-
-    QHBoxLayout *layout = new QHBoxLayout();
-    layout->setContentsMargins(2,4,2,4);
-    layout->addWidget(&label);
-    layout->addWidget(&edit);
-    setLayout(layout);
-
-    connect(&edit, SIGNAL(editingFinished()),
-            this, SLOT(ChangedSlot()));
+  void StimConfigBox::SetChannel_Handler(const CSStimChannel& minvals,
+      const CSStimChannel& maxvals, const RC::RStr& label) {
+    // TODO
   }
 
-  // TODO update:
-
-  void StimConfigBox::Set_Handler(const RC::RStr& str) {
-    RStr valid = str;
-    Validate(valid);
-    edit.setText(valid.c_str());
+  void StimConfigBox::SetParameters_Handler(const CSStimChannel& params) {
+    // TODO
   }
 
-  void StimConfigBox::ToDefault_Handler() {
-    Set_Handler(default_val);
-  }
-
-  void StimConfigBox::SetDefault(const RC::RStr& new_default) {
-    default_val = new_default;
-    edit.setText(default_val.c_str());
+  void StimConfigBox::Clear_Handler() {
+    // TODO
   }
 }
 
