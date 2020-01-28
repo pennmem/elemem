@@ -34,6 +34,10 @@ namespace CML {
       setToolTip(tip.c_str());
     }
 
+    void SetReadOnly(bool b) {
+      edit.setReadOnly(b);
+    }
+
     void AlignLeft();
 
     protected slots:

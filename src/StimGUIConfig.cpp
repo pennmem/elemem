@@ -9,12 +9,11 @@ namespace CML {
       Caller<void> test_stim_callback)
     : settings_callback(settings_callback) {
 
-    // Store this label so it can be set at config load.
     setTitle("Not configured");
 
     RC::Ptr<QVBoxLayout> stim_conf = new QVBoxLayout();
 
-    label = new LabeledEdit(MakeCaller(this, &StimConfigBox::LabelChanged),
+    lab = new LabeledEdit(MakeCaller(this, &StimConfigBox::LabelChanged),
                             "Label");
     stim_conf->addWidget(label);
     amp = new LabeledF64(MakeCaller(this, &StimConfigBox::AmpChanged),
@@ -36,15 +35,29 @@ namespace CML {
 
   void StimConfigBox::SetChannel_Handler(const CSStimChannel& minvals,
       const CSStimChannel& maxvals, const RC::RStr& label) {
-    // TODO
+    setTitle((RStr(minvals.electrode_pos+1) + "_" +
+          RStr(minvals.electrode_neg)).ToQString());
+    settings.params = minvals;
+    settings.label = label;
+    amp->SetRange(minvals.amplitude * 1e-3, maxvals.amplitude * 1e-3);
+    freq->SetRange(minvals.frequency, maxvals.frequency);
+    dur->SetRange(int64_t(minvals.duration * 1e-3 + 0.5), int64_t(maxvals.duration * 1e-3));
+    lab->SetDefault(label);
+    lab->SetReadOnly( ! label.empty() );
   }
 
   void StimConfigBox::SetParameters_Handler(const CSStimChannel& params) {
-    // TODO
+    amp->Set(params.amplitude * 1e-3);
+    freq->Set(params.frequency);
+    dur->Set(int64_t(params.duration * 1e-3 + 0.5));
   }
 
   void StimConfigBox::Clear_Handler() {
-    // TODO
+    setTitle("Not configured");
+    amp->Set(0);
+    freq->Set(0);
+    dur->Set(0);
+    lab->SetDefault("");
   }
 }
 
