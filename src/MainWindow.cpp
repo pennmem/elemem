@@ -41,6 +41,11 @@ namespace CML {
   }
 
 
+  MainWindow::~MainWindow() {
+    hndl->eeg_acq.RemoveCallback("EEGDisplay");
+  }
+    
+
   template<class T>
   void MainWindow::SubMenuEntry(Ptr<QMenu> menu_entry,
       const RStr &title, const RStr &tip, T qt_slot,
@@ -58,8 +63,8 @@ namespace CML {
 
     SubMenuEntry(file_menu, "&Open Config", "Open a configuration file",
                  &MainWindow::FileOpenClicked, QKeySequence::Open);
-    //SubMenuEntry(file_menu, "&Quit", "Exit the application",
-    //             &MainWindow::close, QKeySequence::Quit);
+    SubMenuEntry(file_menu, "&Quit", "Exit the application",
+                 &MainWindow::close, QKeySequence::Quit);
 
     Ptr<QMenu> setup_menu = menuBar()->addMenu(tr("&Setup"));
 
@@ -177,6 +182,17 @@ namespace CML {
 
   void MainWindow::SetLastOpenDir(const RStr& filename) {
     last_open_dir = RC::File::Dirname(filename);
+  }
+
+
+  void MainWindow::closeEvent(QCloseEvent *event) {
+    if (ConfirmWin("Are you sure you want to quit?", "Quit Elemem?")) {
+      Worker::ExitAllWorkers();
+      event->accept();
+    }
+    else {
+      event->ignore();
+    }
   }
 }
 

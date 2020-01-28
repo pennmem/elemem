@@ -17,6 +17,7 @@ namespace CML {
     
     EEGAcq();
     ~EEGAcq();
+
     // Rule of 3.
     EEGAcq(const EEGAcq&) = delete;
     EEGAcq& operator=(const EEGAcq&) = delete;
@@ -27,20 +28,11 @@ namespace CML {
     RCqt::TaskCaller<ChannelList> SetChannels =
       TaskHandler(EEGAcq::SetChannels_Handler);
 
-//    RCqt::TaskCaller<RC::RStr> StartSaving =
-//      TaskHandler(EEGAcq::StartSaving_Handler);
-
-//    RCqt::TaskCaller<> StopSaving =
-//      TaskHandler(EEGAcq::StopSaving_Handler);
-
-//    RCqt::TaskCaller<> SaveMore =
-//      TaskHandler(EEGAcq::SaveMore_Handler);
-
     RCqt::TaskCaller<const RC::RStr, const EEGCallback>
       RegisterCallback =
       TaskHandler(EEGAcq::RegisterCallback_Handler);
 
-    RCqt::TaskCaller<const RC::RStr> RemoveCallback =
+    RCqt::TaskBlocker<const RC::RStr> RemoveCallback =
       TaskHandler(EEGAcq::RemoveCallback_Handler);
 
     RCqt::TaskBlocker<> CloseCerebus =
@@ -54,9 +46,8 @@ namespace CML {
 
     void SetInstance_Handler(uint32_t& instance);
     void SetChannels_Handler(ChannelList& channels);
-//    void StartSaving_Handler(RC::RStr& output_path);
-//    void StopSaving_Handler();
-//    void SaveMore_Handler();
+
+    // All channels have either 0 data or the same amount.
     void RegisterCallback_Handler(const RC::RStr& tag,
                                   const EEGCallback& callback);
     void RemoveCallback_Handler(const RC::RStr& tag);
@@ -77,10 +68,6 @@ namespace CML {
       EEGCallback callback;
     };
     RC::Data1D<TaggedCallback> data_callbacks;
-
-    // Change this to timer_running, restructure.
-    // Move data saving to another object.
-//    bool saving_data = false;
   };
 }
 

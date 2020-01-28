@@ -38,9 +38,6 @@ namespace CML {
     int margin_bot = 2;
     int margin_betw = 5;
 
-    // TODO correct scale for this.
-    float yrange = 32768.0f/2.5f; // up and down
-
     int num_channels = RC::CappedCast<int>(eeg_channels.size());
     int draw_height = (height - margin_top - margin_bot -
                        margin_betw * num_channels) / num_channels;
@@ -51,15 +48,19 @@ namespace CML {
         (data_samples-1);
 
     for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
-      yscale = float(draw_height) / (2*yrange);
       size_t chan = eeg_channels[chan_i].channel;
       float dmax = std::numeric_limits<float>::lowest()/4;
       float dmin = std::numeric_limits<float>::max()/4;
       for (size_t i=0; i<data[chan].size(); i++) {
-        dmax = std::max(dmax, data[chan][i]);
-        dmin = std::min(dmin, data[chan][i]);
+        dmax = std::max(dmax, float(data[chan][i]));
+        dmin = std::min(dmin, float(data[chan][i]));
       }
-      yscale = float(draw_height) / (dmax - dmin);
+      float ddiff = 2*std::max(std::abs(dmin), std::abs(dmax));
+      ddiff = std::max(ddiff, dmax-dmin);
+      if (ddiff < 1) {
+        ddiff = 1;
+      }
+      yscale = float(draw_height) / ddiff;
 
       if (data[chan].size() > 0) {
         SetPen(palette.NormToARGB(0.0f, 0.4f, 1.0f, 1.0f));
@@ -97,17 +98,7 @@ namespace CML {
   void EEGDisplay::UpdateData_Handler(RC::APtr<const EEGData>& new_data_ptr) {
     auto& new_data = *new_data_ptr;
 
-//    static size_t count = 0;
-//    static auto last_time = RC::Time::Get();
-//    if (count % 20 == 0) {
-//      std::cout << "Updating data, " << count << "th run.\n";
-//      std::cout << "Time interval: " << (RC::Time::Get()-last_time) << "\n";
-//      std::cout << "new_data[0].size() == " << new_data[0].size() << std::endl;
-
-//    }
-//    count++;
-//    last_time = RC::Time::Get();
-
+    // EEGAcq now guarantees all the same size.  This could be simplified.
     size_t max_len = 0;
     size_t max_chans = std::min(new_data.size(), data.size());
 

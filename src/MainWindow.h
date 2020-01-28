@@ -18,6 +18,11 @@ namespace CML {
     public:
 
     MainWindow(RC::Ptr<Handler> hndl);
+    ~MainWindow();
+
+    // Rule of 3;
+    MainWindow(const MainWindow&) = delete;
+    MainWindow& operator=(const MainWindow&) = delete;
 
     RC::RStr GetLastOpenDir() const { return last_open_dir; }
 
@@ -35,6 +40,7 @@ namespace CML {
     RC::Ptr<QGridLayout> BuildStimGrid();
     void BuildLayout();
 
+    void closeEvent(QCloseEvent *event);
     template<class T>
     void SubMenuEntry(RC::Ptr<QMenu> menu_entry, const RC::RStr &title,
       const RC::RStr &tip, T qt_slot,

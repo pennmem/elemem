@@ -18,9 +18,13 @@ namespace CML {
 
       RC::APtr<EEGData> data_aptr = new EEGData(cbNUM_ANALOG_CHANS);
       auto& data = *data_aptr;
-      //EEGData data(cbNUM_ANALOG_CHANS);
 
       auto& cereb_chandata = cereb.GetData();
+
+      size_t max_len = 0;
+      for (size_t c=0; c<cereb_chandata.size(); c++) {
+        max_len = std::max(max_len, cereb_chandata[c].data.size());
+      }
 
       for(size_t i=0; i<cereb_chandata.size(); i++) {
         auto cereb_chan = cereb_chandata[i].chan;
@@ -29,11 +33,16 @@ namespace CML {
         }
         auto& cereb_data = cereb_chandata[i].data;
         auto& chan = data[cereb_chan];
-        chan.Resize(cereb_data.size());
+        chan.Resize(max_len);
         for (size_t d=0; d<cereb_data.size(); d++) {
           chan[d] = cereb_data[d];
         }
+        // Fill in zeros if needed to guarantee all channels the same size.
+        for (size_t d=cereb_data.size(); d<chan.size(); d++) {
+          chan[d] = 0;
+        }
       }
+
 
       auto data_captr = data_aptr.ExtractConst();
       for (size_t i=0; i<data_callbacks.size(); i++) {
@@ -67,51 +76,6 @@ namespace CML {
   }
 
 
-//  void EEGAcq::StartSaving_Handler(RC::RStr& output_path) {
-//    StopSaving_Handler();
-
-//    if ( ! eeg_out.Open(output_path) ) {
-//      Throw_RC_Type(File, "Could not write to EEG File");
-//    }
-
-//    saving_data = true;
-
-//    SaveMore();
-//  }
-
-
-//  void EEGAcq::StopSaving_Handler() {
-//    if (saving_data) {
-//      saving_data = false;
-
-//      eeg_out.Close();
-//    }
-//  }
-
-
-  //  void EEGAcq::SaveMore_Handler() {
-  //    if (!saving_data) {
-  //      return;
-  //    }
-
-  //    auto& data = cereb.GetData();
-
-  //    for(size_t c=0; c<data.size(); c++) {
-  //      auto& chan = data[c];
-  //      eeg_out.Put("Channel ");
-  //      eeg_out.Put(RC::RStr(c+1));
-  //      for (size_t d=0; d<chan.size(); d++) {
-  //        eeg_out.Put(", ");
-  //        eeg_out.Put(RC::RStr(chan[d]));
-  //      }
-  //      eeg_out.Put("\n");
-  //    }
-
-  //    RC::Time::Sleep(0.010);
-  //    SaveMore();
-  //  }
-
-
   void EEGAcq::RegisterCallback_Handler(const RC::RStr& tag,
                                         const EEGCallback& callback) {
     RemoveCallback_Handler(tag);
@@ -134,9 +98,7 @@ namespace CML {
       }
     }
 
-    BeAllocatedTimer();
-
-    if (data_callbacks.size() == 0) {
+    if (data_callbacks.size() == 0 && acq_timer.IsSet()) {
       acq_timer->stop();
     }
   }

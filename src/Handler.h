@@ -29,8 +29,6 @@ namespace CML {
     RCqt::TaskCaller<> CereStimTest =
       TaskHandler(Handler::CereStimTest_Handler);
 
-    EEGAcq eeg_acq;
-    StimWorker stim_worker;
 
     RCqt::TaskCaller<const StimSettings> SetStimSettings =
       TaskHandler(Handler::SetStimSettings_Handler);
@@ -45,6 +43,8 @@ namespace CML {
     RCqt::TaskCaller<RC::FileRead> OpenConfig =
       TaskHandler(Handler::OpenConfig_Handler);
 
+    StimWorker stim_worker;
+    EEGAcq eeg_acq;
     RC::APtr<const JSONFile> exp_config;
     RC::APtr<const CSVFile> elec_config;
 
