@@ -9,7 +9,7 @@ using namespace RC;
 
 
 namespace CML {
-  Handler::Handler() : EDFSave(this) {
+  Handler::Handler() : edf_save(this) {
   }
 
   // Defaulting this here after ConfigFile is included ensures

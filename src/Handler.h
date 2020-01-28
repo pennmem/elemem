@@ -4,6 +4,7 @@
 #include "RC/RC.h"
 #include "RCqt/Worker.h"
 #include "APITests.h"
+#include "EDFSave.h"
 #include "EEGAcq.h"
 #include "StimWorker.h"
 #include "StimGUIConfig.h"
@@ -45,6 +46,7 @@ namespace CML {
 
     StimWorker stim_worker;
     EEGAcq eeg_acq;
+    EDFSave edf_save;
     RC::APtr<const JSONFile> exp_config;
     RC::APtr<const CSVFile> elec_config;
 

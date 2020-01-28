@@ -7,15 +7,12 @@ namespace CML {
   }
 
   EEGAcq::~EEGAcq() {
-    if (acq_timer.IsSet()) {
-      acq_timer->stop();
-    }
+    StopEverything();
   }
 
 
   void EEGAcq::GetData_Slot() {
     try {
-
       RC::APtr<EEGData> data_aptr = new EEGData(cbNUM_ANALOG_CHANS);
       auto& data = *data_aptr;
 

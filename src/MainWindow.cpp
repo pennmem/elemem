@@ -2,8 +2,10 @@
 #include "EEGDisplay.h"
 #include "GuiParts.h"
 #include "MainWindow.h"
+#include "Popup.h"
 #include "StimGUIConfig.h"
 #include <QAction>
+#include <QCloseEvent>
 #include <QDir>
 #include <QPushButton>
 #include <QHBoxLayout>

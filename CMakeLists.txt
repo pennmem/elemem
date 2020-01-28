@@ -55,6 +55,9 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/CImage.cpp
   src/CImage.h
   src/ConfigFile.h
+  src/ConfigFile.cpp
+  src/EDFSave.h
+  src/EDFSave.cpp
   src/EEGAcq.cpp
   src/EEGAcq.h
   src/EEGData.h
@@ -112,6 +115,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/RCqt/RCqt.h
   src/RCqt/Worker.cpp
   src/RCqt/Worker.h
+
+  include/edflib/edflib.cpp
 )
 
 target_include_directories (${PROJECT_NAME} PRIVATE

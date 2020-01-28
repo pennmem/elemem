@@ -7,7 +7,7 @@
 #include "RCqt/Worker.h"
 
 namespace CML {
-  class EEGAcq;
+  class Handler;
 
   class EDFSave : public RCqt::WorkerThread {
     public:
@@ -16,9 +16,9 @@ namespace CML {
 
     // Rule of 3.
     EDFSave(const EDFSave&) = delete;
-    EDFSave& operator(const EDFSave&) = delete;
+    EDFSave& operator=(const EDFSave&) = delete;
 
-    RCqt::TaskCaller<RC::RStr, RC::APtr<EEGAcq>> StartFile =
+    RCqt::TaskCaller<RC::RStr> StartFile =
       TaskHandler(EDFSave::StartFile_Handler);
     RCqt::TaskCaller<> StopSaving =
       TaskHandler(EDFSave::StopSaving_Handler);
@@ -27,9 +27,9 @@ namespace CML {
       TaskHandler(EDFSave::SaveData_Handler);
 
     protected:
-    StartFile_Handler(RC::RStr& filename);
-    StopSaving_Handler();
-    SaveData_Handler(RC::APtr<const EEGData> data);
+    void StartFile_Handler(RC::RStr& filename);
+    void StopSaving_Handler();
+    void SaveData_Handler(RC::APtr<const EEGData>& data);
 
     template<class F, class P>
     void SetChanParam(F func, P p, RC::RStr error_msg);
