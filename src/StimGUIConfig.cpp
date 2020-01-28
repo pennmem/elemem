@@ -14,8 +14,8 @@ namespace CML {
     RC::Ptr<QVBoxLayout> stim_conf = new QVBoxLayout();
 
     lab = new LabeledEdit(MakeCaller(this, &StimConfigBox::LabelChanged),
-                            "Label");
-    stim_conf->addWidget(label);
+                          "Label");
+    stim_conf->addWidget(lab);
     amp = new LabeledF64(MakeCaller(this, &StimConfigBox::AmpChanged),
                          "Amplitude (ms)");
     stim_conf->addWidget(amp);

@@ -57,7 +57,7 @@ namespace CML {
     RC::Ptr<LabeledF64> amp;
     RC::Ptr<LabeledI64> freq;
     RC::Ptr<LabeledI64> dur;
-    RC::Ptr<LabeledEdit> label;
+    RC::Ptr<LabeledEdit> lab;
     StimSettings settings;
   };
 }
