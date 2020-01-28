@@ -12,6 +12,11 @@ namespace CML {
 
 
   void EEGAcq::GetData_Slot() {
+    if (ShouldAbort()) {
+      StopEverything();
+      return;
+    }
+
     try {
       RC::APtr<EEGData> data_aptr = new EEGData(cbNUM_ANALOG_CHANS);
       auto& data = *data_aptr;
