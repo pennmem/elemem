@@ -105,7 +105,7 @@ namespace CML {
       stim_settings[c].params.electrode_neg = elecs[1];
       float f;
       stim_channels[c].Get(f, "amplitude_mA");
-      stim_settings[c].params.amplitude = uint16_t(f*1000+0.5);
+      stim_settings[c].params.amplitude = uint16_t(f*1000+0.5f);
       stim_channels[c].Get(stim_settings[c].params.frequency, "frequency_Hz");
       stim_channels[c].Get(stim_settings[c].params.duration, "duration_ms");
       stim_settings[c].params.duration *= 1000;
@@ -122,8 +122,8 @@ namespace CML {
         Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
             " amplitude_range_mA needs 2 values").c_str());
       }
-      min_stim_settings[c].params.amplitude = uint16_t(vf[0]*1000+0.5);
-      max_stim_settings[c].params.amplitude = uint16_t(vf[1]*1000+0.5);
+      min_stim_settings[c].params.amplitude = uint16_t(vf[0]*1000+0.5f);
+      max_stim_settings[c].params.amplitude = uint16_t(vf[1]*1000+0.5f);
 
       stim_channels[c].Get(vi, "frequency_range_Hz");
       if (vi.size() != 2) {

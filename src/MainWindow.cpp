@@ -77,36 +77,6 @@ namespace CML {
   }
 
 
-  // TODO delete
-  RC::Ptr<QGroupBox> MainWindow::BuildStimConfig() {
-    // Store this label so it can be set at config load.
-    RC::Ptr<QGroupBox> stim_conf_box = new QGroupBox("LA8-LQ9");
-
-    RC::Ptr<QVBoxLayout> stim_conf = new QVBoxLayout();
-
-    RC::Ptr<QHBoxLayout> anode_cath = new QHBoxLayout();
-    anode_cath->addWidget(new QLabel("Anode"));
-    anode_cath->addWidget(new QLabel("[89]"));
-    anode_cath->addWidget(new QLabel("Cathode"));
-    anode_cath->addWidget(new QLabel("[90]"));
-    stim_conf->addLayout(anode_cath);
-
-    // Store these, give individual callbacks
-    RC::Ptr<LabeledF64> amp = new LabeledF64(hndl->TestLabel, "Amplitude");
-    stim_conf->addWidget(amp);
-    RC::Ptr<LabeledF64> freq = new LabeledF64(hndl->TestLabel, "Frequency");
-    stim_conf->addWidget(freq);
-    RC::Ptr<LabeledF64> dur = new LabeledF64(hndl->TestLabel, "Duration");
-    stim_conf->addWidget(dur);
-
-    RC::Ptr<Button> test_stim = new Button(hndl->TestStim, "Test Stim");
-    stim_conf->addWidget(test_stim);
-
-    stim_conf_box->setLayout(stim_conf);
-    return stim_conf_box;
-  }
-
-
   RC::Ptr<QGridLayout> MainWindow::BuildStimGrid() {
     int stim_cols = 2;
     int stim_rows = 3;

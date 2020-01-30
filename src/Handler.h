@@ -34,9 +34,6 @@ namespace CML {
     RCqt::TaskCaller<const StimSettings> SetStimSettings =
       TaskHandler(Handler::SetStimSettings_Handler);
 
-    RCqt::TaskCaller<const f64> TestLabel =
-      TaskHandler(Handler::TestLabel_Handler);
-
     // Break into vector of handlers
     RCqt::TaskCaller<> TestStim =
       TaskHandler(Handler::TestStim_Handler);
@@ -59,8 +56,6 @@ namespace CML {
 
     void SetStimSettings_Handler(const StimSettings& settings_callback);
 
-    // TODO delete
-    void TestLabel_Handler(const f64& x) { /* std::cout << x << std::endl; */ }
     void TestStim_Handler() { }
 
     void OpenConfig_Handler(RC::FileRead& fr);
