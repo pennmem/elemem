@@ -110,6 +110,7 @@ namespace CML {
   RC::Ptr<QGridLayout> MainWindow::BuildStimGrid() {
     int stim_cols = 2;
     int stim_rows = 3;
+    stim_config_boxes.Clear();
     RC::Ptr<QGridLayout> stim_grid = new QGridLayout();
     for (int r=0; r<stim_rows; r++) {
       for (int c=0; c<stim_cols; c++) {
@@ -117,6 +118,7 @@ namespace CML {
 //        stim_grid->addWidget(BuildStimConfig(), r, c);
         RC::Ptr<StimConfigBox> box = new StimConfigBox(hndl->SetStimSettings,
                                                        hndl->TestStim);
+        stim_config_boxes += box;
         stim_grid->addWidget(box, r, c);
       }
     }

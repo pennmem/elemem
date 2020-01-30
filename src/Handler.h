@@ -65,6 +65,10 @@ namespace CML {
 
     void OpenConfig_Handler(RC::FileRead& fr);
 
+    RC::Data1D<StimSettings> stim_settings;
+    RC::Data1D<StimSettings> min_stim_settings;
+    RC::Data1D<StimSettings> max_stim_settings;
+
     bool stim_test_warning = true;
   };
 }

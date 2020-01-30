@@ -2,7 +2,9 @@
 #define CONFIGFILE_H
 
 #include "nlohmann/json.hpp"
+#include "ValIter.h"
 #include "RC/RC.h"
+#include <type_traits>
 
 
 namespace CML {
@@ -11,10 +13,15 @@ namespace CML {
 
   class JSONFile {
     public:
-    JSONFile() {}
+    JSONFile() {
+      rev_ptr = this;
+      rev_ptr.AutoRevoke();
+    }
 
     JSONFile(RC::RStr pathname) {
       Load(pathname);
+      rev_ptr = this;
+      rev_ptr.AutoRevoke();
     }
 
     void Load(RC::RStr pathname) {
@@ -41,7 +48,53 @@ namespace CML {
 
     template<class T, class... Keys>
     void Get(T& data, Keys... keys) const {
-      GetRecurse(data, RC::RStr("Could not get ")+filename+" key, ", json, keys...);
+      GetRecurse(data, RC::RStr("Could not get ")+filename+" key, ",
+          json, keys...);
+    }
+
+    // Use this on base JSONFile for updates.
+    template<class T, class... Keys>
+    void Set(const T& data, Keys... keys) {
+      SetRecurse(data, RC::RStr("Could not set ")+filename+" key, ",
+          &json, keys...);
+    }
+
+    template<class... Keys>
+    auto Node(Keys... keys) const {
+      return NodeRecurse(RC::RStr("Could not get ")+filename+" key, ",
+          filename, json, keys...);
+    }
+
+    // Value copy
+    JSONFile operator[](size_t i) const {
+      RC::RStr label = filename + "[" + RC::RStr(i) +"]";
+      try {
+        if (i >= json.size()) {
+          Throw_RC_Type(File, (label + " out of bounds").c_str());
+        }
+        JSONFile new_json;
+        new_json.json = json[i];
+        new_json.filename = label;
+        return new_json;
+      }
+      catch (nlohmann::json::exception &e) {
+        Throw_RC_Type(File, (label + " missing").c_str());
+      }
+    }
+
+    size_t size() const { return json.size(); }
+
+    auto begin() {
+      return ValIter<JSONFile, JSONFile> (rev_ptr, 0);
+    }
+    auto begin() const {
+      return ValIter<JSONFile, JSONFile> (rev_ptr, 0);
+    }
+    auto end() {
+      return ValIter<JSONFile, JSONFile> (rev_ptr, size());
+    }
+    auto end() const {
+      return ValIter<JSONFile, JSONFile> (rev_ptr, size());
     }
 
 
@@ -50,10 +103,10 @@ namespace CML {
     protected:
 
     template<class T, class JSONT, class... Keys>
-    void GetRecurse(T& data, RC::RStr err_msg, JSONT& node,
+    void GetRecurse(T& data, RC::RStr err_msg, JSONT& cur_node,
         Keys... keys) const {
       try {
-        node.get_to(data);
+        cur_node.get_to(data);
       }
       catch (nlohmann::json::exception &e) {
         Throw_RC_Type(File, (err_msg + "\n" + e.what()).c_str());
@@ -61,17 +114,93 @@ namespace CML {
     }
 
     template<class T, class JSONT, class Key, class... Keys>
-    void GetRecurse(T& data, RC::RStr err_msg, JSONT& node,
+    void GetRecurse(T& data, RC::RStr err_msg, JSONT& cur_node,
         Key key, Keys... keys) const {
       err_msg += RC::RStr(key) + ":";
-      auto itr = node.find(key);
-      if (itr == node.end()) {
+      auto itr = cur_node.find(key);
+      if (itr == cur_node.end()) {
         Throw_RC_Type(File, (err_msg + "\nError found").c_str());
       }
       GetRecurse(data, err_msg, *itr, keys...);
     }
 
+    template<class T, class JSONI, class... Keys>
+    void SetRecurse(const T& data, RC::RStr err_msg, JSONI itr,
+        Keys... keys) {
+      try {
+        nlohmann::json update_node = data;
+        *itr = update_node;
+      }
+      catch (nlohmann::json::exception &e) {
+        Throw_RC_Type(File, (err_msg + "\n" + e.what()).c_str());
+      }
+    }
+
+    template<class T, class JSONI, class... Keys>
+    void SetRecurse(const T& data, RC::RStr err_msg, JSONI itr,
+        size_t key, Keys... keys) {
+      err_msg += RC::RStr(key) + ":";
+      if (key >= itr->size()) {
+        Throw_RC_Type(File, (err_msg + "\nOut of bounds").c_str());
+      }
+      auto next_itr = &((*itr)[key]);
+      SetRecurse(data, err_msg, next_itr, keys...);
+    }
+    template<class T, class JSONI, class... Keys>
+    void SetRecurse(const T& data, RC::RStr err_msg, JSONI itr,
+        int32_t key, Keys... keys) {
+      SetRecurse(data, err_msg, itr, size_t(key), keys...);
+    }
+    template<class T, class JSONI, class... Keys>
+    void SetRecurse(const T& data, RC::RStr err_msg, JSONI itr,
+        int64_t key, Keys... keys) {
+      SetRecurse(data, err_msg, itr, size_t(key), keys...);
+    }
+    template<class T, class JSONI, class... Keys>
+    void SetRecurse(const T& data, RC::RStr err_msg, JSONI itr,
+        uint32_t key, Keys... keys) {
+      SetRecurse(data, err_msg, itr, size_t(key), keys...);
+    }
+
+    template<class T, class JSONI, class Key, class... Keys>
+    void SetRecurse(const T& data, RC::RStr err_msg, JSONI itr,
+        Key key, Keys... keys) {
+      err_msg += RC::RStr(key) + ":";
+      auto next_itr = itr->find(key);
+      if (next_itr == itr->end()) {
+        Throw_RC_Type(File, (err_msg + "\nError found").c_str());
+      }
+      SetRecurse(data, err_msg, next_itr, keys...);
+    }
+
+    template<class JSONT, class... Keys>
+    auto NodeRecurse(RC::RStr err_msg, RC::RStr new_name, JSONT& cur_node,
+        Keys... keys) const {
+      JSONFile new_json;
+      try {
+        new_json.json = cur_node;
+        new_json.filename = new_name;
+      }
+      catch (nlohmann::json::exception &e) {
+        Throw_RC_Type(File, (err_msg + "\nError found").c_str());
+      }
+      return new_json;
+    }
+
+    template<class JSONT, class Key, class... Keys>
+    auto NodeRecurse(RC::RStr err_msg, RC::RStr new_name, JSONT& cur_node,
+        Key key, Keys... keys) const {
+      err_msg += RC::RStr(key) + ":";
+      new_name += ":" + RC::RStr(key);
+      auto itr = cur_node.find(key);
+      if (itr == cur_node.end()) {
+        Throw_RC_Type(File, (err_msg + "\nError found").c_str());
+      }
+      return NodeRecurse(err_msg, new_name, *itr, keys...);
+    }
+
     RC::RStr filename;
+    RC::RevPtr<JSONFile> rev_ptr;
   };
 
 
@@ -120,6 +249,16 @@ namespace CML {
 
     RC::RStr filename;
   };
+
+  inline std::ostream& operator<< (std::ostream &out, const JSONFile &j) {
+    out << j.json;
+    return out;
+  }
+
+  inline std::ostream& operator<< (std::ostream &out, const CSVFile &c) {
+    out << c.data;
+    return out;
+  }
 }
 
 #endif // CONFIGFILE_H

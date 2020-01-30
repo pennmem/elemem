@@ -28,6 +28,11 @@ namespace CML {
 
     RC::Ptr<Handler> hndl;
 
+    StimConfigBox& GetStimConfigBox(size_t i) {
+      return *stim_config_boxes[i];
+    }
+    size_t StimConfigCount() { return stim_config_boxes.size(); }
+
     public slots:
 
     void FileOpenClicked();
@@ -50,6 +55,7 @@ namespace CML {
     RC::Ptr<EEGDisplay> eeg_disp;
 
     RC::APtr<OpenConfigDialog> open_config_dialog;
+    RC::Data1D<RC::Ptr<StimConfigBox>> stim_config_boxes;
 
     RC::RStr last_open_dir;
     RC::RStr elemem_dir;
