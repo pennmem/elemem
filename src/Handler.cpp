@@ -56,7 +56,7 @@ namespace CML {
     elecs->Load(elecfilename);
     elec_config = elecs.ExtractConst();
 
-    auto stim_channels = exp_config.Node("experiment", "stim_channels");
+    auto stim_channels = exp_config->Node("experiment", "stim_channels");
     stim_settings.Resize(stim_channels.size());
     min_stim_settings.Resize(stim_channels.size());
     max_stim_settings.Resize(stim_channels.size());
@@ -65,20 +65,20 @@ namespace CML {
       std::vector<u8> elecs;
       try {
         stim_channels[c].Get(label);
-        auto split = label.Split('_');
+        auto split = RStr(label).Split('_');
         if (split.size() != 2 || split[0] == split[1]) {
           Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
               " string must be in LA1_LA2 bipolar format").c_str());
         }
-        elecs.Resize(2);
+        elecs.resize(2);
         size_t found = 0;
-        for (size_t i=0; i<elec_config.data.size2(); i++) {
-          if (elec_config.data[i][0] == split[0]) {
-            elecs[0] = elec_config_data[i][1];
+        for (size_t i=0; i<elec_config->data.size2(); i++) {
+          if (elec_config->data[i][0] == split[0]) {
+            elecs[0] = u8(elec_config->data[i][1].Get_u32());
             found++;
           }
-          if (elec_config.data[i][0] == split[1]) {
-            elecs[1] = elec_config_data[i][1];
+          if (elec_config->data[i][0] == split[1]) {
+            elecs[1] = u8(elec_config->data[i][1].Get_u32());
             found++;
           }
         }
@@ -95,8 +95,8 @@ namespace CML {
                   " specifies wrong number of electrodes").c_str());
           }
         }
-        catch (ErrorMsg& e2) {
-          throw (e);
+        catch (ErrorMsg&) {
+          throw (e);  // From outer catch
         }
       }
 
@@ -104,7 +104,7 @@ namespace CML {
       stim_settings[c].params.electrode_pos = elecs[0];
       stim_settings[c].params.electrode_neg = elecs[1];
       float f;
-      stim_channels[c].Get(f, "amplitude_mA")
+      stim_channels[c].Get(f, "amplitude_mA");
       stim_settings[c].params.amplitude = uint16_t(f*1000+0.5);
       stim_channels[c].Get(stim_settings[c].params.frequency, "frequency_Hz");
       stim_channels[c].Get(stim_settings[c].params.duration, "duration_ms");
@@ -119,24 +119,24 @@ namespace CML {
 
       stim_channels[c].Get(vf, "amplitude_range_mA");
       if (vf.size() != 2) {
-        Throw_RC_Type(File, "Stim channel index "+RStr(c)+
-            " amplitude_range_mA needs 2 values");
+        Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
+            " amplitude_range_mA needs 2 values").c_str());
       }
       min_stim_settings[c].params.amplitude = uint16_t(vf[0]*1000+0.5);
       max_stim_settings[c].params.amplitude = uint16_t(vf[1]*1000+0.5);
 
       stim_channels[c].Get(vi, "frequency_range_Hz");
       if (vi.size() != 2) {
-        Throw_RC_Type(File, "Stim channel index "+RStr(c)+
-            " frequency_range_Hz needs 2 values");
+        Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
+            " frequency_range_Hz needs 2 values").c_str());
       }
       min_stim_settings[c].params.frequency = vi[0];
       max_stim_settings[c].params.frequency = vi[1];
 
       stim_channels[c].Get(vi, "duration_range_ms");
       if (vi.size() != 2) {
-        Throw_RC_Type(File, "Stim channel index "+RStr(c)+
-            " duration_range_ms needs 2 values");
+        Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
+            " duration_range_ms needs 2 values").c_str());
       }
       min_stim_settings[c].params.duration = vi[0] * 1000;
       max_stim_settings[c].params.duration = vi[1] * 1000;
@@ -151,12 +151,12 @@ namespace CML {
         (min_stim_settings[c].params.duration <=
          Betw(stim_settings[c].params.duration) <=
          max_stim_settings[c].params.duration))) {
-        Throw_RC_Type("Stim channel index "+RStr(c)+
-            " default stim value outside of allowed range");
+        Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
+            " default stim value outside of allowed range").c_str());
       }
 
       if (c < main_window->StimConfigCount()) {
-        main_window->GetStimConfigBox(c).SetChannel(min_stim_settings[c].params
+        main_window->GetStimConfigBox(c).SetChannel(min_stim_settings[c].params,
             max_stim_settings[c].params, stim_settings[c].label);
         main_window->GetStimConfigBox(c).SetParameters(
             stim_settings[c].params);

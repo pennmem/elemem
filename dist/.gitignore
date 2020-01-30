@@ -1,9 +1,11 @@
 Qt5Cored.dll
 Qt5Guid.dll
+Qt5PrintSupportd.dll
 Qt5Svgd.dll
 Qt5Widgetsd.dll
 libEGLd.dll
 libGLESV2d.dll
 platforms/qwindowsd.dll
+printsupport/windowsprintersupportd.dll
 styles/qwindowsvistastyled.dll
 *.exe
