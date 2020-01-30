@@ -1,5 +1,6 @@
 #include "GuiParts.h"
 #include "RC/RCBits.h"
+#include "RC/RStr.h"
 
 using namespace RC;
 
@@ -110,6 +111,17 @@ namespace CML {
     : QPushButton(text.c_str()), callback(callback) {
 
     connect(this, SIGNAL(clicked(bool)), SLOT(ClickedSlot(bool)));
+  }
+
+  void Button::SetColor(Color c) {
+    Data1D<u8> cd(3);
+    cd[0] = u8(255.9999f*c.r);
+    cd[1] = u8(255.9999f*c.g);
+    cd[2] = u8(255.9999f*c.b);
+    RStr colorstr = RStr::Join(cd, ", ");
+    setStyleSheet(("background-color: rgb("+colorstr+");"
+                   "font-weight: bold").ToQString());
+    update();
   }
 
 ////////////////////////////

@@ -214,7 +214,11 @@ namespace CML {
 
     void Load(RC::RStr pathname) {
       filename = pathname;
-      RC::FileRead fr(pathname);
+      RC::FileRead fr;
+      if (!fr.Open(pathname)) {
+        Throw_RC_Type(File, ("Could not open " + pathname +
+                             "\nError found").c_str());
+      }
       RC::Data1D<RC::RStr> lines;
       fr.ReadAllLines(lines);
       RemoveComments(lines);

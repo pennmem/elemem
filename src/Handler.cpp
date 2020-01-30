@@ -49,8 +49,16 @@ namespace CML {
     conf->Load(fr);
     exp_config = conf.ExtractConst();
 
-    std::string elecfilename;
-    exp_config->Get(elecfilename, "electrode_config_file");
+    std::string elecfilename_str;
+    exp_config->Get(elecfilename_str, "electrode_config_file");
+    RStr elecfilename;
+    if (File::Basename(elecfilename_str) == elecfilename_str) {
+      elecfilename = File::FullPath(File::Dirname(fr.GetFilename()),
+          elecfilename_str);
+    }
+    else {
+      elecfilename = elecfilename_str;
+    }
 
     APtr<CSVFile> elecs = new CSVFile();
     elecs->Load(elecfilename);
@@ -64,7 +72,7 @@ namespace CML {
       std::string label;
       std::vector<u8> elecs;
       try {
-        stim_channels[c].Get(label);
+        stim_channels[c].Get(label, "electrodes");
         auto split = RStr(label).Split('_');
         if (split.size() != 2 || split[0] == split[1]) {
           Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
@@ -89,7 +97,7 @@ namespace CML {
       }
       catch (ErrorMsg& e) {
         try {
-          stim_channels[c].Get(elecs);
+          stim_channels[c].Get(elecs, "electrodes");
           if (elecs.size() != 2) {
             Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
                   " specifies wrong number of electrodes").c_str());
@@ -101,8 +109,8 @@ namespace CML {
       }
 
       stim_settings[c].label = label;
-      stim_settings[c].params.electrode_pos = elecs[0];
-      stim_settings[c].params.electrode_neg = elecs[1];
+      stim_settings[c].params.electrode_pos = elecs[0]-1;
+      stim_settings[c].params.electrode_neg = elecs[1]-1;
       float f;
       stim_channels[c].Get(f, "amplitude_mA");
       stim_settings[c].params.amplitude = uint16_t(f*1000+0.5f);

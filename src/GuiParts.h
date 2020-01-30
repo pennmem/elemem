@@ -1,6 +1,7 @@
 #ifndef GUIPARTS_H
 #define GUIPARTS_H
 
+#include "Palette.h"
 #include "RC/RC.h"
 #include "RCqt/Worker.h"
 #include <QCheckBox>
@@ -149,6 +150,8 @@ namespace CML {
     void SetToolTip(const RC::RStr &tip) {
       setToolTip(tip.c_str());
     }
+
+    void SetColor(Color c);
 
     protected slots:
     void ClickedSlot(bool /*checked*/) {

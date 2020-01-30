@@ -24,7 +24,6 @@ namespace CML {
                QObject::tr("Open Config File"),
                main_window->GetLastOpenDir().ToQString());
 
-
     if (filename != "") {
       if (fr.Open(filename.toStdString()) == false) {
         ErrorWin("Could not open file.");

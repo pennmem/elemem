@@ -104,7 +104,21 @@ namespace CML {
 
     RC::Ptr<QHBoxLayout> control_and_display = new QHBoxLayout();
 
-    control_and_display->addLayout(BuildStimGrid());
+    RC::Ptr<QVBoxLayout> stim_and_start = new QVBoxLayout();
+    stim_and_start->addLayout(BuildStimGrid());
+
+    RC::Ptr<QHBoxLayout> start_stop_buttons = new QHBoxLayout();
+    RC::Ptr<Button> start_button = new Button(hndl->StartExperiment,
+                                              "Start Experiment");
+    start_button->SetColor({0.2f, 0.9f, 0.2f});
+    RC::Ptr<Button> stop_button = new Button(hndl->StopExperiment,
+                                            "Stop Experiment");
+    stop_button->SetColor({1.0f, 0.1f, 0.1f});
+    start_stop_buttons->addWidget(start_button);
+    start_stop_buttons->addWidget(stop_button);
+    stim_and_start->addLayout(start_stop_buttons);
+
+    control_and_display->addLayout(stim_and_start);
 
     RC::Ptr<QVBoxLayout> test_layout = new QVBoxLayout();
     RC::Ptr<Button> cerebus_test = new Button(hndl->CerebusTest, "Cerebus Test");

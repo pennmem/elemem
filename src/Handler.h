@@ -34,6 +34,12 @@ namespace CML {
     RCqt::TaskCaller<const StimSettings> SetStimSettings =
       TaskHandler(Handler::SetStimSettings_Handler);
 
+    RCqt::TaskCaller<> StartExperiment =
+        TaskHandler(Handler::StartExperiment_Handler);
+
+    RCqt::TaskCaller<> StopExperiment =
+        TaskHandler(Handler::StopExperiment_Handler);
+
     // Break into vector of handlers
     RCqt::TaskCaller<> TestStim =
       TaskHandler(Handler::TestStim_Handler);
@@ -55,6 +61,9 @@ namespace CML {
     void CereStimTest_Handler();
 
     void SetStimSettings_Handler(const StimSettings& settings_callback);
+
+    void StartExperiment_Handler() { } // TODO
+    void StopExperiment_Handler() { } // TODO
 
     void TestStim_Handler() { }
 

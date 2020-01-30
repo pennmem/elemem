@@ -36,7 +36,7 @@ namespace CML {
   void StimConfigBox::SetChannel_Handler(const CSStimChannel& minvals,
       const CSStimChannel& maxvals, const RC::RStr& label) {
     setTitle((RStr(minvals.electrode_pos+1) + "_" +
-          RStr(minvals.electrode_neg)).ToQString());
+          RStr(minvals.electrode_neg+1)).ToQString());
     settings.params = minvals;
     settings.label = label;
     amp->SetRange(minvals.amplitude * 1e-3, maxvals.amplitude * 1e-3);
