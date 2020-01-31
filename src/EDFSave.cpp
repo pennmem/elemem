@@ -27,6 +27,7 @@ namespace CML {
       channels[c] = uint8_t(hndl->elec_config->data[c][1].Get_u32() - 1);
     }
 
+    StopSaving_Handler();
     edf_hdl = edfopen_file_writeonly(filename.c_str(),
         EDFLIB_FILETYPE_EDFPLUS, int(channels.size()));
 
@@ -66,7 +67,6 @@ namespace CML {
       Throw_RC_Type(File, "Could not mark edf recording start");
     }
 
-    StopSaving_Handler();
     amount_written = 0;
     amount_buffered = 0;
     buffer.Clear();
