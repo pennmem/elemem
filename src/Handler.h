@@ -51,6 +51,8 @@ namespace CML {
     RC::APtr<const JSONFile> exp_config;
     RC::APtr<const CSVFile> elec_config;
 
+    const RC::RStr elemem_dir;
+
     private:
 
     RC::Ptr<MainWindow> main_window;
@@ -58,7 +60,8 @@ namespace CML {
     void CerebusTest_Handler();
     void CereStimTest_Handler();
 
-    void SetStimSettings_Handler(const StimSettings& settings_callback);
+    void SetStimSettings_Handler(const size_t& index,
+                                 const StimSettings& settings_callback);
     void TestStim_Handler(const size_t& index);
 
     void StartExperiment_Handler();

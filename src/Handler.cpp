@@ -2,14 +2,20 @@
 #include "Handler.h"
 #include "MainWindow.h"
 #include "Popup.h"
+#include "Utils.h"
 #include "RC/RC.h"
+#include <QDir>
 
 using namespace std;
 using namespace RC;
 
 
 namespace CML {
-  Handler::Handler() : edf_save(this) {
+  Handler::Handler()
+    : edf_save(this),
+      elemem_dir(File::FullPath(GetDesktop(), "ElememData")) {
+
+    File::MakeDir(elemem_dir);
   }
 
   // Defaulting this here after ConfigFile is included ensures
@@ -48,7 +54,7 @@ namespace CML {
 
     // No.  Put that back.
     if (experiment_running) {
-      main_window->stim_config_boxes[index]->SetParameters(
+      main_window->GetStimConfigBox(index).SetParameters(
           stim_settings[index].params);
       return;
     }
@@ -104,7 +110,7 @@ namespace CML {
     exp_config->Get(stim_mode_str, "experiment", "stim_mode");
     RStr stim_mode = stim_mode_str;
     stim_mode.ToLower();
-    if (stim_mode != "open" || stim_mode != "none") {
+    if (stim_mode != "open" && stim_mode != "none") {
       ErrorWin("Configuration file experiment:stim_mode must be \"open\" "
           "for this version of Elemem.  Cannot start experiment.");
       return;
@@ -122,8 +128,7 @@ namespace CML {
     }
     stim_worker.ConfigureStimulation(profile);
 
-    session_dir = File::FullPath(main_window->elemem_dir,
-        "Elemem_"+Time::GetDateTime());
+    session_dir = File::FullPath(elemem_dir, "Elemem_"+Time::GetDateTime());
     File::MakeDir(session_dir);
 
     // Save updated experiment configuration.
@@ -295,9 +300,9 @@ namespace CML {
 
   void Handler::SaveDefaultEEG() {
     std::string sub_name;
-    hndl->exp_config->Get(sub_name, "subject");
+    exp_config->Get(sub_name, "subject");
 
-    RStr eeg_file = File::FullPath(main_window->elemem_dir,
+    RStr eeg_file = File::FullPath(elemem_dir,
         RStr(sub_name)+"_nonsession_eeg_"+Time::GetDateTime()+".edf");
 
     edf_save.StartFile(eeg_file);

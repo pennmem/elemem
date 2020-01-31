@@ -14,7 +14,7 @@ namespace CML {
     StopSaving_Handler();
   }
 
-  void EDFSave::StartFile_Handler(RC::RStr& filename) {
+  void EDFSave::StartFile_Handler(const RC::RStr& filename) {
     if (hndl->elec_config.IsNull()) {
       Throw_RC_Error("Cannot save data with no channels set");
     }

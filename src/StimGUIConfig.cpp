@@ -38,7 +38,7 @@ namespace CML {
         MakeCaller(this, &StimConfigBox::ApproveChanged), "Approve Settings");
     stim_approve->addWidget(approve_check);
 
-    stim_conf->addWidget(stim_approve);
+    stim_conf->addLayout(stim_approve);
 
     setLayout(stim_conf);
   }

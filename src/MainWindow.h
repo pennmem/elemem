@@ -58,7 +58,6 @@ namespace CML {
     RC::Data1D<RC::Ptr<StimConfigBox>> stim_config_boxes;
 
     RC::RStr last_open_dir;
-    RC::RStr elemem_dir;
   };
 }
 

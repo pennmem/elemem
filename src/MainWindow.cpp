@@ -4,6 +4,7 @@
 #include "MainWindow.h"
 #include "Popup.h"
 #include "StimGUIConfig.h"
+#include "Utils.h"
 #include <QAction>
 #include <QCloseEvent>
 #include <QDir>
@@ -28,17 +29,7 @@ namespace CML {
 
     UnusedVar(PopupManager::GetManager());  // Initialize singleton.
 
-    auto dirlist = QStandardPaths::standardLocations(
-          QStandardPaths::DesktopLocation);
-    if (dirlist.size() < 1) {
-      last_open_dir = RC::File::CurrentDir();
-    }
-    else {
-      last_open_dir = dirlist[0];
-    }
-
-    elemem_dir = File::FullPath(RStr{QDir::homePath()}, "ElememData");
-    File::MakeDir(elemem_dir);
+    last_open_dir = GetDesktop();
 
     PrepareMenus();
     BuildLayout();

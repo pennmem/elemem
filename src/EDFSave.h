@@ -18,7 +18,7 @@ namespace CML {
     EDFSave(const EDFSave&) = delete;
     EDFSave& operator=(const EDFSave&) = delete;
 
-    RCqt::TaskCaller<RC::RStr> StartFile =
+    RCqt::TaskCaller<const RC::RStr> StartFile =
       TaskHandler(EDFSave::StartFile_Handler);
     RCqt::TaskCaller<> StopSaving =
       TaskHandler(EDFSave::StopSaving_Handler);
@@ -27,7 +27,7 @@ namespace CML {
       TaskHandler(EDFSave::SaveData_Handler);
 
     protected:
-    void StartFile_Handler(RC::RStr& filename);
+    void StartFile_Handler(const RC::RStr& filename);
     void StopSaving_Handler();
     void SaveData_Handler(RC::APtr<const EEGData>& data);
 

@@ -44,26 +44,26 @@ namespace CML {
     // Internal callbacks
     void AmpChanged(const f64& new_amp_mA) {
       settings.params.amplitude = uint16_t(std::round(new_amp_mA*1000));
-      setting_callback(config_index, settings);
+      settings_callback(config_index, settings);
     }
     void FreqChanged(const int64_t& new_freq_Hz) {
       settings.params.frequency = uint32_t(new_freq_Hz);
-      setting_callback(config_index, settings);
+      settings_callback(config_index, settings);
     }
     void DurChanged(const int64_t& new_dur_ms) {
       settings.params.duration = uint32_t(new_dur_ms*1000);
-      setting_callback(config_index, settings);
+      settings_callback(config_index, settings);
     }
     void LabelChanged(const RC::RStr& new_label) {
       settings.label = new_label;
-      setting_callback(config_index, settings);
+      settings_callback(config_index, settings);
     }
     void TestStim() {
       test_stim_callback(config_index);
     }
     void ApproveChanged(const bool& state) {
       settings.approved = state;
-      setting_callback(config_index, settings);
+      settings_callback(config_index, settings);
     }
 
     protected:

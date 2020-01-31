@@ -84,6 +84,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/StimGUIConfig.cpp
   src/StimWorker.h
   src/StimWorker.cpp
+  src/Utils.h
+  src/Utils.cpp
 
   src/RC/APtr.h
   src/RC/Bitfield2D.h
