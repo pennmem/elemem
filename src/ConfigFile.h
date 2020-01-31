@@ -221,6 +221,7 @@ namespace CML {
       }
       RC::Data1D<RC::RStr> lines;
       fr.ReadAllLines(lines);
+      file_lines = lines;
       RemoveComments(lines);
       
       data.Clear();
@@ -247,7 +248,12 @@ namespace CML {
       fw.WriteStr(RC::RStr::MakeCSV(data));
     }
 
+    RC::RStr GetFilename() const {
+      return filename;
+    }
+
     RC::Data2D<RC::RStr> data;
+    RC::Data1D<RC::RStr> file_lines;
 
     protected:
 

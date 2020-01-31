@@ -26,6 +26,8 @@ namespace CML {
     : hndl (hndl),
       open_config_dialog (new OpenConfigDialog(this)) {
 
+    UnusedVar(PopupManager::GetManager());  // Initialize singleton.
+
     auto dirlist = QStandardPaths::standardLocations(
           QStandardPaths::DesktopLocation);
     if (dirlist.size() < 1) {
@@ -84,8 +86,6 @@ namespace CML {
     RC::Ptr<QGridLayout> stim_grid = new QGridLayout();
     for (int r=0; r<stim_rows; r++) {
       for (int c=0; c<stim_cols; c++) {
-        // TODO Adjust for hooks for stim config
-//        stim_grid->addWidget(BuildStimConfig(), r, c);
         RC::Ptr<StimConfigBox> box = new StimConfigBox(hndl->SetStimSettings,
                                                        hndl->TestStim);
         stim_config_boxes += box;

@@ -66,6 +66,7 @@ namespace CML {
       Throw_RC_Type(File, "Could not mark edf recording start");
     }
 
+    StopSaving_Handler();
     amount_written = 0;
     amount_buffered = 0;
     buffer.Clear();

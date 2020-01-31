@@ -31,18 +31,16 @@ namespace CML {
       TaskHandler(Handler::CereStimTest_Handler);
 
 
-    RCqt::TaskCaller<const StimSettings> SetStimSettings =
+    RCqt::TaskCaller<const size_t, const StimSettings> SetStimSettings =
       TaskHandler(Handler::SetStimSettings_Handler);
+    RCqt::TaskCaller<const size_t> TestStim =
+      TaskHandler(Handler::TestStim_Handler);
 
     RCqt::TaskCaller<> StartExperiment =
         TaskHandler(Handler::StartExperiment_Handler);
 
     RCqt::TaskCaller<> StopExperiment =
         TaskHandler(Handler::StopExperiment_Handler);
-
-    // Break into vector of handlers
-    RCqt::TaskCaller<> TestStim =
-      TaskHandler(Handler::TestStim_Handler);
 
     RCqt::TaskCaller<RC::FileRead> OpenConfig =
       TaskHandler(Handler::OpenConfig_Handler);
@@ -61,19 +59,22 @@ namespace CML {
     void CereStimTest_Handler();
 
     void SetStimSettings_Handler(const StimSettings& settings_callback);
+    void TestStim_Handler(const size_t& index);
 
-    void StartExperiment_Handler() { } // TODO
-    void StopExperiment_Handler() { } // TODO
-
-    void TestStim_Handler() { }
+    void StartExperiment_Handler();
+    void StopExperiment_Handler();
 
     void OpenConfig_Handler(RC::FileRead& fr);
+    void SaveDefaultEEG();
 
     RC::Data1D<StimSettings> stim_settings;
     RC::Data1D<StimSettings> min_stim_settings;
     RC::Data1D<StimSettings> max_stim_settings;
 
-    bool stim_test_warning = true;
+    RC::RStr session_dir;
+
+    bool experiment_running = false;
+    bool stim_api_test_warning = true;
   };
 }
 

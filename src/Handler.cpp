@@ -27,12 +27,12 @@ namespace CML {
   }
 
   void Handler::CereStimTest_Handler() {
-    if (stim_test_warning) {
+    if (stim_api_test_warning) {
       if (!ConfirmWin("WARNING!  CereStim Test should not be run with a participant connected.  Continue?")) {
         return;
       }
 
-      stim_test_warning = false;
+      stim_api_test_warning = false;
     }
 
     stim_worker.CloseCereStim();
@@ -40,11 +40,130 @@ namespace CML {
     APITests::CereStimTest();
   }
 
-  void Handler::SetStimSettings_Handler(const StimSettings& updated_settings) {
-    // TODO - implement
+  void Handler::SetStimSettings_Handler(const size_t& index,
+      const StimSettings& updated_settings) {
+    if (index >= stim_settings.size()) {
+      return;
+    }
+
+    // No.  Put that back.
+    if (experiment_running) {
+      main_window->stim_config_boxes[index]->SetParameters(
+          stim_settings[index].params);
+      return;
+    }
+
+    // Safety checks.
+    // In principle this is redundant with the set gui limits, but this
+    // should guard against programming errors now and under future
+    // maintenance.
+    if (
+      (updated_settings.params.electrode_pos !=
+       stim_settings[index].params.electrode_pos) ||
+      (updated_settings.params.electrode_neg !=
+       stim_settings[index].params.electrode_neg) ||
+      (updated_settings.params.amplitude >
+       max_stim_settings[index].params.amplitude) ||
+      (updated_settings.params.amplitude <
+       min_stim_settings[index].params.amplitude) ||
+      (updated_settings.params.frequency >
+       max_stim_settings[index].params.frequency) ||
+      (updated_settings.params.frequency <
+       min_stim_settings[index].params.frequency) ||
+      (updated_settings.params.duration >
+       max_stim_settings[index].params.duration) ||
+      (updated_settings.params.duration <
+       min_stim_settings[index].params.duration)) {
+      ErrorWin("Attempted to set invalid stim settings.", "Safety check");
+      return;
+    }
+
+    stim_settings[index] = updated_settings;
+  }
+
+  void Handler::TestStim_Handler(const size_t& index) {
+    if (index >= stim_settings.size()) {
+      ErrorWin("Stim channel not configured.");
+      return;
+    }
+
+    if (experiment_running) {
+      ErrorWin("Cannot test stim while experiment running.");
+      return;
+    }
+
+    CSStimProfile profile;
+    profile += stim_settings[index].params;
+
+    stim_worker.ConfigureStimulation(profile);
+    stim_worker.Stimulate();
+  }
+
+  void Handler::StartExperiment_Handler() {
+    std::string stim_mode_str;
+    exp_config->Get(stim_mode_str, "experiment", "stim_mode");
+    RStr stim_mode = stim_mode_str;
+    stim_mode.ToLower();
+    if (stim_mode != "open" || stim_mode != "none") {
+      ErrorWin("Configuration file experiment:stim_mode must be \"open\" "
+          "for this version of Elemem.  Cannot start experiment.");
+      return;
+    }
+
+    CSStimProfile profile;
+    for (size_t c=0; c<stim_settings.size(); c++) {
+      if (stim_settings[c].approved) {
+        profile += stim_settings[c].params;
+      }
+    }
+    if (profile.size() == 0 && stim_mode != "none") {
+      ConfirmWin("No stim channels approved on experiment configured "
+          "with stimulation.  Proceed?");
+    }
+    stim_worker.ConfigureStimulation(profile);
+
+    session_dir = File::FullPath(main_window->elemem_dir,
+        "Elemem_"+Time::GetDateTime());
+    File::MakeDir(session_dir);
+
+    // Save updated experiment configuration.
+    JSONFile current_config = *exp_config;
+    for (size_t c=0; c<stim_settings.size(); c++) {
+      current_config.Set(stim_settings[c].params.amplitude,
+          "experiment", "stim_channels", c, "amplitude_mA");
+      current_config.Set(stim_settings[c].params.frequency,
+          "experiment", "stim_channels", c, "frequency_Hz");
+      current_config.Set(stim_settings[c].params.duration,
+          "experiment", "stim_channels", c, "duration_ms");
+    }
+    current_config.Save(File::FullPath(session_dir,
+          "experiment_config.json"));
+
+    // Save copy of loaded electrode config.
+    FileWrite fw(File::FullPath(session_dir,
+          File::Basename(elec_config->GetFilename())));
+    fw.Put(elec_config->file_lines, true);
+    fw.Close();
+
+    // Start acqusition
+    edf_save.StartFile(File::FullPath(session_dir,
+          "eeg_data.edf"));
+
+    // TODO - Start network listener
+  }
+
+  void Handler::StopExperiment_Handler() {
+    edf_save.StopSaving();
+    SaveDefaultEEG();
+
+    // TODO - Stop network listener
   }
 
   void Handler::OpenConfig_Handler(RC::FileRead& fr) {
+    for (size_t c=0; c<main_window->StimConfigCount(); c++) {
+      main_window->GetStimConfigBox(c).Clear();
+    }
+
     APtr<JSONFile> conf = new JSONFile();
     conf->Load(fr);
     exp_config = conf.ExtractConst();
@@ -165,11 +284,23 @@ namespace CML {
 
       if (c < main_window->StimConfigCount()) {
         main_window->GetStimConfigBox(c).SetChannel(min_stim_settings[c].params,
-            max_stim_settings[c].params, stim_settings[c].label);
+            max_stim_settings[c].params, stim_settings[c].label, c);
         main_window->GetStimConfigBox(c).SetParameters(
             stim_settings[c].params);
       }
     }
+
+    SaveDefaultEEG();
+  }
+
+  void Handler::SaveDefaultEEG() {
+    std::string sub_name;
+    hndl->exp_config->Get(sub_name, "subject");
+
+    RStr eeg_file = File::FullPath(main_window->elemem_dir,
+        RStr(sub_name)+"_nonsession_eeg_"+Time::GetDateTime()+".edf");
+
+    edf_save.StartFile(eeg_file);
   }
 }
 

@@ -89,6 +89,7 @@ namespace CML {
   class CSStimProfile {
     public:
     CSStimProfile& operator+=(const CSStimChannel& chan);
+    size_t size() const { return stim_profile.size(); }
 
     private:
     std::vector<CSStimChannel> stim_profile;

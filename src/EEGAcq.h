@@ -59,7 +59,6 @@ namespace CML {
 
     Cerebus cereb;
 
-    RC::FileWrite eeg_out;
     RC::APtr<QTimer> acq_timer;
     int polling_interval_ms = 20;
 

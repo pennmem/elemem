@@ -1,13 +1,16 @@
 #include "StimGuiConfig.h"
 #include "RC/RCBits.h"
+#include <QHBoxLayout>
+
 
 using namespace RC;
 
 namespace CML {
   StimConfigBox::StimConfigBox(
-      Caller<void, const StimSettings&> settings_callback,
-      Caller<void> test_stim_callback)
-    : settings_callback(settings_callback) {
+      Caller<void, const size_t&, const StimSettings&> settings_callback,
+      Caller<void, const size_t&> test_stim_callback)
+    : settings_callback(settings_callback),
+      test_stim_callback(test_stim_callback) {
 
     setTitle("Not configured");
 
@@ -26,15 +29,24 @@ namespace CML {
                          "Duration (ms)");
     stim_conf->addWidget(dur);
 
-    RC::Ptr<Button> test_stim = new Button(test_stim_callback, "Test Stim");
-    stim_conf->addWidget(test_stim);
+    RC::Ptr<QHBoxLayout> stim_approve = new QHBoxLayout();
+    RC::Ptr<Button> test_stim = new Button(
+        MakeCaller(this, &StimConfigBox::TestStim), "Test Stim");
+    stim_approve->addWidget(test_stim);
+
+    RC::Ptr<CheckBox> approve_check = new CheckBox(
+        MakeCaller(this, &StimConfigBox::ApproveChanged), "Approve Settings");
+    stim_approve->addWidget(approve_check);
+
+    stim_conf->addWidget(stim_approve);
 
     setLayout(stim_conf);
   }
 
 
   void StimConfigBox::SetChannel_Handler(const CSStimChannel& minvals,
-      const CSStimChannel& maxvals, const RC::RStr& label) {
+      const CSStimChannel& maxvals, const RC::RStr& label,
+      const size_t& index) {
     setTitle((RStr(minvals.electrode_pos+1) + "_" +
           RStr(minvals.electrode_neg+1)).ToQString());
     settings.params = minvals;
@@ -44,6 +56,7 @@ namespace CML {
     dur->SetRange(int64_t(minvals.duration * 1e-3 + 0.5), int64_t(maxvals.duration * 1e-3));
     lab->SetDefault(label);
     lab->SetReadOnly( ! label.empty() );
+    config_index = index;
   }
 
   void StimConfigBox::SetParameters_Handler(const CSStimChannel& params) {
@@ -58,6 +71,8 @@ namespace CML {
     freq->Set(0);
     dur->Set(0);
     lab->SetDefault("");
+    config_index = size_t(-1);
+    settings = {};
   }
 }
 
