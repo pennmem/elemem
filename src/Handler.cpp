@@ -80,6 +80,8 @@ namespace CML {
        max_stim_settings[index].params.duration) ||
       (updated_settings.params.duration <
        min_stim_settings[index].params.duration)) {
+      main_window->GetStimConfigBox(index).SetParameters(
+        stim_settings[index].params);
       ErrorWin("Attempted to set invalid stim settings.", "Safety check");
       return;
     }
@@ -242,7 +244,7 @@ namespace CML {
       stim_channels[c].Get(stim_settings[c].params.duration, "duration_ms");
       stim_settings[c].params.duration *= 1000;
       stim_settings[c].approved = false;
-      
+
       min_stim_settings = stim_settings;
       max_stim_settings = stim_settings;
 
@@ -254,6 +256,7 @@ namespace CML {
         Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
             " amplitude_range_mA needs 2 values").c_str());
       }
+
       min_stim_settings[c].params.amplitude = uint16_t(vf[0]*1000+0.5f);
       max_stim_settings[c].params.amplitude = uint16_t(vf[1]*1000+0.5f);
 

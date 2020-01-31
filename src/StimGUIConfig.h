@@ -43,25 +43,31 @@ namespace CML {
 
     // Internal callbacks
     void AmpChanged(const f64& new_amp_mA) {
+      if (disabled) { return; }
       settings.params.amplitude = uint16_t(std::round(new_amp_mA*1000));
       settings_callback(config_index, settings);
     }
     void FreqChanged(const int64_t& new_freq_Hz) {
+      if (disabled) { return; }
       settings.params.frequency = uint32_t(new_freq_Hz);
       settings_callback(config_index, settings);
     }
     void DurChanged(const int64_t& new_dur_ms) {
+      if (disabled) { return; }
       settings.params.duration = uint32_t(new_dur_ms*1000);
       settings_callback(config_index, settings);
     }
     void LabelChanged(const RC::RStr& new_label) {
+      if (disabled) { return; }
       settings.label = new_label;
       settings_callback(config_index, settings);
     }
     void TestStim() {
+      if (disabled) { return; }
       test_stim_callback(config_index);
     }
     void ApproveChanged(const bool& state) {
+      if (disabled) { return; }
       settings.approved = state;
       settings_callback(config_index, settings);
     }
@@ -73,6 +79,7 @@ namespace CML {
     RC::Ptr<LabeledI64> freq;
     RC::Ptr<LabeledI64> dur;
     RC::Ptr<LabeledEdit> lab;
+    bool disabled = true;
     size_t config_index = size_t(-1);
     StimSettings settings = {};
   };

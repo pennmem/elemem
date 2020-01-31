@@ -47,6 +47,7 @@ namespace CML {
   void StimConfigBox::SetChannel_Handler(const CSStimChannel& minvals,
       const CSStimChannel& maxvals, const RC::RStr& label,
       const size_t& index) {
+    disabled = true;
     setTitle((RStr(minvals.electrode_pos+1) + "_" +
           RStr(minvals.electrode_neg+1)).ToQString());
     settings.params = minvals;
@@ -60,12 +61,15 @@ namespace CML {
   }
 
   void StimConfigBox::SetParameters_Handler(const CSStimChannel& params) {
+    disabled = true;
     amp->Set(params.amplitude * 1e-3);
     freq->Set(params.frequency);
     dur->Set(int64_t(params.duration * 1e-3 + 0.5));
+    disabled = false;
   }
 
   void StimConfigBox::Clear_Handler() {
+    disabled = true;
     setTitle("Not configured");
     amp->Set(0);
     freq->Set(0);
