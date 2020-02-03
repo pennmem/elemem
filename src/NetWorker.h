@@ -4,14 +4,18 @@
 #include "RC/APtr.h"
 #include "RC/RStr.h"
 #include "RC/Ptr.h"
+#include "RCqt/Worker.h"
+#include "ConfigFile.h"
 #include <QTcpServer>
 #include <QTcpSocket>
 
 namespace CML {
-  class NetWorker : public RCqt::WorkerThread, QObject {
+  class Handler;
+
+  class NetWorker : public RCqt::WorkerThread, public QObject {
     public:
 
-    NetWorker();
+    NetWorker(RC::Ptr<Handler> hndl);
     ~NetWorker();
 
     // Rule of 3.
@@ -24,17 +28,17 @@ namespace CML {
     RCqt::TaskCaller<> Close =
       TaskHandler(NetWorker::Close_Handler);
     RCqt::TaskCaller<> StopListening =
-      TaskHandler(NetWorker::Stop_Handler);
+      TaskHandler(NetWorker::StopListening_Handler);
 
-    RCqt::TaskBlocker<bool> IsConnected =
+    RCqt::TaskGetter<bool> IsConnected =
       TaskHandler(NetWorker::IsConnected_Handler);
 
-    RCqt::TaskCaller<bool> WarnOnDisconnect =
+    RCqt::TaskCaller<const bool> WarnOnDisconnect =
       TaskHandler(NetWorker::WarnOnDisconnect_Handler);
 
     static JSONFile MakeResp(RC::RStr type, uint64_t id=uint64_t(-1));
 
-    protected slot:
+    protected slots:
     void NewConnection();
     void DataReady();
     void Disconnected();
@@ -45,7 +49,7 @@ namespace CML {
     void StopListening_Handler();
 
     bool IsConnected_Handler();
-    void WarnOnDisconnect_Handler();
+    void WarnOnDisconnect_Handler(const bool& warn);
 
     void ProcessCommand(RC::RStr cmd);
     void Respond(JSONFile& resp);
@@ -53,7 +57,7 @@ namespace CML {
     void ProtConfigure(const JSONFile& inp);
     void ProtWord(const JSONFile& inp);
 
-    void Compare(Data1D<RStr>& errors, const RC::RStr& label,
+    void Compare(RC::Data1D<RC::RStr>& errors, const RC::RStr& label,
         const std::string& a, const std::string& b);
 
     RC::Ptr<Handler> hndl;

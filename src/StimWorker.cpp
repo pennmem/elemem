@@ -1,6 +1,7 @@
 #include "StimWorker.h"
 #include "ConfigFile.h"
 #include "EventLog.h"
+#include "Handler.h"
 #include "NetWorker.h"
 
 namespace CML {

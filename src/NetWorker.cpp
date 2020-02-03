@@ -1,5 +1,6 @@
 #include "NetWorker.h"
 #include "Handler.h"
+#include "Popup.h"
 #include "RC/Data1D.h"
 
 using namespace RC;
@@ -12,11 +13,12 @@ namespace CML {
   }
 
   NetWorker::~NetWorker() {
-    StopListsening_Handler();
+    StopListening_Handler();
   }
 
-  void NetWorker::Listen_Handler(const RC::RStr& address, uint16_t port) {
-    server.listen(address.ToQString(), port);
+  void NetWorker::Listen_Handler(const RC::RStr& address,
+                                 const uint16_t& port) {
+    server.listen(QHostAddress(address.ToQString()), port);
   }
 
   void NetWorker::Close_Handler() {
@@ -33,7 +35,7 @@ namespace CML {
     return (con.IsSet() && con->isOpen());
   }
 
-  void NetWorker::WarnOnDisconnect_Handler(bool warn) {
+  void NetWorker::WarnOnDisconnect_Handler(const bool& warn) {
     stop_on_disconnect = warn;
   }
 
@@ -47,7 +49,7 @@ namespace CML {
 
   void NetWorker::DataReady() {
     auto new_data = con->readAll();
-    buffer += RStr(new_data.data(), new_data.size());
+    buffer += RStr(new_data.data(), size_t(new_data.size()));
     Data1D<RStr> split;
     while (buffer.Contains("\n")) {
       split = buffer.SplitFirst('\n');
@@ -63,7 +65,7 @@ namespace CML {
     }
   }
 
-  static JSONFile NetWorker::MakeResp(RC::RStr type, uint64_t id) {
+  JSONFile NetWorker::MakeResp(RC::RStr type, uint64_t id) {
     JSONFile resp;
     resp.SetFilename("HostResponse");
     resp.Set(type.Raw(), "type");
@@ -76,9 +78,10 @@ namespace CML {
   }
 
   void NetWorker::Respond(JSONFile& resp) {
-    hndl->event_log.Log(resp.Line());
+    RStr line = resp.Line();
+    hndl->event_log.Log(line);
     
-    if (con.write(resp.c_str()) != resp.size()) {
+    if (con->write(line.c_str(), qint64(line.size())) != qint64(line.size())) {
       Close_Handler();
     }
   }
@@ -93,35 +96,33 @@ namespace CML {
     try {
       inp.Get(type, "type");
     }
-    catch (ErrorMsg& e) {
+    catch (ErrorMsg&) {
       // Not a command.  Ignore.
       return;
     }
     try {
       inp.Get(id, "id");
     }
-    catch (ErrorMsg& e) {
+    catch (ErrorMsg&) {
       // Leave as uint64_t(-1) to disable.
     }
 
     inp.Set(Time::Get()*1e3, "time");
     hndl->event_log.Log(inp.Line());
 
-    JSONFile resp;
-
     if (type == "CONNECTED") {
-      resp = MakeResp("CONNECTED_OK");
+      JSONFile resp = MakeResp("CONNECTED_OK");
       Respond(resp);
     }
     else if (type == "CONFIGURE") {
       ProtConfigure(inp);
     }
     else if (type == "READY") {
-      resp = MakeResp("START");
+      JSONFile resp = MakeResp("START");
       Respond(resp);
     }
     else if (type == "HEARTBEAT") {
-      resp = MakeResp("HEARTBEAT_OK");
+      JSONFile resp = MakeResp("HEARTBEAT_OK");
       try {
         uint64_t count;
         inp.Get(count, "data", "count");
@@ -163,17 +164,17 @@ namespace CML {
       errors += RStr(e.what()).SplitFirst("\n")[0];
     }
     if (errors.size() > 0) {
-      resp = MakeResp("CONFIGURE_ERROR");
-      RStr json_msg = RC::Join(errors, "; ");
+      JSONFile resp = MakeResp("CONFIGURE_ERROR");
+      RStr json_msg = RC::RStr::Join(errors, "; ");
       resp.Set(json_msg.c_str(), "data", "error");
       Respond(resp);
 
       hndl->StopExperiment();
-      RStr human_msg = RC::Join(errors, "\n");
+      RStr human_msg = RC::RStr::Join(errors, "\n");
       ErrorWin("Experiment halted, configuration error:\n" + human_msg);
     }
     else {
-      resp = MakeResp("CONFIGURE_OK");
+      JSONFile resp = MakeResp("CONFIGURE_OK");
       Respond(resp);
     }
   }

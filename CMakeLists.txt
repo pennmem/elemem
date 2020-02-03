@@ -63,12 +63,16 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/EEGData.h
   src/EEGDisplay.cpp
   src/EEGDisplay.h
+  src/EventLog.h
+  src/EventLog.cpp
   src/GUIParts.cpp
   src/GUIParts.h
   src/Handler.cpp
   src/Handler.h
   src/MainWindow.cpp
   src/MainWindow.h
+  src/NetWorker.h
+  src/NetWorker.cpp
   src/OpenConfigDialog.cpp
   src/OpenConfigDialog.h
   src/Palette.h
@@ -131,8 +135,8 @@ target_include_directories (${PROJECT_NAME} PRIVATE
 ####################
 # External libraries
 
-find_package (Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Svg PrintSupport)
-qt5_use_modules(${PROJECT_NAME} Core Gui Widgets Concurrent Svg PrintSupport)
+find_package (Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Svg PrintSupport Network)
+qt5_use_modules(${PROJECT_NAME} Core Gui Widgets Concurrent Svg PrintSupport Network)
 
 find_library (CBSDK_LIB "cbsdk" PATHS ${PROJECT_SOURCE_DIR}/lib64)
 if (NOT CBSDK_LIB)

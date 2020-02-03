@@ -161,8 +161,8 @@ namespace CML {
           "eeg_data.edf"));
 
     // Defaults should always work on standard setup.
-    RStr ipaddress = "192.168.137.1";
-    uint16_t port = 8889
+    std::string ipaddress = "192.168.137.1";
+    uint16_t port = 8889;
     try {
       exp_config->Get(ipaddress, "ipaddress");
     }
@@ -181,7 +181,7 @@ namespace CML {
 
     net_worker.Close();
 
-    event_log.Close();
+    event_log.CloseFile();
   }
 
   void Handler::OpenConfig_Handler(RC::FileRead& fr) {

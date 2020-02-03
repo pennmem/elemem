@@ -6,10 +6,12 @@
 #include "RCqt/Worker.h"
 
 namespace CML {
+  class Handler;
+
   class StimWorker : public RCqt::WorkerThread {
     public:
 
-    StimWorker();
+    StimWorker(RC::Ptr<Handler> hndl);
 
     RCqt::TaskCaller<CSStimProfile> ConfigureStimulation =
       TaskHandler(StimWorker::ConfigureStimulation_Handler);
