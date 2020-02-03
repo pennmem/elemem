@@ -37,6 +37,18 @@ namespace CML {
       json = json.parse(RC::RStr::Join(lines, "\n").c_str());
     }
 
+    void Parse(RC::RStr json_text) {
+      json = nlohmann::json::parse(json_text.c_str());
+    }
+
+    void SetFilename(RC::RStr new_filename) {
+      filename = new_filename;
+    }
+
+    RC::RStr Line() const {
+      return RC::RStr::Join(RC::RStr(json.dump(0)).Split('\n'));
+    }
+
     void Save(RC::RStr pathname) const {
       RC::FileWrite fw(pathname);
       Save(fw);
@@ -166,6 +178,7 @@ namespace CML {
     void SetRecurse(const T& data, RC::RStr err_msg, JSONI itr,
         Key key, Keys... keys) {
       err_msg += RC::RStr(key) + ":";
+      itr->operator[](key);  // Create if missing.
       auto next_itr = itr->find(key);
       if (next_itr == itr->end()) {
         Throw_RC_Type(File, (err_msg + "\nError found").c_str());

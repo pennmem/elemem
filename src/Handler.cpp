@@ -12,7 +12,9 @@ using namespace RC;
 
 namespace CML {
   Handler::Handler()
-    : edf_save(this),
+    : stim_worker(this),
+      edf_save(this),
+      net_worker(this),
       elemem_dir(File::FullPath(GetDesktop(), "ElememData")) {
 
     File::MakeDir(elemem_dir);
@@ -152,18 +154,34 @@ namespace CML {
     fw.Put(elec_config->file_lines, true);
     fw.Close();
 
+    event_log.StartFile(File::FullPath(session_dir, "event.log"));
+
     // Start acqusition
     edf_save.StartFile(File::FullPath(session_dir,
           "eeg_data.edf"));
 
-    // TODO - Start network listener
+    // Defaults should always work on standard setup.
+    RStr ipaddress = "192.168.137.1";
+    uint16_t port = 8889
+    try {
+      exp_config->Get(ipaddress, "ipaddress");
+    }
+    catch (...) { }
+    try {
+      exp_config->Get(port, "port");
+    }
+    catch (...) { }
+
+    net_worker.Listen(ipaddress, port);
   }
 
   void Handler::StopExperiment_Handler() {
     edf_save.StopSaving();
     SaveDefaultEEG();
 
-    // TODO - Stop network listener
+    net_worker.Close();
+
+    event_log.Close();
   }
 
   void Handler::OpenConfig_Handler(RC::FileRead& fr) {

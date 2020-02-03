@@ -2,6 +2,7 @@
 #define STIMWORKER_H
 
 #include "CereStim.h"
+#include "RC/Ptr.h"
 #include "RCqt/Worker.h"
 
 namespace CML {
@@ -26,7 +27,10 @@ namespace CML {
 
     void CloseCereStim_Handler();
 
+    RC::Ptr<Handler> hndl;
+
     CereStim cerestim;
+    CSStimProfile cur_profile;
   };
 }
 

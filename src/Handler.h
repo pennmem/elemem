@@ -6,6 +6,8 @@
 #include "APITests.h"
 #include "EDFSave.h"
 #include "EEGAcq.h"
+#include "EventLog.h"
+#include "NetWorker.h"
 #include "StimWorker.h"
 #include "StimGUIConfig.h"
 #include <QObject>
@@ -48,6 +50,8 @@ namespace CML {
     StimWorker stim_worker;
     EEGAcq eeg_acq;
     EDFSave edf_save;
+    NetWorker net_worker;
+    EventLog event_log;
     RC::APtr<const JSONFile> exp_config;
     RC::APtr<const CSVFile> elec_config;
 
