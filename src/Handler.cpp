@@ -263,8 +263,8 @@ namespace CML {
       stim_settings[c].params.duration *= 1000;
       stim_settings[c].approved = false;
 
-      min_stim_settings = stim_settings;
-      max_stim_settings = stim_settings;
+      min_stim_settings[c] = stim_settings[c];
+      max_stim_settings[c] = stim_settings[c];
 
       std::vector<float> vf;
       std::vector<uint32_t> vi;
