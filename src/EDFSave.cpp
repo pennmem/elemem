@@ -15,16 +15,18 @@ namespace CML {
   }
 
   void EDFSave::StartFile_Handler(const RC::RStr& filename) {
-    if (hndl->elec_config.IsNull()) {
+    auto conf = hndl->GetConfig();
+
+    if (conf.elec_config.IsNull()) {
       Throw_RC_Error("Cannot save data with no channels set");
     }
-    if (hndl->exp_config.IsNull()) {
+    if (conf.exp_config.IsNull()) {
       Throw_RC_Error("Cannot save data with no experiment config");
     }
 
-    channels.Resize(hndl->elec_config->data.size2());
+    channels.Resize(conf.elec_config->data.size2());
     for (size_t c=0; c<channels.size(); c++) {
-      channels[c] = uint8_t(hndl->elec_config->data[c][1].Get_u32() - 1);
+      channels[c] = uint8_t(conf.elec_config->data[c][1].Get_u32() - 1);
     }
 
     StopSaving_Handler();
@@ -58,7 +60,8 @@ namespace CML {
     }
     
     std::string sub_name;
-    hndl->exp_config->Get(sub_name, "subject");
+
+    conf.exp_config->Get(sub_name, "subject");
     if (edf_set_patientname(edf_hdl, sub_name.c_str())) {
       Throw_RC_Type(File, "Could not set edf subject name");
     }

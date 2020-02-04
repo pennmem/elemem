@@ -215,5 +215,9 @@ namespace RCqt {
       CallExit();
     }
   }
+
+  WorkerCommand::~WorkerCommand() {
+    worker->task_count.Dec();
+  }
 }
 

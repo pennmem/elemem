@@ -266,7 +266,7 @@ namespace RCqt {
     WorkerCommand(RC::Ptr<Worker> worker) : worker(worker) {
       worker->task_count.Inc();
     }
-    virtual ~WorkerCommand() { worker->task_count.Dec(); }
+    virtual ~WorkerCommand();
     virtual void Run() = 0;
     private:
     WorkerCommand(const WorkerCommand& other);

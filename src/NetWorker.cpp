@@ -150,12 +150,13 @@ namespace CML {
     std::string host_subject;
 
     try {
+      auto conf = hndl->GetConfig();
       inp.Get(task_stim_mode, "data", "stim_mode");
       inp.Get(task_experiment, "data", "experiment");
       inp.Get(task_subject, "data", "subject");
-      hndl->exp_config->Get(host_stim_mode, "experiment", "stim_mode");
-      hndl->exp_config->Get(host_experiment, "experiment", "type");
-      hndl->exp_config->Get(host_subject, "subject");
+      conf.exp_config->Get(host_stim_mode, "experiment", "stim_mode");
+      conf.exp_config->Get(host_experiment, "experiment", "type");
+      conf.exp_config->Get(host_subject, "subject");
       Compare(errors, "stim_mode", task_stim_mode, host_stim_mode);
       Compare(errors, "experiment", task_experiment, host_experiment);
       Compare(errors, "subject", task_subject, host_subject);
