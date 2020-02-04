@@ -130,6 +130,9 @@ namespace CML {
       ConfirmWin("No stim channels approved on experiment configured "
           "with stimulation.  Proceed?");
     }
+
+    experiment_running = true;
+
     stim_worker.ConfigureStimulation(profile);
 
     session_dir = File::FullPath(elemem_dir, "Elemem_"+Time::GetDateTime());
@@ -182,6 +185,8 @@ namespace CML {
     net_worker.Close();
 
     event_log.CloseFile();
+
+    experiment_running = false;
   }
 
   void Handler::OpenConfig_Handler(RC::FileRead& fr) {
