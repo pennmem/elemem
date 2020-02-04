@@ -258,8 +258,8 @@ namespace CML {
       }
 
       stim_settings[c].label = label;
-      stim_settings[c].params.electrode_pos = elecs[0]-1;
-      stim_settings[c].params.electrode_neg = elecs[1]-1;
+      stim_settings[c].params.electrode_pos = elecs[0];
+      stim_settings[c].params.electrode_neg = elecs[1];
       float f;
       stim_channels[c].Get(f, "amplitude_mA");
       stim_settings[c].params.amplitude = uint16_t(f*1000+0.5f);

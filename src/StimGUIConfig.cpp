@@ -48,8 +48,8 @@ namespace CML {
       const CSStimChannel& maxvals, const RC::RStr& label,
       const size_t& index) {
     disabled = true;
-    setTitle((RStr(minvals.electrode_pos+1) + "_" +
-          RStr(minvals.electrode_neg+1)).ToQString());
+    setTitle((RStr(minvals.electrode_pos) + "_" +
+          RStr(minvals.electrode_neg)).ToQString());
     settings.params = minvals;
     settings.label = label;
     amp->SetRange(minvals.amplitude * 1e-3, maxvals.amplitude * 1e-3);
