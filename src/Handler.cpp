@@ -135,7 +135,11 @@ namespace CML {
 
     stim_worker.ConfigureStimulation(profile);
 
-    session_dir = File::FullPath(elemem_dir, "Elemem_"+Time::GetDateTime());
+    std::string sub_name;
+    exp_config->Get(sub_name, "subject");
+
+    session_dir = File::FullPath(elemem_dir, RStr(sub_name) + "_" +
+        Time::GetDateTime());
     File::MakeDir(session_dir);
 
     // Save updated experiment configuration.
