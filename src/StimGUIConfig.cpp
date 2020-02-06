@@ -62,6 +62,7 @@ namespace CML {
 
   void StimConfigBox::SetParameters_Handler(const CSStimChannel& params) {
     disabled = true;
+    settings.params = params;
     amp->Set(params.amplitude * 1e-3);
     freq->Set(params.frequency);
     dur->Set(int64_t(params.duration * 1e-3 + 0.5));

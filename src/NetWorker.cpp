@@ -186,7 +186,7 @@ namespace CML {
       inp.Get(do_stim, "data", "stim");
       hndl->stim_worker.Stimulate();
     }
-    catch (ErrorMsg& e) {
+    catch (ErrorMsg&) {
       hndl->StopExperiment();
       ErrorWin("Experiment halted, stim setting missing in word event.");
     }

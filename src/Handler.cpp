@@ -15,9 +15,11 @@ namespace CML {
     : stim_worker(this),
       edf_save(this),
       net_worker(this),
-      elemem_dir(File::FullPath(GetDesktop(), "ElememData")) {
+      elemem_dir(File::FullPath(GetDesktop(), "ElememData")),
+      non_session_dir(File::FullPath(elemem_dir, "NonSessionData")) {
 
-    File::MakeDir(elemem_dir);
+    File::MakeDir(elemem_dir);\
+    File::MakeDir(non_session_dir);
   }
 
   // Defaulting this here after ConfigFile is included ensures
@@ -332,9 +334,12 @@ namespace CML {
     std::string sub_name;
     exp_config->Get(sub_name, "subject");
 
-    RStr eeg_file = File::FullPath(elemem_dir,
+    RStr event_file = File::FullPath(non_session_dir,
+        RStr(sub_name)+"_event_log_"+Time::GetDateTime()+".json");
+    RStr eeg_file = File::FullPath(non_session_dir,
         RStr(sub_name)+"_nonsession_eeg_"+Time::GetDateTime()+".edf");
 
+    event_log.StartFile(event_file);
     edf_save.StartFile(eeg_file);
   }
 }

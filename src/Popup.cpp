@@ -40,7 +40,7 @@ namespace CML {
   }
 
   void PopupManager::Error_Handler(const RStr& message, const RStr& title) {
-    QMessageBox::warning(0, "Error", message.c_str());
+    QMessageBox::warning(0, title.c_str(), message.c_str());
   }
 }
 

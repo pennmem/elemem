@@ -62,6 +62,7 @@ namespace CML {
     EventLog event_log;
 
     const RC::RStr elemem_dir;
+    const RC::RStr non_session_dir;
 
     private:
 
