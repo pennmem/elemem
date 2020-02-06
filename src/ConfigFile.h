@@ -46,7 +46,7 @@ namespace CML {
     }
 
     RC::RStr Line() const {
-      return RC::RStr::Join(RC::RStr(json.dump(0)).Split('\n'));
+      return RC::RStr::Join(RC::RStr(json.dump(0)).Split('\n'))+"\n";
     }
 
     void Save(RC::RStr pathname) const {
