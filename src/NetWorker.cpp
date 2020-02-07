@@ -48,17 +48,23 @@ namespace CML {
   }
 
   void NetWorker::DataReady() {
+    RC_DEBOUT(RStr("About to get data from con->readAll()"));
     auto new_data = con->readAll();
     buffer += RStr(new_data.data(), size_t(new_data.size()));
+    RC_DEBOUT(new_data.data(), buffer);
     Data1D<RStr> split;
     while (buffer.Contains("\n")) {
+      RC_DEBOUT(buffer);
       split = buffer.SplitFirst('\n');
-      ProcessCommand(split[0]);
       buffer = split[1];
+      ProcessCommand(split[0]);
     }
+    RC_DEBOUT(RStr("end of DataReady"));
   }
 
   void NetWorker::Disconnected() {
+    RC_DEBOUT(RStr("socket closed"));
+    buffer.clear();
     if (stop_on_disconnect) {
       hndl->StopExperiment();
       ErrorWin("Task laptop disconnected.  Experiment stopped.");
@@ -90,6 +96,7 @@ namespace CML {
     JSONFile inp;
     inp.SetFilename("TaskLaptopCommand");
     inp.Parse(cmd);
+    RC_DEBOUT(cmd);
 
     std::string type;
     uint64_t id = uint64_t(-1);

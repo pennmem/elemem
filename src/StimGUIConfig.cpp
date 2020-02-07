@@ -20,7 +20,7 @@ namespace CML {
                           "Label");
     stim_conf->addWidget(lab);
     amp = new LabeledF64(MakeCaller(this, &StimConfigBox::AmpChanged),
-                         "Amplitude (ms)");
+                         "Amplitude (mA)");
     stim_conf->addWidget(amp);
     freq = new LabeledI64(MakeCaller(this, &StimConfigBox::FreqChanged),
                           "Frequency (Hz)");
@@ -30,17 +30,19 @@ namespace CML {
     stim_conf->addWidget(dur);
 
     RC::Ptr<QHBoxLayout> stim_approve = new QHBoxLayout();
-    RC::Ptr<Button> test_stim = new Button(
+    test_stim = new Button(
         MakeCaller(this, &StimConfigBox::TestStim), "Test Stim");
     stim_approve->addWidget(test_stim);
 
-    RC::Ptr<CheckBox> approve_check = new CheckBox(
+    approve_check = new CheckBox(
         MakeCaller(this, &StimConfigBox::ApproveChanged), "Approve Settings");
     stim_approve->addWidget(approve_check);
 
     stim_conf->addLayout(stim_approve);
 
     setLayout(stim_conf);
+
+    SetEnabled_Handler(false);
   }
 
 
@@ -52,12 +54,16 @@ namespace CML {
           RStr(minvals.electrode_neg)).ToQString());
     settings.params = minvals;
     settings.label = label;
+    settings.approved = false;
     amp->SetRange(minvals.amplitude * 1e-3, maxvals.amplitude * 1e-3);
     freq->SetRange(minvals.frequency, maxvals.frequency);
     dur->SetRange(int64_t(minvals.duration * 1e-3 + 0.5), int64_t(maxvals.duration * 1e-3));
     lab->SetDefault(label);
-    lab->SetReadOnly( ! label.empty() );
+    label_locked = ! label.empty();
     config_index = index;
+    approve_check->Set(false);
+
+    SetEnabled_Handler(true);
   }
 
   void StimConfigBox::SetParameters_Handler(const CSStimChannel& params) {
@@ -78,6 +84,18 @@ namespace CML {
     lab->SetDefault("");
     config_index = size_t(-1);
     settings = {};
+  }
+
+  void StimConfigBox::SetEnabled_Handler(const bool& enabled) {
+    if (enabled && config_index == size_t(-1)) {
+      return;
+    }
+    amp->SetReadOnly( ! enabled );
+    freq->SetReadOnly( ! enabled );
+    dur->SetReadOnly( ! enabled );
+    lab->SetReadOnly( ( ! enabled ) || label_locked );
+    test_stim->SetEnabled(enabled);
+    approve_check->SetEnabled(enabled);
   }
 }
 

@@ -115,6 +115,8 @@ namespace CML {
 
     public:
     RCqt::TaskCaller<const i64> Set = TaskHandler(LabeledI64::Set_Handler);
+    RCqt::TaskCaller<const bool> SetReadOnly =
+      TaskHandler(LabeledI64::SetReadOnly_Handler);
 
     void SetRange(i64 new_min, i64 new_max);
 
@@ -129,6 +131,10 @@ namespace CML {
     virtual void Changed() {
       i64 val = spin.value();
       callback(val);
+    }
+
+    void SetReadOnly_Handler(const bool& state) {
+      spin.setReadOnly(state);
     }
 
     QLabel label;
@@ -153,12 +159,18 @@ namespace CML {
 
     void SetColor(Color c);
 
+    RCqt::TaskCaller<const bool> SetEnabled =
+      TaskHandler(Button::SetEnabled_Handler);
+
     protected slots:
     void ClickedSlot(bool /*checked*/) {
       Clicked();
     }
     protected:
     virtual void Clicked() { callback(); }
+    void SetEnabled_Handler(const bool& enabled) {
+      setEnabled(enabled);
+    }
 
     RC::Caller<> callback;
   };
@@ -175,9 +187,12 @@ namespace CML {
 
     protected:
     void Set_Handler(const bool& state);
+    void SetEnabled_Handler(const bool& enabled);
 
     public:
     RCqt::TaskCaller<const bool> Set = TaskHandler(CheckBox::Set_Handler);
+    RCqt::TaskCaller<const bool> SetEnabled =
+      TaskHandler(CheckBox::SetEnabled_Handler);
 
     void SetToolTip(const RC::RStr &tip) {
       setToolTip(tip.c_str());
