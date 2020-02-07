@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////
 //
-// RCnix Library, (c) 2013-2019, Ryan A. Colyer
+// RCqt Library, (c) 2013-2020, Ryan A. Colyer
 //
 // Distributed under the Boost Software License, v1.0. (LICENSE.txt)
 //
@@ -24,9 +24,11 @@ namespace RCqt {
 
     connect(this, &WorkerQObject::DoDoneAbort, this, &WorkerQObject::DoneAbort,
             Qt::QueuedConnection);
-    connect(this, &WorkerQObject::DoCallExit, &WorkerQObject::CallExit);
+    // The second this provides non-blocking.
+    connect(this, &WorkerQObject::DoCallExit, this, &WorkerQObject::CallExit);
     qRegisterMetaType< RC::APtr<WorkerCommand> >("RC::APtr<WorkerCommand>");
-    connect(this, &WorkerQObject::CommandSignal,
+    // The second this provides non-blocking.
+    connect(this, &WorkerQObject::CommandSignal, this,
             &WorkerQObject::CommandSlot);
     // Note.  The commands replace this blocked with an auto, working as
     // a direct, if called from the worker_qobject's thread.

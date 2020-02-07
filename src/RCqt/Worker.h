@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////
 //
-// RCnix Library, (c) 2013-2019, Ryan A. Colyer
+// RCqt Library, (c) 2013-2020, Ryan A. Colyer
 //
 // Distributed under the Boost Software License, v1.0. (LICENSE.txt)
 //
