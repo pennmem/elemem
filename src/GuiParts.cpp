@@ -136,6 +136,10 @@ namespace CML {
     setChecked(state);
   }
 
+  void CheckBox::SetEnabled_Handler(const bool& enabled) {
+    setEnabled(enabled);
+  }
+
 ///////////////////////////
 
   ComboBox::ComboBox() {

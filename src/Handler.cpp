@@ -134,6 +134,9 @@ namespace CML {
     }
 
     experiment_running = true;
+    for (size_t i=0; i<main_window->StimConfigCount(); i++) {
+      main_window->GetStimConfigBox(i).SetEnabled(false);
+    }
 
     stim_worker.ConfigureStimulation(profile);
 
@@ -186,11 +189,15 @@ namespace CML {
 
   void Handler::StopExperiment_Handler() {
     edf_save.StopSaving();
+    event_log.CloseFile();
+
     SaveDefaultEEG();
 
     net_worker.Close();
 
-    event_log.CloseFile();
+    for (size_t i=0; i<main_window->StimConfigCount(); i++) {
+      main_window->GetStimConfigBox(i).SetEnabled(true);
+    }
 
     experiment_running = false;
   }

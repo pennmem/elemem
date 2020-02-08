@@ -32,6 +32,7 @@ namespace CML {
       const size_t& index=0);
     void SetParameters_Handler(const CSStimChannel& stim_params);
     void Clear_Handler();
+    void SetEnabled_Handler(const bool& enabled);
 
     public:
     RCqt::TaskCaller<const CSStimChannel, const CSStimChannel,
@@ -40,6 +41,8 @@ namespace CML {
     RCqt::TaskCaller<const CSStimChannel> SetParameters =
       TaskHandler(StimConfigBox::SetParameters_Handler);
     RCqt::TaskCaller<> Clear = TaskHandler(StimConfigBox::Clear_Handler);
+    RCqt::TaskCaller<const bool> SetEnabled =
+      TaskHandler(StimConfigBox::SetEnabled_Handler);
 
     // Internal callbacks
     void AmpChanged(const f64& new_amp_mA) {
@@ -79,7 +82,10 @@ namespace CML {
     RC::Ptr<LabeledI64> freq;
     RC::Ptr<LabeledI64> dur;
     RC::Ptr<LabeledEdit> lab;
+    RC::Ptr<Button> test_stim;
+    RC::Ptr<CheckBox> approve_check;
     bool disabled = true;
+    bool label_locked = true;
     size_t config_index = size_t(-1);
     StimSettings settings = {};
   };
