@@ -114,6 +114,7 @@ namespace RCqt {
 
   class Worker;
   class WorkerCommand;
+  class WorkerThread;
 
   class WorkerQObject : public QObject {
     Q_OBJECT
@@ -148,6 +149,7 @@ namespace RCqt {
   class Worker {
     friend WorkerQObject;
     friend WorkerCommand;
+    friend WorkerThread;
 
     typedef std::map< RC::Ptr<Worker>, RC::Ptr<Worker> > MapType;
     typedef std::pair< RC::Ptr<Worker>, RC::Ptr<Worker> > MapPair;
@@ -444,7 +446,14 @@ namespace RCqt {
   // Convenience class for a Worker that spawns a new thread.
 
   class WorkerThread : public Worker {
-    public:  WorkerThread() : Worker(true) { }
+    public:
+    WorkerThread() : Worker(true) { }
+
+    /// Use AddToThread(this) in the constructor of any QObject derivative
+    /// that also has slots.
+    void AddToThread(QObject* obj) {
+      obj->moveToThread(&thread);
+    }
   };
 
 }

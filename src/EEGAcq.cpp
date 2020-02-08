@@ -4,6 +4,7 @@
 
 namespace CML {
   EEGAcq::EEGAcq() {
+    AddToThread(this);
   }
 
   EEGAcq::~EEGAcq() {

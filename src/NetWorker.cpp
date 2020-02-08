@@ -8,6 +8,7 @@ using namespace RC;
 namespace CML {
   NetWorker::NetWorker(RC::Ptr<Handler> hndl)
     : hndl(hndl) {
+    AddToThread(this);
     connect(&server, &QTcpServer::newConnection, this,
         &NetWorker::NewConnection);
   }
