@@ -112,6 +112,12 @@ namespace CML {
   }
 
   void Handler::StartExperiment_Handler() {
+    if (exp_config.IsNull() || elec_config.IsNull()) {
+      ErrorWin("You must load a valid experiment configuration file before "
+               "starting an experiment session.", "Unconfigured");
+      return;
+    }
+
     std::string stim_mode_str;
     exp_config->Get(stim_mode_str, "experiment", "stim_mode");
     RStr stim_mode = stim_mode_str;
@@ -338,6 +344,10 @@ namespace CML {
   }
 
   void Handler::SaveDefaultEEG() {
+    if (exp_config.IsNull()) {
+      return;
+    }
+
     std::string sub_name;
     exp_config->Get(sub_name, "subject");
 
