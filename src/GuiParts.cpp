@@ -113,14 +113,48 @@ namespace CML {
     connect(this, SIGNAL(clicked(bool)), SLOT(ClickedSlot(bool)));
   }
 
+  RStr Color2Hex(Color c, float mult=1) {
+    auto scale = [&](float f) {
+      float res = 255.9999f * f * mult;
+      if (res > 255) { res = 255; }
+      if (res < 0) { res = 0; }
+      return u8(res);
+    };
+
+    return (
+      RStr(scale(c.r), HEX).PadLeft(2, '0') +
+      RStr(scale(c.g), HEX).PadLeft(2, '0') +
+      RStr(scale(c.b), HEX).PadLeft(2, '0')
+    );
+  }
+
+  RStr MakeButtonStyle(RStr label, RStr color_fg, RStr color_bg) {
+    return (
+      label + " {\n"
+      "  background-color:\n"
+      "    qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, \n"
+      "      stop: 0 #"+color_fg+", stop:1 #"+color_bg+"\n"
+      "    );\n"
+      "  font-size: 11pt;\n"
+      "  height: 1.5em;\n"
+      "  border-radius: 0.5em;\n"
+      "  font-weight: bold;\n"
+      "}\n"
+    );
+  }
+
   void Button::SetColor(Color c) {
-    Data1D<u8> cd(3);
-    cd[0] = u8(255.9999f*c.r);
-    cd[1] = u8(255.9999f*c.g);
-    cd[2] = u8(255.9999f*c.b);
-    RStr colorstr = RStr::Join(cd, ", ");
-    setStyleSheet(("background-color: rgb("+colorstr+");"
-                   "font-weight: bold").ToQString());
+    RStr colorstr = Color2Hex(c);
+    RStr bg_colorstr = Color2Hex(c, 0.8);
+
+    RStr style_sheet =
+        MakeButtonStyle("QPushButton", colorstr, bg_colorstr) +
+        MakeButtonStyle("QPushButton:pressed", bg_colorstr, colorstr);
+    RC_DEBOUT(style_sheet);
+    setStyleSheet(style_sheet.ToQString());
+
+//    setStyleSheet(("background-color: rgb("+colorstr+");"
+//                   "font-weight: bold").ToQString());
     update();
   }
 

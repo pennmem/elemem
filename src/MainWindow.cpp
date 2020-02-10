@@ -101,10 +101,10 @@ namespace CML {
     RC::Ptr<QHBoxLayout> start_stop_buttons = new QHBoxLayout();
     RC::Ptr<Button> start_button = new Button(hndl->StartExperiment,
                                               "Start Experiment");
-    start_button->SetColor({0.2f, 0.9f, 0.2f});
+    start_button->SetColor({0.3f, 0.9f, 0.3f});
     RC::Ptr<Button> stop_button = new Button(hndl->StopExperiment,
                                             "Stop Experiment");
-    stop_button->SetColor({1.0f, 0.1f, 0.1f});
+    stop_button->SetColor({1.0f, 0.2f, 0.2f});
     start_stop_buttons->addWidget(start_button);
     start_stop_buttons->addWidget(stop_button);
     stim_and_start->addLayout(start_stop_buttons);
