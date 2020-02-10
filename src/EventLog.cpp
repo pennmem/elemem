@@ -6,7 +6,6 @@ namespace CML {
   }
 
   void EventLog::Log_Handler(const RC::RStr& event) {
-    RC_DEBOUT(fw.IsOpen(), event);
     if (fw.IsOpen()) {
       fw.Put(event);
     }
