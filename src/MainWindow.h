@@ -34,8 +34,8 @@ namespace CML {
     }
     size_t StimConfigCount() { return stim_config_boxes.size(); }
 
-    StatusPanel& GetStatusPanel() {
-      return *status_panel;
+    RC::Ptr<StatusPanel> GetStatusPanel() {
+      return status_panel;
     }
 
     public slots:

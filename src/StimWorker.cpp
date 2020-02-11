@@ -38,7 +38,7 @@ namespace CML {
     }
 
     cerestim.Stimulate();
-    hndl->main_window->GetStatusPanel().SetStimming(max_duration);
+    status_panel->SetStimming(max_duration);
   }
 
   void StimWorker::CloseCereStim_Handler() {

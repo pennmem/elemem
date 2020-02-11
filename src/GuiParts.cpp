@@ -145,7 +145,7 @@ namespace CML {
 
   void Button::SetColor(Color c) {
     RStr colorstr = Color2Hex(c);
-    RStr bg_colorstr = Color2Hex(c, 0.8);
+    RStr bg_colorstr = Color2Hex(c, 0.8f);
 
     RStr style_sheet =
         MakeButtonStyle("QPushButton", colorstr, bg_colorstr) +
@@ -180,7 +180,7 @@ namespace CML {
   }
 
   void Indicator::Set_Handler(const RC::RStr& text) {
-    setText(label + text);
+    setText((label + text).ToQString());
   }
 
 ////////////////////////////

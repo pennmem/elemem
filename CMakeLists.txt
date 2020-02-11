@@ -8,7 +8,7 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 ######################
 # Compilation settings
 
-set(IS_RELEASE true)
+set(IS_RELEASE false)
 
 if (IS_RELEASE)
   set(CMAKE_BUILD_TYPE Release)
@@ -84,6 +84,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/QtStyle.h
   src/RCQApplication.cpp
   src/RCQApplication.h
+  src/StatusPanel.h
+  src/StatusPanel.cpp
   src/StimGUIConfig.h
   src/StimGUIConfig.cpp
   src/StimWorker.h

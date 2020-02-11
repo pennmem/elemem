@@ -115,7 +115,7 @@ namespace CML {
     RC::Ptr<Button> cerebus_test = new Button(hndl->CerebusTest, "Cerebus Test");
     RC::Ptr<Button> cerestim_test = new Button(hndl->CereStimTest, "CereStim Test");
 
-    RC::Ptr<QVBoxLayout> state_display;
+    RC::Ptr<QVBoxLayout> state_display = new QVBoxLayout();
 
     eeg_disp = new EEGDisplay(600, 600);
     state_display->addWidget(eeg_disp);

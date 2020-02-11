@@ -7,11 +7,15 @@
 
 namespace CML {
   class Handler;
+  class StatusPanel;
 
   class StimWorker : public RCqt::WorkerThread {
     public:
 
     StimWorker(RC::Ptr<Handler> hndl);
+
+    RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
+      TaskHandler(StimWorker::SetStatusPanel_Handler);
 
     RCqt::TaskCaller<CSStimProfile> ConfigureStimulation =
       TaskHandler(StimWorker::ConfigureStimulation_Handler);
@@ -23,6 +27,9 @@ namespace CML {
       TaskHandler(StimWorker::CloseCereStim_Handler);
 
     protected:
+    void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
+      status_panel = set_panel;
+    }
 
     void ConfigureStimulation_Handler(CSStimProfile& profile);
     void Stimulate_Handler();
@@ -30,6 +37,7 @@ namespace CML {
     void CloseCereStim_Handler();
 
     RC::Ptr<Handler> hndl;
+    RC::Ptr<StatusPanel> status_panel;
 
     CereStim cerestim;
     CSStimProfile cur_profile;

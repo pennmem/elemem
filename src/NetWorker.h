@@ -11,6 +11,7 @@
 
 namespace CML {
   class Handler;
+  class StatusPanel;
 
   class NetWorker : public RCqt::WorkerThread, public QObject {
     public:
@@ -21,6 +22,9 @@ namespace CML {
     // Rule of 3.
     NetWorker(const NetWorker&) = delete;
     NetWorker& operator=(const NetWorker&) = delete;
+
+    RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
+      TaskHandler(NetWorker::SetStatusPanel_Handler);
 
     RCqt::TaskCaller<const RC::RStr, const uint16_t> Listen =
       TaskHandler(NetWorker::Listen_Handler);
@@ -44,6 +48,10 @@ namespace CML {
     void Disconnected();
 
     protected:
+    void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
+      status_panel = set_panel;
+    }
+
     void Listen_Handler(const RC::RStr& address, const uint16_t& port);
     void Close_Handler();
     void StopListening_Handler();
@@ -61,6 +69,7 @@ namespace CML {
         const std::string& a, const std::string& b);
 
     RC::Ptr<Handler> hndl;
+    RC::Ptr<StatusPanel> status_panel;
     QTcpServer server;
     RC::APtr<QTcpSocket> con;
     RC::RStr buffer;

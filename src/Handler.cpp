@@ -28,6 +28,8 @@ namespace CML {
 
   void Handler::SetMainWindow(Ptr<MainWindow> new_main) {
     main_window = new_main;
+    net_worker.SetStatusPanel(main_window->GetStatusPanel());
+    stim_worker.SetStatusPanel(main_window->GetStatusPanel());
   }
 
   void Handler::CerebusTest_Handler() {

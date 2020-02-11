@@ -15,24 +15,24 @@ namespace CML {
     StatusPanel();
 
     RCqt::TaskCaller<const bool> SetStimList =
-      TaskHandler(SetStimList_Handler);
+      TaskHandler(StatusPanel::SetStimList_Handler);
     RCqt::TaskCaller<const RC::RStr> SetEvent =
-      TaskHandler(SetEvent_Handler);
+      TaskHandler(StatusPanel::SetEvent_Handler);
     RCqt::TaskCaller<const uint32_t> SetStimming =
-      TaskHandler(SetStimming_Handler);
+      TaskHandler(StatusPanel::SetStimming_Handler);
     RCqt::TaskCaller<const int64_t> SetSession =
-      TaskHandler(SetSession_Handler);
+      TaskHandler(StatusPanel::SetSession_Handler);
     RCqt::TaskCaller<const int64_t> SetTrial =
-      TaskHandler(SetTrial_Handler);
+      TaskHandler(StatusPanel::SetTrial_Handler);
     RCqt::TaskCaller<> Clear =
-      TaskHandler(Clear_Handler);
+      TaskHandler(StatusPanel::Clear_Handler);
 
     protected:
     void SetStimList_Handler(const bool& stim_list);
     void SetEvent_Handler(const RC::RStr& event);
     void SetStimming_Handler(const uint32_t& duration_us);
-    void SetSession_Handler(const int64_t& session);
-    void SetTrial_Handler(const int64_t& trial);
+    void SetSession_Handler(const int64_t& session_num);
+    void SetTrial_Handler(const int64_t& trial_num);
     void Clear_Handler();
 
     protected slots:
@@ -49,9 +49,9 @@ namespace CML {
     RC::Ptr<Indicator> stimming;
 
     QTimer stimming_timer;
-    Color stim_on_color{1, 0, 0};
-    Color stim_off_color{0.3, 0.3, 0.3};
-  }
+    Color stim_on_color{1.0f, 0.0f, 0.0f};
+    Color stim_off_color{0.3f, 0.3f, 0.3f};
+  };
 }
 
 #endif // STATUSPANEL_H

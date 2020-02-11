@@ -2,7 +2,7 @@
 #include <QHBoxLayout>
 
 namespace CML {
-  void StatusPanel::StatusPanel() {
+  StatusPanel::StatusPanel() {
     RC::Ptr<QHBoxLayout> pan_layout = new QHBoxLayout();
 
     subject = new Indicator();
@@ -51,12 +51,12 @@ namespace CML {
     stimming->SetColor(stim_off_color);
   }
 
-  void StatusPanel::SetSession_Handler(const int64_t& session) {
-    session->Set(session);
+  void StatusPanel::SetSession_Handler(const int64_t& session_num) {
+    session->Set(session_num);
   }
 
-  void StatusPanel::SetTrial_Handler(const int64_t& trial) {
-    trial->Set(session);
+  void StatusPanel::SetTrial_Handler(const int64_t& trial_num) {
+    trial->Set(trial_num);
   }
 
   void StatusPanel::Clear_Handler() {
