@@ -176,6 +176,29 @@ namespace CML {
   };
 
 
+  // Indicator
+
+  class Indicator : public QPushButton, public RCqt::Worker {
+    Q_OBJECT
+
+    public:
+
+    Indicator(const RC::RStr& label="");
+
+    void SetColor (Color c);
+
+    RCqt::TaskCaller<const RC::RStr> Set =
+      TaskHandler(Indicator::Set_Handler);
+
+    protected:
+
+    void Set_Handler(const RC::RStr& text);
+
+    RC::RStr label;
+  };
+
+
+
   // CheckBox
 
   class CheckBox : public QCheckBox, public RCqt::Worker {

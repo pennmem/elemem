@@ -115,8 +115,10 @@ namespace CML {
     RC::Ptr<Button> cerebus_test = new Button(hndl->CerebusTest, "Cerebus Test");
     RC::Ptr<Button> cerestim_test = new Button(hndl->CereStimTest, "CereStim Test");
 
+    RC::Ptr<QVBoxLayout> state_display;
+
     eeg_disp = new EEGDisplay(600, 600);
-    control_and_display->addWidget(eeg_disp);
+    state_display->addWidget(eeg_disp);
     for (uint32_t i=32; i<32+8; i++) {
       EEGChan chan(i);
       eeg_disp->SetChannel(chan);
@@ -136,6 +138,10 @@ namespace CML {
     test_layout->addWidget(cerebus_test);
     test_layout->addWidget(cerestim_test);
 
+    status_panel = new StatusPanel();
+    state_display->addWidget(status_panel);
+
+    control_and_display->addLayout(state_display);
     control_and_display->addLayout(test_layout);
 
     central->setLayout(control_and_display);

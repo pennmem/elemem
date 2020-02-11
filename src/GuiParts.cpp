@@ -153,9 +153,34 @@ namespace CML {
     RC_DEBOUT(style_sheet);
     setStyleSheet(style_sheet.ToQString());
 
-//    setStyleSheet(("background-color: rgb("+colorstr+");"
-//                   "font-weight: bold").ToQString());
     update();
+  }
+
+////////////////////////////
+
+  Indicator::Indicator(const RC::RStr& label)
+    : label(label) {
+  }
+
+  void Indicator::SetColor(Color c) {
+    RStr hexcolor = Color2Hex(c);
+    RStr style;
+    style +=
+      " {\n"
+      "  background-color: #"+hexcolor+"\n"
+      "  font-size: 11pt;\n"
+      "  height: 1.2em;\n"
+      "  border-radius: 0.2em;\n"
+      "  font-weight: bold;\n"
+      "}\n";
+    RStr style_sheet = "QPushButton" + style + "QPushButton:pressed" + style;
+    setStyleSheet(style_sheet.ToQString());
+
+    update();
+  }
+
+  void Indicator::Set_Handler(const RC::RStr& text) {
+    setText(label + text);
   }
 
 ////////////////////////////

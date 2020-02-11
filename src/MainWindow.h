@@ -5,6 +5,7 @@
 #include "RCqt/Worker.h"
 #include "Handler.h"
 #include "OpenConfigDialog.h"
+#include "StatusPanel.h"
 #include <QMainWindow>
 
 class QGroupBox;
@@ -33,6 +34,10 @@ namespace CML {
     }
     size_t StimConfigCount() { return stim_config_boxes.size(); }
 
+    StatusPanel& GetStatusPanel() {
+      return *status_panel;
+    }
+
     public slots:
 
     void FileOpenClicked();
@@ -53,6 +58,7 @@ namespace CML {
     void SetLastOpenDir(const RC::RStr& filename);
 
     RC::Ptr<EEGDisplay> eeg_disp;
+    RC::Ptr<StatusPanel> status_panel;
 
     RC::APtr<OpenConfigDialog> open_config_dialog;
     RC::Data1D<RC::Ptr<StimConfigBox>> stim_config_boxes;

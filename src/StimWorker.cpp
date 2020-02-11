@@ -3,6 +3,7 @@
 #include "EventLog.h"
 #include "Handler.h"
 #include "NetWorker.h"
+#include "StatusPanel.h"
 
 namespace CML {
   StimWorker::StimWorker(RC::Ptr<Handler> hndl)
@@ -13,6 +14,11 @@ namespace CML {
   void StimWorker::ConfigureStimulation_Handler(CSStimProfile& profile) {
     cur_profile = profile;
     cerestim.ConfigureStimulation(profile);
+
+    max_duration = 0;
+    for (size_t i=0; i<profile.size(); i++) {
+      max_duration = std::max(max_duration, profile[i].duration);
+    }
   }
 
 
@@ -32,6 +38,7 @@ namespace CML {
     }
 
     cerestim.Stimulate();
+    hndl->main_window->GetStatusPanel().SetStimming(max_duration);
   }
 
   void StimWorker::CloseCereStim_Handler() {

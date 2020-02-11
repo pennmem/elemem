@@ -60,6 +60,7 @@ namespace CML {
   }
 
   void NetWorker::Disconnected() {
+    hndl->main_window->GetStatusPanel().Clear();
     buffer.clear();
     if (stop_on_disconnect) {
       hndl->StopExperiment();
@@ -115,6 +116,7 @@ namespace CML {
     if (type == "CONNECTED") {
       JSONFile resp = MakeResp("CONNECTED_OK");
       Respond(resp);
+      hndl->main_window->GetStatusPanel().SetEvent(type);
     }
     else if (type == "CONFIGURE") {
       ProtConfigure(inp);
@@ -135,9 +137,23 @@ namespace CML {
     }
     else if (type == "WORD") {
       ProtWord(inp);
+      hndl->main_window->GetStatusPanel().SetEvent(type);
+    }
+    else if (type == "SESSION") {
+      int64_t session;
+      inp.Get(session, "data", "session");
+      hndl->main_window->GetStatusPanel().SetSession(session);
+    }
+    else if (type == "TRIAL") {
+      int64_t trial;
+      inp.Get(trial, "data", "trial");
+      hndl->main_window->GetStatusPanel().SetTrial(trial);
     }
     else {
-      // Ignore unknowns.
+      if (type ==
+          RC::OneOf("ORIENT", "COUNTDOWN", "MATH", "RECALL", "REST")) {
+        hndl->main_window->GetStatusPanel().SetEvent(type);
+      }
     }
   }
 

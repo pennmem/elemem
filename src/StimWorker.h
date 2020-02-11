@@ -33,6 +33,8 @@ namespace CML {
 
     CereStim cerestim;
     CSStimProfile cur_profile;
+
+    uint32_t max_duration = 0;
   };
 }
 
