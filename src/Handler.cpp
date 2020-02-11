@@ -342,6 +342,10 @@ namespace CML {
       }
     }
 
+    std::string sub_name;
+    exp_config->Get(sub_name, "subject");
+    main_window->GetStatusPanel()->SetSubject(sub_name);
+
     SaveDefaultEEG();
   }
 

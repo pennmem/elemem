@@ -14,6 +14,8 @@ namespace CML {
     public:
     StatusPanel();
 
+    RCqt::TaskCaller<const RC::RStr> SetSubject =
+      TaskHandler(StatusPanel::SetSubject_Handler);
     RCqt::TaskCaller<const bool> SetStimList =
       TaskHandler(StatusPanel::SetStimList_Handler);
     RCqt::TaskCaller<const RC::RStr> SetEvent =
@@ -28,6 +30,7 @@ namespace CML {
       TaskHandler(StatusPanel::Clear_Handler);
 
     protected:
+    void SetSubject_Handler(const RC::RStr& subj);
     void SetStimList_Handler(const bool& stim_list);
     void SetEvent_Handler(const RC::RStr& event);
     void SetStimming_Handler(const uint32_t& duration_us);
@@ -50,7 +53,7 @@ namespace CML {
 
     QTimer stimming_timer;
     Color stim_on_color{1.0f, 0.0f, 0.0f};
-    Color stim_off_color{0.3f, 0.3f, 0.3f};
+    Color stim_off_color{0.9f, 0.9f, 0.9f};
   };
 }
 

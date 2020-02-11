@@ -23,6 +23,7 @@ namespace CML {
     stimming = new Indicator("[Stim]");
     stimming->SetColor(stim_off_color);
     pan_layout->addWidget(stimming);
+    pan_layout->setContentsMargins(2,0,2,0);
 
     setLayout(pan_layout);
     
@@ -32,6 +33,14 @@ namespace CML {
     stimming_timer.setSingleShot(true);
     connect(&stimming_timer, &QTimer::timeout, this,
         &StatusPanel::StimmingDone);
+
+    setMinimumHeight(subject->sizeHint().height());
+    setMaximumHeight(subject->sizeHint().height());
+    setContentsMargins(0,0,0,0);
+  }
+
+  void StatusPanel::SetSubject_Handler(const RC::RStr& subj) {
+    subject->Set(subj);
   }
 
   void StatusPanel::SetStimList_Handler(const bool& stim_list) {

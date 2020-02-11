@@ -150,7 +150,6 @@ namespace CML {
     RStr style_sheet =
         MakeButtonStyle("QPushButton", colorstr, bg_colorstr) +
         MakeButtonStyle("QPushButton:pressed", bg_colorstr, colorstr);
-    RC_DEBOUT(style_sheet);
     setStyleSheet(style_sheet.ToQString());
 
     update();
@@ -160,6 +159,8 @@ namespace CML {
 
   Indicator::Indicator(const RC::RStr& label)
     : label(label) {
+    SetColor({0.9f, 0.9f, 0.9f});
+    setText(label.ToQString());
   }
 
   void Indicator::SetColor(Color c) {
@@ -167,8 +168,8 @@ namespace CML {
     RStr style;
     style +=
       " {\n"
-      "  background-color: #"+hexcolor+"\n"
-      "  font-size: 11pt;\n"
+      "  background-color: #"+hexcolor+";\n"
+      "  font-size: 10pt;\n"
       "  height: 1.2em;\n"
       "  border-radius: 0.2em;\n"
       "  font-weight: bold;\n"
