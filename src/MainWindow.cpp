@@ -62,6 +62,7 @@ namespace CML {
                  &MainWindow::close, QKeySequence::Quit);
 
     Ptr<QMenu> setup_menu = menuBar()->addMenu(tr("&Setup"));
+    RC::UnusedVar(setup_menu);
 
     Ptr<QMenu> help_menu = menuBar()->addMenu(tr("&Help"));
 
