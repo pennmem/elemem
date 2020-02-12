@@ -13,7 +13,9 @@ namespace Resource {
     "    left: 10px;\n"
     "    padding: 0 0 0 0;\n"
     "}\n"
-    "\n"
+    "QWidget {\n"
+    "  font-size: 13pt;\n"
+    "}\n"
     ""
   };
 }
