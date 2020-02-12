@@ -45,6 +45,7 @@ namespace CML {
   }
 
   void NetWorker::NewConnection() {
+    configured = false;
     if (server.IsNull()) {
       return;
     }
@@ -94,9 +95,13 @@ namespace CML {
     if (con->write(line.c_str(), qint64(line.size())) != qint64(line.size())) {
       Close_Handler();
     }
+//    cout << (RC::RStr("Response time: ") +
+//             RC::RStr(timer.SinceStart()) + "\n");
   }
 
   void NetWorker::ProcessCommand(RC::RStr cmd) {
+//    timer.Start();
+
     JSONFile inp;
     inp.SetFilename("TaskLaptopCommand");
     inp.Parse(cmd);
@@ -128,38 +133,45 @@ namespace CML {
     else if (type == "CONFIGURE") {
       ProtConfigure(inp);
     }
-    else if (type == "READY") {
-      JSONFile resp = MakeResp("START");
-      Respond(resp);
-    }
-    else if (type == "HEARTBEAT") {
-      JSONFile resp = MakeResp("HEARTBEAT_OK");
-      try {
-        uint64_t count;
-        inp.Get(count, "data", "count");
-        resp.Set(count, "data", "count");
-      }
-      catch (...) { }
-      Respond(resp);
-    }
-    else if (type == "WORD") {
-      ProtWord(inp);
-      status_panel->SetEvent(type);
-    }
-    else if (type == "SESSION") {
-      int64_t session;
-      inp.Get(session, "data", "session");
-      status_panel->SetSession(session);
-    }
-    else if (type == "TRIAL") {
-      int64_t trial;
-      inp.Get(trial, "data", "trial");
-      status_panel->SetTrial(trial);
-    }
     else {
-      if (type ==
-          RC::OneOf("ORIENT", "COUNTDOWN", "MATH", "RECALL", "REST")) {
+      if (!configured) {
+        ErrorWin("Unapproved commands received from task laptop on "
+                 "connection without verified CONFIGURE.");
+        return;
+      }
+      if (type == "READY") {
+        JSONFile resp = MakeResp("START");
+        Respond(resp);
+      }
+      else if (type == "HEARTBEAT") {
+        JSONFile resp = MakeResp("HEARTBEAT_OK");
+        try {
+          uint64_t count;
+          inp.Get(count, "data", "count");
+          resp.Set(count, "data", "count");
+        }
+        catch (...) { }
+        Respond(resp);
+      }
+      else if (type == "WORD") {
+        ProtWord(inp);
         status_panel->SetEvent(type);
+      }
+      else if (type == "SESSION") {
+        int64_t session;
+        inp.Get(session, "data", "session");
+        status_panel->SetSession(session);
+      }
+      else if (type == "TRIAL") {
+        int64_t trial;
+        inp.Get(trial, "data", "trial");
+        status_panel->SetTrial(trial);
+      }
+      else {
+        if (type ==
+            RC::OneOf("ORIENT", "COUNTDOWN", "MATH", "RECALL", "REST")) {
+          status_panel->SetEvent(type);
+        }
       }
     }
   }
@@ -201,6 +213,7 @@ namespace CML {
     }
     else {
       JSONFile resp = MakeResp("CONFIGURE_OK");
+      configured = true;
       Respond(resp);
     }
   }

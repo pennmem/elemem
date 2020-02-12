@@ -29,7 +29,7 @@ namespace CML {
     RCqt::TaskCaller<const RC::RStr, const uint16_t> Listen =
       TaskHandler(NetWorker::Listen_Handler);
 
-    RCqt::TaskCaller<> Close =
+    RCqt::TaskBlocker<> Close =
       TaskHandler(NetWorker::Close_Handler);
 
     RCqt::TaskGetter<bool> IsConnected =
@@ -71,6 +71,8 @@ namespace CML {
     RC::APtr<QTcpSocket> con;
     RC::RStr buffer;
     bool stop_on_disconnect = false;
+    bool configured = false;
+    RC::Time timer;
   };
 }
 
