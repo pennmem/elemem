@@ -10,6 +10,8 @@ namespace CML {
   NetWorker::NetWorker(RC::Ptr<Handler> hndl)
     : hndl(hndl) {
     AddToThread(this);
+    AddToThread(&server);
+
     connect(&server, &QTcpServer::newConnection, this,
         &NetWorker::NewConnection);
   }
