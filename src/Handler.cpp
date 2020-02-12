@@ -22,9 +22,10 @@ namespace CML {
     File::MakeDir(non_session_dir);
   }
 
-  // Defaulting this here after ConfigFile is included ensures
-  // proper deletion of the forward delcared APtr elements.
-  Handler::~Handler() = default;
+  Handler::~Handler() {
+    // Need to shut down the experiment components properly.
+    CloseExperimentComponents();
+  }
 
   void Handler::SetMainWindow(Ptr<MainWindow> new_main) {
     main_window = new_main;
@@ -196,12 +197,9 @@ namespace CML {
   }
 
   void Handler::StopExperiment_Handler() {
-    edf_save.StopSaving();
-    event_log.CloseFile();
+    CloseExperimentComponents();
 
     SaveDefaultEEG();
-
-    net_worker.Close();
 
     for (size_t i=0; i<main_window->StimConfigCount(); i++) {
       main_window->GetStimConfigBox(i).SetEnabled(true);
@@ -364,6 +362,13 @@ namespace CML {
 
     event_log.StartFile(event_file);
     edf_save.StartFile(eeg_file);
+  }
+
+  void Handler::CloseExperimentComponents() {
+    net_worker.Close();
+
+    edf_save.StopSaving();
+    event_log.CloseFile();
   }
 }
 

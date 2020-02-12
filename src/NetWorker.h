@@ -31,8 +31,6 @@ namespace CML {
 
     RCqt::TaskCaller<> Close =
       TaskHandler(NetWorker::Close_Handler);
-    RCqt::TaskCaller<> StopListening =
-      TaskHandler(NetWorker::StopListening_Handler);
 
     RCqt::TaskGetter<bool> IsConnected =
       TaskHandler(NetWorker::IsConnected_Handler);
@@ -54,7 +52,6 @@ namespace CML {
 
     void Listen_Handler(const RC::RStr& address, const uint16_t& port);
     void Close_Handler();
-    void StopListening_Handler();
 
     bool IsConnected_Handler();
     void WarnOnDisconnect_Handler(const bool& warn);
@@ -70,7 +67,7 @@ namespace CML {
 
     RC::Ptr<Handler> hndl;
     RC::Ptr<StatusPanel> status_panel;
-    QTcpServer server;
+    RC::APtr<QTcpServer> server;
     RC::APtr<QTcpSocket> con;
     RC::RStr buffer;
     bool stop_on_disconnect = false;

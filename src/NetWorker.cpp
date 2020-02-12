@@ -10,29 +10,30 @@ namespace CML {
   NetWorker::NetWorker(RC::Ptr<Handler> hndl)
     : hndl(hndl) {
     AddToThread(this);
-    AddToThread(&server);
-
-    connect(&server, &QTcpServer::newConnection, this,
-        &NetWorker::NewConnection);
   }
 
   NetWorker::~NetWorker() {
-    StopListening_Handler();
+    Close_Handler();
   }
 
   void NetWorker::Listen_Handler(const RC::RStr& address,
                                  const uint16_t& port) {
-    server.listen(QHostAddress(address.ToQString()), port);
+    server = new QTcpServer();
+    connect(server, &QTcpServer::newConnection, this,
+        &NetWorker::NewConnection);
+
+    server->listen(QHostAddress(address.ToQString()), port);
   }
 
   void NetWorker::Close_Handler() {
     if (con.IsSet()) {
       con->close();
+      con.Delete();
     }
-  }
-
-  void NetWorker::StopListening_Handler() {
-    server.close();
+    if (server.IsSet()) {
+      server->close();
+      server.Delete();
+    }
   }
 
   bool NetWorker::IsConnected_Handler() {
@@ -44,7 +45,10 @@ namespace CML {
   }
 
   void NetWorker::NewConnection() {
-    con = server.nextPendingConnection();
+    if (server.IsNull()) {
+      return;
+    }
+    con = server->nextPendingConnection();
     if (con.IsSet()) {
       connect(con, &QTcpSocket::readyRead, this, &NetWorker::DataReady);
       connect(con, &QTcpSocket::disconnected, this, &NetWorker::Disconnected);

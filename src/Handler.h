@@ -29,6 +29,10 @@ namespace CML {
     Handler();
     ~Handler();
 
+    // Rule of 3
+    Handler(const Handler&) = delete;
+    Handler& operator=(const Handler&) = delete;
+
     void SetMainWindow(RC::Ptr<MainWindow> new_main);
 
     RCqt::TaskCaller<> CerebusTest =
@@ -82,6 +86,7 @@ namespace CML {
     FullConf GetConfig_Handler() { return {exp_config, elec_config}; }
 
     void SaveDefaultEEG();
+    void CloseExperimentComponents();
 
     RC::APtr<const JSONFile> exp_config;
     RC::APtr<const CSVFile> elec_config;
