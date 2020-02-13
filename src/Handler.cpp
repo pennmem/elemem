@@ -23,8 +23,7 @@ namespace CML {
   }
 
   Handler::~Handler() {
-    // Need to shut down the experiment components properly.
-    CloseExperimentComponents();
+    // Worker tasks are already stopped before getting here.
   }
 
   void Handler::SetMainWindow(Ptr<MainWindow> new_main) {
@@ -345,6 +344,10 @@ namespace CML {
     main_window->GetStatusPanel()->SetSubject(sub_name);
 
     SaveDefaultEEG();
+  }
+
+  void Handler::Shutdown_Handler() {
+    CloseExperimentComponents();
   }
 
   void Handler::SaveDefaultEEG() {

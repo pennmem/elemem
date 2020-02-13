@@ -173,6 +173,7 @@ namespace CML {
 
   void MainWindow::closeEvent(QCloseEvent *event) {
     if (ConfirmWin("Are you sure you want to quit?", "Quit Elemem?")) {
+      hndl->Shutdown();
       Worker::ExitAllWorkers();
       event->accept();
     }

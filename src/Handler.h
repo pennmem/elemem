@@ -59,6 +59,9 @@ namespace CML {
     RCqt::TaskGetter<FullConf> GetConfig =
       TaskHandler(Handler::GetConfig_Handler);
 
+    RCqt::TaskBlocker<> Shutdown =
+      TaskHandler(Handler::Shutdown_Handler);
+
     StimWorker stim_worker;
     EEGAcq eeg_acq;
     EDFSave edf_save;
@@ -84,8 +87,10 @@ namespace CML {
 
     void OpenConfig_Handler(RC::FileRead& fr);
     FullConf GetConfig_Handler() { return {exp_config, elec_config}; }
+    void Shutdown_Handler();
 
     void SaveDefaultEEG();
+
     void CloseExperimentComponents();
 
     RC::APtr<const JSONFile> exp_config;
