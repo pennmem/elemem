@@ -64,6 +64,12 @@ namespace CML {
           json, keys...);
     }
 
+    // Returns true if succeeded
+    template<class T, class... Keys>
+    bool TryGet(T& data, Keys... keys) const {
+      return TryGetRecurse(data, &json, keys...);
+    }
+
     // Use this on base JSONFile for updates.
     template<class T, class... Keys>
     void Set(const T& data, Keys... keys) {
@@ -134,6 +140,26 @@ namespace CML {
         Throw_RC_Type(File, (err_msg + "\nError found").c_str());
       }
       GetRecurse(data, err_msg, *itr, keys...);
+    }
+
+    template<class T, class JSONI, class... Keys>
+    bool TryGetRecurse(T& data, JSONI itr, Keys... keys) const {
+      try {
+        itr->get_to(data);
+      }
+      catch (nlohmann::json::exception &e) {
+        return false;
+      }
+      return true;
+    }
+
+    template<class T, class JSONI, class Key, class... Keys>
+    bool TryGetRecurse(T& data, JSONI itr, Key key, Keys... keys) const {
+      auto next_itr = itr->find(key);
+      if (next_itr == itr->end()) {
+        return false;
+      }
+      return TryGetRecurse(data, next_itr, keys...);
     }
 
     template<class T, class JSONI, class... Keys>
