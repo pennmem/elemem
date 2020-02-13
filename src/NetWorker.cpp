@@ -108,17 +108,11 @@ namespace CML {
 
     std::string type;
     uint64_t id = uint64_t(-1);
-    try {
-      inp.Get(type, "type");
-    }
-    catch (ErrorMsg&) {
+    if (!inp.TryGet(type, "type")) {
       // Not a command.  Ignore.
       return;
     }
-    try {
-      inp.Get(id, "id");
-    }
-    catch (ErrorMsg&) {
+    if (!inp.TryGet(id, "id")) {
       // Leave as uint64_t(-1) to disable.
     }
 
@@ -220,13 +214,11 @@ namespace CML {
 
   void NetWorker::ProtWord(const JSONFile& inp) {
     bool do_stim;
-    try {
-      inp.Get(do_stim, "data", "stim");
-      hndl->stim_worker.Stimulate();
-    }
-    catch (ErrorMsg&) {
-      hndl->StopExperiment();
-      ErrorWin("Experiment halted, stim setting missing in word event.");
+
+    if (inp.TryGet(do_stim, "data", "stim")) {
+      if (do_stim) {
+        hndl->stim_worker.Stimulate();
+      }
     }
   }
 
