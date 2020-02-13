@@ -33,6 +33,7 @@ namespace CML {
 
     PrepareMenus();
     BuildLayout();
+    SetReadyToStart_Handler(false);
   }
 
 
@@ -100,17 +101,15 @@ namespace CML {
     stim_and_start->addLayout(BuildStimGrid());
 
     RC::Ptr<QHBoxLayout> start_stop_buttons = new QHBoxLayout();
-    RC::Ptr<Button> start_button = new Button(hndl->StartExperiment,
-                                              "Start Experiment");
+    start_button = new Button(hndl->StartExperiment,
+                              "Start Experiment");
     start_button->SetColor({0.3f, 0.9f, 0.3f});
-    RC::Ptr<Button> stop_button = new Button(hndl->StopExperiment,
-                                            "Stop Experiment");
+    stop_button = new Button(hndl->StopExperiment,
+                             "Stop Experiment");
     stop_button->SetColor({1.0f, 0.2f, 0.2f});
     start_stop_buttons->addWidget(start_button);
     start_stop_buttons->addWidget(stop_button);
     stim_and_start->addLayout(start_stop_buttons);
-
-    control_and_display->addLayout(stim_and_start);
 
     RC::Ptr<QVBoxLayout> test_layout = new QVBoxLayout();
     RC::Ptr<Button> cerebus_test = new Button(hndl->CerebusTest, "Cerebus Test");
@@ -118,7 +117,7 @@ namespace CML {
 
     RC::Ptr<QVBoxLayout> state_display = new QVBoxLayout();
 
-    eeg_disp = new EEGDisplay(600, 600);
+    eeg_disp = new EEGDisplay(800, 800);
     state_display->addWidget(eeg_disp);
     for (uint32_t i=32; i<32+8; i++) {
       EEGChan chan(i);
@@ -142,8 +141,9 @@ namespace CML {
     status_panel = new StatusPanel();
     state_display->addWidget(status_panel);
 
-    control_and_display->addLayout(state_display);
-    control_and_display->addLayout(test_layout);
+    control_and_display->addLayout(stim_and_start, 0);
+    control_and_display->addLayout(state_display, 1);
+    control_and_display->addLayout(test_layout, 0);
 
     central->setLayout(control_and_display);
 
@@ -168,6 +168,11 @@ namespace CML {
 
   void MainWindow::SetLastOpenDir(const RStr& filename) {
     last_open_dir = RC::File::Dirname(filename);
+  }
+
+
+  void MainWindow::SetReadyToStart_Handler(const bool& ready) {
+    start_button->SetEnabled(ready);
   }
 
 

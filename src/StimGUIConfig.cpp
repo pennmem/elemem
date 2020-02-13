@@ -41,6 +41,7 @@ namespace CML {
     stim_conf->addLayout(stim_approve);
 
     setLayout(stim_conf);
+    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
 
     SetEnabled_Handler(false);
   }

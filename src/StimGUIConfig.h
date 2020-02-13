@@ -75,6 +75,8 @@ namespace CML {
       settings_callback(config_index, settings);
     }
 
+    QSize sizeHint() const { return minimumSizeHint(); }
+
     protected:
     RC::Caller<void, const size_t&, const StimSettings&> settings_callback;
     RC::Caller<void, const size_t&> test_stim_callback;

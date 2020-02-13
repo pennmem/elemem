@@ -137,11 +137,14 @@ namespace CML {
       }
     }
     if (profile.size() == 0 && stim_mode != "none") {
-      ConfirmWin("No stim channels approved on experiment configured "
-          "with stimulation.  Proceed?");
+      if (!ConfirmWin("No stim channels approved on experiment configured "
+           "with stimulation.  Proceed?")) {
+        return;
+      }
     }
 
     experiment_running = true;
+    main_window->SetReadyToStart(false);
     for (size_t i=0; i<main_window->StimConfigCount(); i++) {
       main_window->GetStimConfigBox(i).SetEnabled(false);
     }
@@ -193,6 +196,7 @@ namespace CML {
     catch (...) { }
 
     net_worker.Listen(ipaddress, port);
+    main_window->GetStatusPanel()->SetEvent("WAITING");
   }
 
   void Handler::StopExperiment_Handler() {
@@ -205,6 +209,7 @@ namespace CML {
     }
 
     experiment_running = false;
+    main_window->SetReadyToStart(true);
   }
 
   void Handler::OpenConfig_Handler(RC::FileRead& fr) {
@@ -344,6 +349,7 @@ namespace CML {
     main_window->GetStatusPanel()->SetSubject(sub_name);
 
     SaveDefaultEEG();
+    main_window->SetReadyToStart(true);
   }
 
   void Handler::Shutdown_Handler() {

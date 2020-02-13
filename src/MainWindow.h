@@ -38,6 +38,9 @@ namespace CML {
       return status_panel;
     }
 
+    RCqt::TaskCaller<const bool> SetReadyToStart =
+      TaskHandler(MainWindow::SetReadyToStart_Handler);
+
     public slots:
 
     void FileOpenClicked();
@@ -57,8 +60,12 @@ namespace CML {
       const QKeySequence &shortcut = QKeySequence::UnknownKey);
     void SetLastOpenDir(const RC::RStr& filename);
 
+    void SetReadyToStart_Handler(const bool& ready);
+
     RC::Ptr<EEGDisplay> eeg_disp;
     RC::Ptr<StatusPanel> status_panel;
+    RC::Ptr<Button> start_button;
+    RC::Ptr<Button> stop_button;
 
     RC::APtr<OpenConfigDialog> open_config_dialog;
     RC::Data1D<RC::Ptr<StimConfigBox>> stim_config_boxes;

@@ -18,6 +18,7 @@ namespace CML {
     , height (1) {
 
     setContentsMargins(0,0,0,0);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     DrawAll();
   }
 
