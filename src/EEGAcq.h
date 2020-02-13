@@ -60,7 +60,7 @@ namespace CML {
     Cerebus cereb;
 
     RC::APtr<QTimer> acq_timer;
-    int polling_interval_ms = 20;
+    int polling_interval_ms = 30;
 
     struct TaggedCallback {
       RC::RStr tag;
