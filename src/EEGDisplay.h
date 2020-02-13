@@ -35,11 +35,15 @@ namespace CML {
     RCqt::TaskCaller<EEGChan> UnsetChannel =
       TaskHandler(EEGDisplay::UnsetChannel_Handler);
 
+    RCqt::TaskCaller<> Clear =
+      TaskHandler(EEGDisplay::Clear_Handler);
+
     protected:
 
     void UpdateData_Handler(RC::APtr<const EEGData>& new_data);
     void SetChannel_Handler(EEGChan& chan);
     void UnsetChannel_Handler(EEGChan& chan);
+    void Clear_Handler();
 
     virtual void DrawBackground();
     virtual void DrawOnTop();

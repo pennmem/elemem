@@ -8,7 +8,7 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 ######################
 # Compilation settings
 
-set(IS_RELEASE false)
+set(IS_RELEASE true)
 
 if (IS_RELEASE)
   set(CMAKE_BUILD_TYPE Release)
@@ -52,6 +52,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/CereStim.h
   src/Cerebus.cpp
   src/Cerebus.h
+  src/ChannelSelector.h
+  src/ChannelSelector.cpp
   src/CImage.cpp
   src/CImage.h
   src/ConfigFile.h

@@ -7,9 +7,9 @@
 #include <QScrollArea>
 
 namespace CML {
-  class Handler;
+  class MainWindow;
 
-  class ChannelSelector : public QScrollArea : public Worker {
+  class ChannelSelector : public QScrollArea, public RCqt::Worker {
     Q_OBJECT
 
     public:
@@ -18,13 +18,15 @@ namespace CML {
     RCqt::TaskCaller<const RC::Data1D<EEGChan>> SetChannels =
       TaskHandler(ChannelSelector::SetChannels_Handler);
 
+    QSize sizeHint() const { return QSize(80, 80); }
+
     protected:
     void SetChannels_Handler(const RC::Data1D<EEGChan>& channels);
 
     void ChannelChecked(size_t i, bool b);
 
     RC::Data1D<EEGChan> chans;
-    RC::Data1D<RC::Caller<void, bool>> chan_callbacks;
+    RC::Data1D<RC::Caller<void, const bool&>> chan_callbacks;
     RC::Ptr<MainWindow> main_window;
   };
 }

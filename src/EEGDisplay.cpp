@@ -49,6 +49,9 @@ namespace CML {
 
     for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
       size_t chan = eeg_channels[chan_i].channel;
+      if (chan > data.size()) {
+        continue;
+      }
       float dmax = std::numeric_limits<float>::lowest()/4;
       float dmin = std::numeric_limits<float>::max()/4;
       for (size_t i=0; i<data[chan].size(); i++) {
@@ -153,6 +156,13 @@ namespace CML {
         i--;
       }
     }
+  }
+
+  void EEGDisplay::Clear_Handler() {
+    for (size_t i=0; i<data.size(); i++) {
+      data[i].Zero();
+    }
+    eeg_channels.Clear();
   }
 }
 

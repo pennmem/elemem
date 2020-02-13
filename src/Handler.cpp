@@ -1,3 +1,4 @@
+#include "ChannelSelector.h"
 #include "ConfigFile.h"
 #include "Handler.h"
 #include "MainWindow.h"
@@ -235,6 +236,17 @@ namespace CML {
     APtr<CSVFile> elecs = new CSVFile();
     elecs->Load(elecfilename);
     elec_config = elecs.ExtractConst();
+    if (elec_config->data.size1() < 2) {
+      elec_config.Delete();
+      ErrorWin("Montage CSV file has insufficient columns.");
+      return;
+    }
+    Data1D<EEGChan> new_chans(elec_config->data.size2());
+    for (size_t r=0; r<elec_config->data.size2(); r++) {
+      new_chans[r] = EEGChan(elec_config->data[r][1].Get_u32()-1,
+                             elec_config->data[r][0]);
+    }
+    main_window->GetChannelSelector()->SetChannels(new_chans);
 
     auto stim_channels = exp_config->Node("experiment", "stim_channels");
     stim_settings.Resize(stim_channels.size());

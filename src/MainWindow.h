@@ -10,9 +10,11 @@
 
 class QGroupBox;
 class QGridLayout;
-class EEGDisplay;
 
 namespace CML {
+  class EEGDisplay;
+  class ChannelSelector;
+
   class MainWindow : public QMainWindow, public RCqt::Worker {
     Q_OBJECT
 
@@ -34,8 +36,16 @@ namespace CML {
     }
     size_t StimConfigCount() { return stim_config_boxes.size(); }
 
-    RC::Ptr<StatusPanel> GetStatusPanel() {
+    RC::Ptr<StatusPanel> GetStatusPanel() const {
       return status_panel;
+    }
+
+    RC::Ptr<EEGDisplay> GetEEGDisplay() const {
+      return eeg_disp;
+    }
+
+    RC::Ptr<ChannelSelector> GetChannelSelector() const {
+      return channel_selector;
     }
 
     RCqt::TaskCaller<const bool> SetReadyToStart =
@@ -66,6 +76,7 @@ namespace CML {
     RC::Ptr<StatusPanel> status_panel;
     RC::Ptr<Button> start_button;
     RC::Ptr<Button> stop_button;
+    RC::Ptr<ChannelSelector> channel_selector;
 
     RC::APtr<OpenConfigDialog> open_config_dialog;
     RC::Data1D<RC::Ptr<StimConfigBox>> stim_config_boxes;
