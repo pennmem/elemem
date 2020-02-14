@@ -137,7 +137,18 @@ namespace CML {
     data_offset += max_len;
     data_offset = data_offset % data_samples;
 
-    ReDraw();
+    // Alternate frames if running slow.
+    auto tdiff = timer.SinceStart();
+    timer.Start();
+    update_cnt++;
+    if (tdiff > 0.03) {
+      if ((update_cnt & 1) == 1) {
+        ReDraw();
+      }
+    }
+    else {
+      ReDraw();
+    }
   }
 
 

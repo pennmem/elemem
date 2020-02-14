@@ -57,6 +57,8 @@ namespace CML {
     size_t data_offset = 0;
     RC::Data1D<EEGChan> eeg_channels;
 
+    RC::Time timer;
+    size_t update_cnt = 0;
   };
 }
 

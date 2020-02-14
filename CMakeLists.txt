@@ -35,7 +35,7 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnull-dereference -Werror")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRC_HAVE_QT")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-set (CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math")
+set (CMAKE_CXX_FLAGS_RELEASE "-O3 -g -ffast-math")
 
 ##############
 # Source files
