@@ -6,6 +6,7 @@
 #include "Utils.h"
 #include "RC/RC.h"
 #include <QDir>
+#include <QObject>
 
 using namespace std;
 using namespace RC;
@@ -126,8 +127,8 @@ namespace CML {
     RStr stim_mode = stim_mode_str;
     stim_mode.ToLower();
     if (stim_mode != "open" && stim_mode != "none") {
-      ErrorWin("Configuration file experiment:stim_mode must be \"open\" "
-          "for this version of Elemem.  Cannot start experiment.");
+      ErrorWin("Configuration file experiment:stim_mode must be \"open\" or "
+          "\"none\" for this version of Elemem.  Cannot start experiment.");
       return;
     }
 
@@ -142,6 +143,11 @@ namespace CML {
            "with stimulation.  Proceed?")) {
         return;
       }
+    }
+    if (profile.size() > 0 && stim_mode == "none") {
+      ErrorWin("Error!  Stim channels enabled on experiment with "
+               "experiment:stim_mode set to \"none\".");
+      return;
     }
 
     experiment_running = true;
@@ -201,7 +207,9 @@ namespace CML {
   }
 
   void Handler::StopExperiment_Handler() {
+    stim_worker.Abort();
     CloseExperimentComponents();
+    stim_worker.Abort();
 
     SaveDefaultEEG();
 
@@ -209,11 +217,41 @@ namespace CML {
       main_window->GetStimConfigBox(i).SetEnabled(true);
     }
 
-    experiment_running = false;
-    main_window->SetReadyToStart(true);
+    do_exit = false;
+    if (experiment_running) {
+      experiment_running = false;
+      main_window->SetReadyToStart(true);
+      main_window->GetStatusPanel()->SetEvent("RECORDING");
+    }
+  }
+
+  void Handler::ExperimentExit_Handler() {
+    if (exit_timer.IsNull()) {
+      exit_timer = new QTimer();
+      exit_timer->setTimerType(Qt::PreciseTimer);
+      exit_timer->setSingleShot(true);
+      // Okay because timer allocated within Handler thread here.
+      QObject::connect(exit_timer, &QTimer::timeout,
+        RC::MakeCaller(this, &Handler::HandleExit));
+    }
+
+    do_exit = true;
+    exit_timer->setSingleShot(5000);
+  }
+
+  void Handler::HandleExit() {
+    if (do_exit) {
+      StopExperiment_Handler();
+    }
   }
 
   void Handler::OpenConfig_Handler(RC::FileRead& fr) {
+    if (experiment_running) {
+      ErrorWin("You must stop the experiment before opening a new "
+               "configuration");
+      return;
+    }
+
     for (size_t c=0; c<main_window->StimConfigCount(); c++) {
       main_window->GetStimConfigBox(c).Clear();
     }
@@ -359,6 +397,10 @@ namespace CML {
     std::string sub_name;
     exp_config->Get(sub_name, "subject");
     main_window->GetStatusPanel()->SetSubject(sub_name);
+    std::string exp_type;
+    exp_config->Get(exp_type, "experiment", "type");
+    main_window->GetStatusPanel()->SetExperiment(exp_type);
+    main_window->GetStatusPanel()->SetEvent("RECORDING");
 
     SaveDefaultEEG();
     main_window->SetReadyToStart(true);

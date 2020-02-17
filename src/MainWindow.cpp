@@ -112,7 +112,7 @@ namespace CML {
     start_stop_buttons->addWidget(stop_button);
     stim_and_start->addLayout(start_stop_buttons);
 
-    RC::Ptr<QVBoxLayout> state_display = new QVBoxLayout();
+    RC::Ptr<QHBoxLayout> eeg_and_chan = new QHBoxLayout();
 
     Data1D<uint16_t> channels;
     for (uint16_t c=0; c<128; c++) {
@@ -121,7 +121,7 @@ namespace CML {
     hndl->eeg_acq.SetChannels(channels);
 
     eeg_disp = new EEGDisplay(800, 800);
-    state_display->addWidget(eeg_disp);
+    eeg_and_chan->addWidget(eeg_disp);
     hndl->eeg_acq.RegisterCallback("EEGDisplay", eeg_disp->UpdateData);
 
     //RC::Ptr<QVBoxLayout> test_layout = new QVBoxLayout();
@@ -137,13 +137,16 @@ namespace CML {
       demo_chans += EEGChan(i);
     }
     channel_selector->SetChannels(demo_chans);
+    eeg_and_chan->addWidget(channel_selector, 0);
 
     status_panel = new StatusPanel();
-    state_display->addWidget(status_panel);
+
+    RC::Ptr<QVBoxLayout> right_panel = new QVBoxLayout();
+    right_panel->addLayout(eeg_and_chan, 1);
+    right_panel->addWidget(status_panel, 0);
 
     control_and_display->addLayout(stim_and_start, 0);
-    control_and_display->addLayout(state_display, 1);
-    control_and_display->addWidget(channel_selector, 0);
+    control_and_display->addLayout(right_panel, 1);
 
     central->setLayout(control_and_display);
 

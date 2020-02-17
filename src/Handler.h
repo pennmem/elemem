@@ -53,6 +53,9 @@ namespace CML {
     RCqt::TaskCaller<> StopExperiment =
       TaskHandler(Handler::StopExperiment_Handler);
 
+    RCqt::TaskCaller<> ExperimentExit =
+      TaskHandler(Handler::ExperimentExit_Handler);
+
     RCqt::TaskCaller<RC::FileRead> OpenConfig =
       TaskHandler(Handler::OpenConfig_Handler);
 
@@ -84,6 +87,8 @@ namespace CML {
 
     void StartExperiment_Handler();
     void StopExperiment_Handler();
+    void ExperimentExit_Handler();
+    void HandleExit();
 
     void OpenConfig_Handler(RC::FileRead& fr);
     FullConf GetConfig_Handler() { return {exp_config, elec_config}; }
@@ -101,6 +106,9 @@ namespace CML {
     RC::Data1D<StimSettings> max_stim_settings;
 
     RC::RStr session_dir;
+
+    RC::APtr<QTimer> exit_timer;
+    bool do_exit = false;
 
     bool experiment_running = false;
     bool stim_api_test_warning = true;

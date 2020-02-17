@@ -8,6 +8,9 @@ namespace CML {
     subject = new Indicator();
     pan_layout->addWidget(subject);
 
+    experiment = new Indicator();
+    pan_layout->addWidget(experiment);
+
     session = new Indicator("Session: ");
     pan_layout->addWidget(session);
 
@@ -43,6 +46,10 @@ namespace CML {
     subject->Set(subj);
   }
 
+  void StatusPanel::SetExperiment_Handler(const RC::RStr& exp) {
+    experiment->Set(exp);
+  }
+
   void StatusPanel::SetStimList_Handler(const bool& stim_list) {
     stim_enabled->Set(stim_list ? "Stim List" : "No Stim");
   }
@@ -70,7 +77,7 @@ namespace CML {
 
   void StatusPanel::Clear_Handler() {
     stim_enabled->Set("");
-    state->Set("DISCONNECTED");
+    state->Set("UNCONFIGURED");
     session->Set("");
     trial->Set("");
   }

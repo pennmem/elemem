@@ -16,6 +16,8 @@ namespace CML {
 
     RCqt::TaskCaller<const RC::RStr> SetSubject =
       TaskHandler(StatusPanel::SetSubject_Handler);
+    RCqt::TaskCaller<const RC::RStr> SetExperiment =
+      TaskHandler(StatusPanel::SetExperiment_Handler);
     RCqt::TaskCaller<const bool> SetStimList =
       TaskHandler(StatusPanel::SetStimList_Handler);
     RCqt::TaskCaller<const RC::RStr> SetEvent =
@@ -31,6 +33,7 @@ namespace CML {
 
     protected:
     void SetSubject_Handler(const RC::RStr& subj);
+    void SetExperiment_Handler(const RC::RStr& exp);
     void SetStimList_Handler(const bool& stim_list);
     void SetEvent_Handler(const RC::RStr& event);
     void SetStimming_Handler(const uint32_t& duration_us);
@@ -45,6 +48,7 @@ namespace CML {
     protected:
 
     RC::Ptr<Indicator> subject;
+    RC::Ptr<Indicator> experiment;
     RC::Ptr<Indicator> session;
     RC::Ptr<Indicator> trial;
     RC::Ptr<Indicator> state;

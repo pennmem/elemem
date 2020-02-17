@@ -74,6 +74,10 @@ namespace CML {
       hndl->StopExperiment();
       ErrorWin("Task laptop disconnected.  Experiment stopped.");
     }
+    else {
+      ErrorWin("Task laptop disconnected.  Waiting for reconnection.  "
+               "Click \"Stop Experiment\" to stop.");
+    }
   }
 
   JSONFile NetWorker::MakeResp(RC::RStr type, uint64_t id) {
@@ -163,6 +167,10 @@ namespace CML {
         status_panel->SetTrial(trial);
         inp.Get(stim, "data", "stim");
         status_panel->SetStimList(stim);
+      }
+      else if (type == "EXIT") {
+        status_panel->SetEvent(type);
+        hndl->ExperimentExit();
       }
       else {
         if (type ==
