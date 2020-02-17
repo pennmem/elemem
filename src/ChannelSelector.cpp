@@ -25,7 +25,7 @@ namespace CML {
         ChannelChecked(i, b);
       };
       RC::Ptr<CheckBox> chk = new CheckBox(chan_callbacks[i],
-        RC::RStr(channels[i].channel+1) + "(" + channels[i].label + ")");
+        RC::RStr(channels[i].channel+1) + " (" + channels[i].label + ")");
       lyt->addWidget(chk);
       if (i < 16) {
         chk->Set(true);

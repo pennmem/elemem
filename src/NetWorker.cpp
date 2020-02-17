@@ -158,12 +158,16 @@ namespace CML {
       }
       else if (type == "TRIAL") {
         int64_t trial;
+        bool stim;
         inp.Get(trial, "data", "trial");
         status_panel->SetTrial(trial);
+        inp.Get(stim, "data", "stim");
+        status_panel->SetStimList(stim);
       }
       else {
         if (type ==
-            RC::OneOf("ORIENT", "COUNTDOWN", "MATH", "RECALL", "REST")) {
+            RC::OneOf("ORIENT", "COUNTDOWN", "MATH", "RECALL", "REST",
+                      "TRIALEND")) {
           status_panel->SetEvent(type);
         }
       }

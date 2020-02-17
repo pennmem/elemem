@@ -18,7 +18,7 @@ namespace CML {
     RCqt::TaskCaller<const RC::Data1D<EEGChan>> SetChannels =
       TaskHandler(ChannelSelector::SetChannels_Handler);
 
-    QSize sizeHint() const { return QSize(120, 120); }
+    QSize sizeHint() const { return QSize(160, 120); }
 
     protected:
     void SetChannels_Handler(const RC::Data1D<EEGChan>& channels);
