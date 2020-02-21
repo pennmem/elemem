@@ -35,7 +35,9 @@ namespace CML {
     }
 
     // Select first device.
-    uint32_t dev = device_serial_nums[0];
+    // If future requirements appear for multiple stimulators,
+    // the serial numbers should be parsed here.
+    uint32_t dev = 0;
     ErrorCheck(
       CS_SetDevice(dev)
     );
