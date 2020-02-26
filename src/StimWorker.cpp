@@ -23,7 +23,10 @@ namespace CML {
 
 
   void StimWorker::Stimulate_Handler() {
-    JSONFile event_base = NetWorker::MakeResp("STIM");
+    cerestim.Stimulate();
+    status_panel->SetStimming(max_duration);
+
+    JSONFile event_base = NetWorker::MakeResp("STIMMING");
     for (size_t i=0; i<cur_profile.size(); i++) {
       JSONFile event = event_base;
       event.Set(uint32_t(cur_profile[i].electrode_pos), "data",
@@ -36,9 +39,6 @@ namespace CML {
 
       hndl->event_log.Log(event.Line());
     }
-
-    cerestim.Stimulate();
-    status_panel->SetStimming(max_duration);
   }
 
   void StimWorker::CloseCereStim_Handler() {
