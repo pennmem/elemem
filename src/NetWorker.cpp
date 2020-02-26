@@ -155,6 +155,9 @@ namespace CML {
         ProtWord(inp);
         status_panel->SetEvent(type);
       }
+      else if (type == "STIM") {
+        hndl->stim_worker.Stimulate();
+      }
       else if (type == "SESSION") {
         int64_t session;
         inp.Get(session, "data", "session");
