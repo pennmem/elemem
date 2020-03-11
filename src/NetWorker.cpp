@@ -72,11 +72,18 @@ namespace CML {
     buffer.clear();
     if (stop_on_disconnect) {
       hndl->StopExperiment();
-      ErrorWin("Task laptop disconnected.  Experiment stopped.");
     }
-    else {
-      ErrorWin("Task laptop disconnected.  Waiting for reconnection.  "
-               "Click \"Stop Experiment\" to stop.");
+    // Message required, unplanned disconnect.
+    if (con.IsSet()) {
+      if (stop_on_disconnect) {
+        ErrorWin("Task laptop disconnected.  Experiment stopped.");
+      }
+      else {
+        ErrorWin("Task laptop disconnected.  Waiting for reconnection.  "
+                 "Click \"Stop Experiment\" to stop.");
+      }
+      con->close();
+      con.Delete();
     }
   }
 
