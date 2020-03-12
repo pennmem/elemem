@@ -82,7 +82,6 @@ namespace CML {
         ErrorWin("Task laptop disconnected.  Waiting for reconnection.  "
                  "Click \"Stop Experiment\" to stop.");
       }
-      con->close();
       con.Delete();
     }
   }
