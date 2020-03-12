@@ -23,10 +23,12 @@ namespace CML {
         &NetWorker::NewConnection);
 
     server->listen(QHostAddress(address.ToQString()), port);
+    connected = false;
   }
 
   void NetWorker::Close_Handler() {
     if (con.IsSet()) {
+      connected = false;
       con->close();
       con.Delete();
     }
@@ -53,6 +55,7 @@ namespace CML {
     if (con.IsSet()) {
       connect(con, &QTcpSocket::readyRead, this, &NetWorker::DataReady);
       connect(con, &QTcpSocket::disconnected, this, &NetWorker::Disconnected);
+      connected = true;
     }
   }
 
@@ -74,7 +77,8 @@ namespace CML {
       hndl->StopExperiment();
     }
     // Message required, unplanned disconnect.
-    if (con.IsSet()) {
+    if (connected) {
+      connected = false;
       if (stop_on_disconnect) {
         ErrorWin("Task laptop disconnected.  Experiment stopped.");
       }
@@ -82,7 +86,6 @@ namespace CML {
         ErrorWin("Task laptop disconnected.  Waiting for reconnection.  "
                  "Click \"Stop Experiment\" to stop.");
       }
-      con.Delete();
     }
   }
 

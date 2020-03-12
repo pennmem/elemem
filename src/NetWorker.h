@@ -72,6 +72,7 @@ namespace CML {
     RC::RStr buffer;
     bool stop_on_disconnect = false;
     bool configured = false;
+    bool connected = false;
     RC::Time timer;
   };
 }
