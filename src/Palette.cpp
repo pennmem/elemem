@@ -122,7 +122,6 @@ namespace CML {
   void Palette::SetGrayscale() {
     int i;
     float val;
-    float bright, sat, hue;
 
     bg.r = 0;
     bg.g = 0;
@@ -166,7 +165,6 @@ namespace CML {
   void Palette::SetInverseGray() {
     int i;
     float val;
-    float bright, sat, hue;
 
     bg.r = maxRGBval;
     bg.g = maxRGBval;

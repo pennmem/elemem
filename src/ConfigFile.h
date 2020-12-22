@@ -64,10 +64,56 @@ namespace CML {
           json, keys...);
     }
 
+    template<class... Keys>
+    void Get(RC::RStr& data, Keys... keys) const {
+      Get(data.Raw(), keys...);
+    }
+
+    template<class... Keys>
+    void Get(JSONFile& data, Keys... keys) const {
+      Get(data.json, keys...);
+      data.filename = filename + ((RC::RStr(":") + RC::RStr(keys)) + ...);
+    }
+
+    template<class T, class... Keys>
+    void Get(RC::Data1D<T>& data, Keys... keys) const {
+      std::vector<T> v;
+      Get(v, keys...);
+      data.Resize(v.size());
+      for (size_t i=0; i<v.size(); i++) {
+        data[i] = v[i];
+      }
+    }
+
     // Returns true if succeeded
     template<class T, class... Keys>
     bool TryGet(T& data, Keys... keys) const {
       return TryGetRecurse(data, &json, keys...);
+    }
+
+    template<class... Keys>
+    bool TryGet(RC::RStr& data, Keys... keys) const {
+      return TryGet(data.Raw(), keys...);
+    }
+
+    template<class... Keys>
+    bool TryGet(JSONFile& data, Keys... keys) const {
+      bool retval = Get(data.json, keys...);
+      data.filename = filename + ((RC::RStr(":") + RC::RStr(keys)) + ...);
+      return retval;
+    }
+
+    template<class T, class... Keys>
+    bool TryGet(RC::Data1D<T>& data, Keys... keys) const {
+      std::vector<T> v;
+      bool retval = TryGet(v, keys...);
+      if (retval) {
+        data.Resize(v.size());
+        for (size_t i=0; i<v.size(); i++) {
+          data[i] = v[i];
+        }
+      }
+      return retval;
     }
 
     // Use this on base JSONFile for updates.
@@ -75,6 +121,25 @@ namespace CML {
     void Set(const T& data, Keys... keys) {
       SetRecurse(data, RC::RStr("Could not set ")+filename+" key, ",
           &json, keys...);
+    }
+
+    template<class... Keys>
+    void Set(const RC::RStr& data, Keys... keys) {
+      Set(data.Raw(), keys...);
+    }
+
+    template<class... Keys>
+    void Set(const JSONFile& data, Keys... keys) {
+      Set(data.json, keys...);
+    }
+
+    template<class T, class... Keys>
+    void Set(const RC::Data1D<T>& data, Keys... keys) {
+      std::vector<T> v(data.size());
+      for (size_t i=0; i<v.size(); i++) {
+        v[i] = data[i];
+      }
+      Set(v, keys...);
     }
 
     template<class... Keys>

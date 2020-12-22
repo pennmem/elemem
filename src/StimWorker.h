@@ -17,7 +17,7 @@ namespace CML {
     RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
       TaskHandler(StimWorker::SetStatusPanel_Handler);
 
-    RCqt::TaskCaller<CSStimProfile> ConfigureStimulation =
+    RCqt::TaskCaller<const CSStimProfile> ConfigureStimulation =
       TaskHandler(StimWorker::ConfigureStimulation_Handler);
 
     RCqt::TaskCaller<> Stimulate =
@@ -31,7 +31,7 @@ namespace CML {
       status_panel = set_panel;
     }
 
-    void ConfigureStimulation_Handler(CSStimProfile& profile);
+    void ConfigureStimulation_Handler(const CSStimProfile& profile);
     void Stimulate_Handler();
 
     void CloseCereStim_Handler();

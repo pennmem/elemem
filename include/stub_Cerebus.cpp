@@ -1,15 +1,26 @@
 // 2019, Ryan A. Colyer
 // Computational Memory Lab, University of Pennsylvania
 //
-// This file provides C++ RAII wrappers for the Cerebus cbsdk API by Blackrock
-// Microsystems
+// This file probides a stub emulating the Cerebus unit from Blackrock.
 //
 /////////////////////////////////////////////////////////////////////////////
 
 #include "Cerebus.h"
-
+#include "Popup.h"
+#include "RC/RTime.h"
 
 namespace CML {
+  uint64_t TimeSinceLast_ms() {
+    static uint64_t last = uint64_t(RC::Time::Get()*1000);
+    uint64_t cur = uint64_t(RC::Time::Get()*1000);
+    uint64_t diff = cur - last;
+    last = cur;
+    return diff;
+  }
+
+  // Here so Cerebus.h is shared for real and stub.
+  uint64_t stub_chan_count = 0;
+
   CBException::~CBException() { }
 
   std::string CBException::CodeToString(cbSdkResult err) {
@@ -105,18 +116,11 @@ namespace CML {
 
 
   void Cerebus::Open() {
-    if (is_open) {
-      Close();
-    }
-
-    cbSdkResult res = cbSdkOpen(instance, CBSDKCONNECTION_DEFAULT);
-
-    if (res != CBSDKRESULT_SUCCESS) {
-      throw CBException(res, "cbSdkOpen", instance);
-    }
-
-    for (size_t i=0; i<cbNUM_ANALOG_CHANS; i++) {
-      trial.samples[i] = reinterpret_cast<void*>(channel_data[i].data.data());
+    static bool first_run = true;
+    if (first_run) {
+      TimeSinceLast_ms();
+      stub_chan_count = 0;
+      PopupWin("Cerebus simulator activated", "Warning");
     }
 
     is_open = true;
@@ -126,8 +130,6 @@ namespace CML {
   void Cerebus::Close() {
     if (is_open) {
       ClearChannels();
-
-      cbSdkClose(instance);
 
       is_open = false;
     }
@@ -202,34 +204,14 @@ namespace CML {
 
     BeOpen();
 
-    // Set vector sizes to maximum allowed.
+    size_t data_len = TimeSinceLast_ms(); // 1000Hz
+
+    channel_data.resize(stub_chan_count);
     for (uint32_t c=0; c<channel_data.size(); c++) {
-      channel_data[c].data.resize(cbSdk_CONTINUOUS_DATA_SAMPLES);
-    }
-
-    cbSdkResult res = cbSdkInitTrialData(instance, 1, nullptr, &trial,
-      nullptr, nullptr);
-
-    if (res == CBSDKRESULT_SUCCESS) {
-      res = cbSdkGetTrialData(instance, 1, nullptr, &trial, nullptr,
-          nullptr);
-    }
-
-    if (res != CBSDKRESULT_SUCCESS) {
-      throw CBException(res, "cbSdkGetTrialData", instance);
-    }
-
-    // Set vector sizes to actually acquired data.
-    if (trial.count > channel_data.size()) {
-      channel_data.resize(trial.count);
-    }
-    for (uint32_t c=0; c<trial.count; c++) {
-      channel_data[c].chan = trial.chan[c]-1;
-      channel_data[c].data.resize(trial.num_samples[c]);
-    }
-    for (uint32_t c=trial.count; c<channel_data.size(); c++) {
-      channel_data[c].chan = uint16_t(-1);
-      channel_data[c].data.resize(0);
+      channel_data[c].data.resize(data_len);
+      for (uint64_t d=0; d<channel_data[c].data.size(); d++) {
+        channel_data[c].data[d] = d;
+      }
     }
 
     return channel_data;
@@ -240,55 +222,25 @@ namespace CML {
     first_chan=uint16_t(-1);  // unset
     last_chan=0;
 
+    stub_chan_count = 0;
+
     channel_data.resize(cbNUM_ANALOG_CHANS);
     for (uint32_t c=0; c<cbNUM_ANALOG_CHANS; c++) {
       channel_data[c].data.resize(0);
-
-      cbPKT_CHANINFO channel_info;
-
-      cbSdkResult res;
-      res = cbSdkGetChannelConfig(instance, uint16_t(c+1), &channel_info);
-
-      // Enable hardware line noise correction.
-      // Enable DC offset correction.
-      channel_info.ainpopts = cbAINP_LNC_RUN_HARD | cbAINP_OFFSET_CORRECT;
-
-      if (res == CBSDKRESULT_SUCCESS) {
-        // 0=None, 1=500Hz, 2=1kHz, 3=2kHz, 4=10kHz, 5=30kHz
-        channel_info.smpgroup = 0; // Disable.
-
-        res = cbSdkSetChannelConfig(instance, uint16_t(c+1), &channel_info);
-      }
-      // Ignore errors, not all channels are valid.
     }
   }
 
   void Cerebus::ConfigureChannel(uint16_t channel) {
-    cbPKT_CHANINFO channel_info;
-
-    cbSdkResult res;
-    res = cbSdkGetChannelConfig(instance, channel+1, &channel_info);
-
-    if (res == CBSDKRESULT_SUCCESS) {
-      // 0=None, 1=500Hz, 2=1kHz, 3=2kHz, 4=10kHz, 5=30kHz
-      channel_info.smpgroup = 2; // Continuous sampling, 1kHz rate.
-
-      res = cbSdkSetChannelConfig(instance, channel+1, &channel_info);
+    if (stub_chan_count > channel_data.size()) {
+      throw std::runtime_error("ConfigureChannel count exceeded maximum.");
     }
 
-    if (res != CBSDKRESULT_SUCCESS) {
-      throw CBException(res, "channel config", instance);
-    }
+    channel_data[stub_chan_count].chan = channel;
+    stub_chan_count++;
   }
 
   void Cerebus::SetTrialConfig() {
-    cbSdkResult res;
-    res = cbSdkSetTrialConfig(instance, 1, first_chan+1, 0, 0, last_chan+1,
-        0, 0, false, 0, cbSdk_CONTINUOUS_DATA_SAMPLES, 0, 0, 0, true);
-
-    if (res != CBSDKRESULT_SUCCESS) {
-      throw CBException(res, "cbSdkSetTrialConfig", instance);
-    }
+    TimeSinceLast_ms();
   }
 }
 

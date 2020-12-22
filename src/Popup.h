@@ -5,6 +5,9 @@
 #include "RCqt/Worker.h"
 #include <QObject>
 
+namespace RC {
+  RC_MAKE_ERROR_TYPE(Note);
+}
 
 namespace CML {
   void PopupWin(const RC::RStr& message, const RC::RStr& title="");

@@ -9,6 +9,7 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 # Compilation settings
 
 set(IS_RELEASE true)
+option(CEREBUS_STUB "Use the Cerebus simulator" ON) # cmake CEREBUS_STUB .
 
 if (IS_RELEASE)
   set(CMAKE_BUILD_TYPE Release)
@@ -40,52 +41,78 @@ set (CMAKE_CXX_FLAGS_RELEASE "-O3 -g -ffast-math")
 ##############
 # Source files
 
+if (WIN32)
+  set (OS_SPEC_FILES "")
+else (WIN32)
+  set (OS_SPEC_FILES include/stub_CereStimDLL.cpp)
+endif (WIN32)
+
+if (CEREBUS_STUB)
+  set (CEREBUS_FILE include/stub_Cerebus.cpp)
+else (CEREBUS_STUB)
+  set (CEREBUS_FILE src/Cerebus.cpp)
+endif (CEREBUS_STUB)
+
 add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Elemem.cpp
   #src/api_tests.cpp
 
-  src/About.cpp
   src/About.h
-  src/APITests.cpp
+  src/About.cpp
   src/APITests.h
-  src/CereStim.cpp
+  src/APITests.cpp
   src/CereStim.h
-  src/Cerebus.cpp
+  src/CereStim.cpp
   src/Cerebus.h
+  ${CEREBUS_FILE}
+  src/ChannelConf.h
   src/ChannelSelector.h
   src/ChannelSelector.cpp
-  src/CImage.cpp
   src/CImage.h
+  src/CImage.cpp
   src/ConfigFile.h
   src/ConfigFile.cpp
   src/EDFSave.h
   src/EDFSave.cpp
-  src/EEGAcq.cpp
   src/EEGAcq.h
+  src/EEGAcq.cpp
   src/EEGData.h
-  src/EEGDisplay.cpp
   src/EEGDisplay.h
+  src/EEGDisplay.cpp
   src/EventLog.h
   src/EventLog.cpp
-  src/GUIParts.cpp
-  src/GUIParts.h
-  src/Handler.cpp
+  src/ExperOPS.h
+  src/ExperOPS.cpp
+  src/ExpEvent.h
+  src/GuiParts.h
+  src/GuiParts.cpp
   src/Handler.h
-  src/MainWindow.cpp
+  src/Handler.cpp
+  src/HDF5Save.h
+  src/HDF5Save.cpp
+  src/JSONLines.h
+  src/JSONLines.cpp
+  src/LocGUIConfig.h
+  src/LocGUIConfig.cpp
+  src/HDF5Save.cpp
   src/MainWindow.h
+  src/MainWindow.cpp
   src/NetWorker.h
   src/NetWorker.cpp
-  src/OpenConfigDialog.cpp
   src/OpenConfigDialog.h
+  src/OpenConfigDialog.cpp
+  src/OPSSpecs.h
   src/Palette.h
   src/Palette.cpp
-  src/Popup.cpp
   src/Popup.h
+  src/Popup.cpp
   src/QtFileFunctions.h
-  src/QtStyle.cpp
   src/QtStyle.h
-  src/RCQApplication.cpp
+  src/QtStyle.cpp
   src/RCQApplication.h
+  src/RCQApplication.cpp
+  src/Settings.h
+  src/Settings.cpp
   src/StatusPanel.h
   src/StatusPanel.cpp
   src/StimGUIConfig.h
@@ -123,17 +150,12 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
 
   src/RCqt/RCqtconfig.h
   src/RCqt/RCqt.h
-  src/RCqt/Worker.cpp
   src/RCqt/Worker.h
+  src/RCqt/Worker.cpp
 
   include/edflib/edflib.cpp
-)
 
-target_include_directories (${PROJECT_NAME} PRIVATE
-  ${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_SOURCE_DIR}/src
-  ${PROJECT_SOURCE_DIR}/src/RC
-  ${PROJECT_SOURCE_DIR}/src/RCqt
+  ${OS_SPEC_FILES}
 )
 
 ####################
@@ -142,6 +164,8 @@ target_include_directories (${PROJECT_NAME} PRIVATE
 find_package (Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Svg PrintSupport Network)
 qt5_use_modules(${PROJECT_NAME} Core Gui Widgets Concurrent Svg PrintSupport Network)
 
+find_package (HDF5 REQUIRED COMPONENTS CXX)
+
 find_library (CBSDK_LIB "cbsdk" PATHS ${PROJECT_SOURCE_DIR}/lib64)
 if (NOT CBSDK_LIB)
   message (FATAL_ERROR
@@ -149,16 +173,34 @@ if (NOT CBSDK_LIB)
   )
 endif ()
 
-find_library (CSTIM_LIB "CereStimDLL" PATHS ${PROJECT_SOURCE_DIR}/dll)
-if (NOT CSTIM_LIB)
-  message (FATAL_ERROR
-    "CereStimDLL library missing from ${PROJECT_SOURCE_DIR}/dll"
-  )
-endif ()
+if (WIN32)
+  find_library (CSTIM_LIB "CereStimDLL" PATHS ${PROJECT_SOURCE_DIR}/dll)
+  if (NOT CSTIM_LIB)
+    message (FATAL_ERROR
+      "CereStimDLL library missing from ${PROJECT_SOURCE_DIR}/dll"
+    )
+  endif ()
+else (WIN32)
+  set (CSTIM_LIB "")
+endif (WIN32)
+
+############################
+# Set includes and libraries
+
+target_include_directories (${PROJECT_NAME} PRIVATE
+  ${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/src
+  ${PROJECT_SOURCE_DIR}/src/RC
+  ${PROJECT_SOURCE_DIR}/src/RCqt
+  ${HDF5_INCLUDE_DIRS}
+)
+
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 target_link_libraries (${PROJECT_NAME}
   ${CBSDK_LIB}
   ${CSTIM_LIB}
+  ${HDF5_LIBRARIES}
 )
 
 ########################################################

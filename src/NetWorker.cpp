@@ -1,5 +1,6 @@
 #include "NetWorker.h"
 #include "Handler.h"
+#include "JSONLines.h"
 #include "Popup.h"
 #include "StatusPanel.h"
 #include "RC/Data1D.h"
@@ -89,17 +90,6 @@ namespace CML {
     }
   }
 
-  JSONFile NetWorker::MakeResp(RC::RStr type, uint64_t id) {
-    JSONFile resp;
-    resp.SetFilename("HostResponse");
-    resp.Set(type.Raw(), "type");
-    resp.Set(R"({})"_json, "data");
-    if (id != uint64_t(-1)) {
-      resp.Set(id, "id");
-    }
-    resp.Set(Time::Get()*1e3, "time");  // ms from 1970-01-01 00:00:00 UTC
-    return resp;
-  }
 
   void NetWorker::Respond(JSONFile& resp) {
     RStr line = resp.Line();

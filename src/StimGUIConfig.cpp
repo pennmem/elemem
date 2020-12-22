@@ -1,4 +1,4 @@
-#include "StimGuiConfig.h"
+#include "StimGUIConfig.h"
 #include "RC/RCBits.h"
 #include <QHBoxLayout>
 
@@ -44,6 +44,10 @@ namespace CML {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
 
     SetEnabled_Handler(false);
+  }
+
+  QSize StimConfigBox::sizeHint() const {
+    return QSize(100, 100);
   }
 
 

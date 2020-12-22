@@ -7,8 +7,11 @@
 #include "EDFSave.h"
 #include "EEGAcq.h"
 #include "EventLog.h"
+#include "ExperOPS.h"
 #include "NetWorker.h"
+#include "Settings.h"
 #include "StimWorker.h"
+#include "LocGUIConfig.h"
 #include "StimGUIConfig.h"
 #include <QObject>
 
@@ -18,10 +21,6 @@ namespace CML {
   class JSONFile;
   class CSVFile;
 
-  struct FullConf {
-    RC::APtr<const JSONFile> exp_config;
-    RC::APtr<const CSVFile> elec_config;
-  };
   
   class Handler : public RCqt::WorkerThread {
     public:
@@ -46,6 +45,26 @@ namespace CML {
       TaskHandler(Handler::SetStimSettings_Handler);
     RCqt::TaskCaller<const size_t> TestStim =
       TaskHandler(Handler::TestStim_Handler);
+    RCqt::TaskCaller<> TestLocStim =
+      TaskHandler(Handler::TestLocStim_Handler);
+
+    RCqt::TaskCaller<const size_t> TestSelLocChan =
+      TaskHandler(Handler::TestSelLocChan_Handler);
+    RCqt::TaskCaller<const size_t> TestSelLocAmp =
+      TaskHandler(Handler::TestSelLocAmp_Handler);
+    RCqt::TaskCaller<const size_t> TestSelLocFreq =
+      TaskHandler(Handler::TestSelLocFreq_Handler);
+    RCqt::TaskCaller<const size_t> TestSelLocDur =
+      TaskHandler(Handler::TestSelLocDur_Handler);
+
+    RCqt::TaskCaller<const RC::Data1D<bool>> SetLocChansApproved =
+      TaskHandler(Handler::SetLocChansApproved_Handler);
+    RCqt::TaskCaller<const RC::Data1D<bool>> SetLocAmpApproved =
+      TaskHandler(Handler::SetLocAmpApproved_Handler);
+    RCqt::TaskCaller<const RC::Data1D<bool>> SetLocFreqApproved =
+      TaskHandler(Handler::SetLocFreqApproved_Handler);
+    RCqt::TaskCaller<const RC::Data1D<bool>> SetLocDurApproved =
+      TaskHandler(Handler::SetLocDurApproved_Handler);
 
     RCqt::TaskCaller<> StartExperiment =
       TaskHandler(Handler::StartExperiment_Handler);
@@ -84,6 +103,17 @@ namespace CML {
     void SetStimSettings_Handler(const size_t& index,
                                  const StimSettings& settings_callback);
     void TestStim_Handler(const size_t& index);
+    void TestLocStim_Handler();
+
+    void TestSelLocChan_Handler(const size_t& selected);
+    void TestSelLocAmp_Handler(const size_t& selected);
+    void TestSelLocFreq_Handler(const size_t& selected);
+    void TestSelLocDur_Handler(const size_t& selected);
+
+    void SetLocChansApproved_Handler(const RC::Data1D<bool>& approved);
+    void SetLocAmpApproved_Handler(const RC::Data1D<bool>& approved);
+    void SetLocFreqApproved_Handler(const RC::Data1D<bool>& approved);
+    void SetLocDurApproved_Handler(const RC::Data1D<bool>& approved);
 
     void StartExperiment_Handler();
     void StopExperiment_Handler();
@@ -91,21 +121,21 @@ namespace CML {
     void HandleExit();
 
     void OpenConfig_Handler(RC::FileRead& fr);
-    FullConf GetConfig_Handler() { return {exp_config, elec_config}; }
+    FullConf GetConfig_Handler() {
+      return {settings.exp_config, settings.elec_config};
+    }
     void Shutdown_Handler();
 
     void SaveDefaultEEG();
+    RC::Data1D<CSStimProfile> CreateGridProfiles();
 
     void CloseExperimentComponents();
 
-    RC::APtr<const JSONFile> exp_config;
-    RC::APtr<const CSVFile> elec_config;
-
-    RC::Data1D<StimSettings> stim_settings;
-    RC::Data1D<StimSettings> min_stim_settings;
-    RC::Data1D<StimSettings> max_stim_settings;
+    Settings settings;
 
     RC::RStr session_dir;
+
+    ExperOPS exper_ops;
 
     RC::APtr<QTimer> exit_timer;
     bool do_exit = false;

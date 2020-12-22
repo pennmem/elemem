@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include "CereStimDLL.h"
+#include "ChannelConf.h"
 
 
 namespace CML {
@@ -77,15 +78,6 @@ namespace CML {
   };
 
 
-  class CSStimChannel {
-    public:
-    uint8_t electrode_pos;  // Goes positive first / anodic
-    uint8_t electrode_neg;  // Goes negative first / cathodic
-    uint16_t amplitude; // Unit 1uA, granularity 100uA for macro.
-    uint32_t frequency; // Unit Hz.
-    uint32_t duration;  // Unit us.
-  };
-
   class CSStimProfile {
     public:
     CSStimProfile& operator+=(const CSStimChannel& chan);
@@ -96,7 +88,6 @@ namespace CML {
 
     private:
     std::vector<CSStimChannel> stim_profile;
-    std::vector<size_t> pattern_index;
     friend class CereStim;
   };
 

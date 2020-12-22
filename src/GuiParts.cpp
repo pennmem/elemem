@@ -189,7 +189,15 @@ namespace CML {
   CheckBox::CheckBox(Caller<void, const bool&> callback, const RC::RStr &text)
     : QCheckBox(text.c_str()), callback(callback) {
 
-    connect(this, SIGNAL(stateChanged(int)), SLOT(ToggledSlot(int)));
+    connect(this, SIGNAL(toggled(bool)), SLOT(ToggledSlot(bool)));
+  }
+
+  CheckBox::CheckBox(Caller<void, const size_t&, const bool&> callback_indexed,
+      const RC::RStr &text, size_t index)
+    : QCheckBox(text.c_str()), callback_indexed(callback_indexed),
+      index(index) {
+
+    connect(this, SIGNAL(toggled(bool)), SLOT(ToggledSlot(bool)));
   }
 
   void CheckBox::Set_Handler(const bool& state) {
@@ -199,6 +207,52 @@ namespace CML {
   void CheckBox::SetEnabled_Handler(const bool& enabled) {
     setEnabled(enabled);
   }
+
+  void CheckBox::Toggled(bool state) {
+    if (callback.IsSet()) {
+      callback(state);
+    }
+    if (callback_indexed.IsSet()) {
+      callback_indexed(index, state);
+    }
+  }
+
+
+////////////////////////////
+
+  RadioButton::RadioButton(Caller<void, const bool&> callback,
+      const RC::RStr &text)
+    : QRadioButton(text.c_str()), callback(callback) {
+
+    connect(this, SIGNAL(toggled(bool)), SLOT(ToggledSlot(bool)));
+  }
+
+  RadioButton::RadioButton(
+      Caller<void, const size_t&, const bool&> callback_indexed,
+      const RC::RStr &text, size_t index)
+    : QRadioButton(text.c_str()), callback_indexed(callback_indexed),
+      index(index) {
+
+    connect(this, SIGNAL(toggled(bool)), SLOT(ToggledSlot(bool)));
+  }
+
+  void RadioButton::Set_Handler(const bool& state) {
+    setChecked(state);
+  }
+
+  void RadioButton::SetEnabled_Handler(const bool& enabled) {
+    setEnabled(enabled);
+  }
+
+  void RadioButton::Toggled(bool state) {
+    if (callback.IsSet()) {
+      callback(state);
+    }
+    if (callback_indexed.IsSet()) {
+      callback_indexed(index, state);
+    }
+  }
+
 
 ///////////////////////////
 

@@ -4,19 +4,13 @@
 #include "CereStim.h"
 #include "RC/RC.h"
 #include "RCqt/Worker.h"
+#include "Settings.h"
 #include "GuiParts.h"
 #include <cmath>
 #include <QGroupBox>
 
 
 namespace CML {
-  class StimSettings {
-    public:
-    CSStimChannel params;
-    RC::RStr label;
-    bool approved;
-  };
-
   class StimConfigBox : public QGroupBox, public RCqt::Worker {
     Q_OBJECT
 
@@ -75,7 +69,7 @@ namespace CML {
       settings_callback(config_index, settings);
     }
 
-    QSize sizeHint() const { return minimumSizeHint(); }
+    QSize sizeHint() const;
 
     protected:
     RC::Caller<void, const size_t&, const StimSettings&> settings_callback;

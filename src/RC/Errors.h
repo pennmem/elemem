@@ -35,8 +35,11 @@
 namespace RC {
   /// The maximum size of the char array returned by ErrorMsg::what() and
   /// ErrorMsg::GetError(), including the null.
+  const size_t ErrorMsg_text_size = 4095;
   const size_t ErrorMsg_text_bufsize = 4096;
+  /// @cond UNDOC
   const size_t ErrorMsg_what_bufsize = 4096+1024;
+  /// @endcond
   /// The maximum size of the char array returned by ErrorMsg::GetType(),
   /// including the null.
   const size_t ErrorMsg_type_bufsize = 256;
@@ -59,8 +62,10 @@ namespace RC {
       return (size <= written) ? size-1 : written;
     }
     // Returns amount actually written.
+    /// @cond UNDOC
     #define R_Safe_snprintf(str, size, ...) \
       AmountWritten(size, size_t(snprintf(str, size, __VA_ARGS__)));
+    /// @endcond
 
     public:
 
@@ -83,7 +88,7 @@ namespace RC {
         err_msg[0] = '\0';
       }
       else {
-        strncpy(err_msg, new_err_msg, ErrorMsg_text_bufsize);
+        strncpy(err_msg, new_err_msg, ErrorMsg_text_size);
         err_msg[ErrorMsg_text_bufsize-1] = '\0';
       }
 
@@ -100,11 +105,11 @@ namespace RC {
       if (backtrace_symb != NULL) {
         for (int i=0; i<backtrace_cnt; i++) {
           offset += R_Safe_snprintf(stacktrace_txt+offset,
-            ErrorMsg_text_bufsize-offset, "\n\t%s",
+            ErrorMsg_text_size-offset, "\n\t%s",
             backtrace_symb[backtrace_cnt-i-1]);
         }
         offset += R_Safe_snprintf(stacktrace_txt+offset,
-          ErrorMsg_text_bufsize-offset, "\n");
+          ErrorMsg_text_size-offset, "\n");
 
         SafeFree(backtrace_symb);
       }
@@ -131,20 +136,20 @@ namespace RC {
 
         for(int i=0; i<backtrace_cnt; i++) {
           offset += R_Safe_snprintf(stacktrace_txt+offset,
-            ErrorMsg_text_bufsize-offset, "\r\n\t0x%lx : ",
+            ErrorMsg_text_size-offset, "\r\n\t0x%lx : ",
               static_cast<long unsigned int>(size_t(bt_buffer[i])));
           if (SymFromAddr(process, DWORD64(bt_buffer[i]), 0, symbol)) {
             offset += R_Safe_snprintf(stacktrace_txt+offset,
-              ErrorMsg_text_bufsize-offset, "%s [0x%lx]", symbol->Name,
+              ErrorMsg_text_size-offset, "%s [0x%lx]", symbol->Name,
               static_cast<long unsigned int>(size_t(symbol->Address)));
           }
           else {
             offset += R_Safe_snprintf(stacktrace_txt+offset,
-              ErrorMsg_text_bufsize-offset, "_ [0x0000]");
+              ErrorMsg_text_size-offset, "_ [0x0000]");
           }
         }
         offset += R_Safe_snprintf(stacktrace_txt+offset,
-            ErrorMsg_text_bufsize-offset, "\r\n");
+            ErrorMsg_text_size-offset, "\r\n");
 
         SymCleanup(process);
       }

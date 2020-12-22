@@ -26,6 +26,13 @@ using namespace CML;
 
 
 namespace APITests {
+  #ifndef WIN32
+  #ifndef Sleep
+  void Sleep(uint64_t x) {
+    usleep(x * 1000);
+  }
+  #endif
+  #endif
 
   void PrintTrial(const cbSdkTrialCont& trial) {
     cout << "Channel count:  " << trial.count << endl;

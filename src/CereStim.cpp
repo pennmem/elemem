@@ -141,7 +141,7 @@ namespace CML {
     }
 
 
-    profile.pattern_index.resize(prof_size);
+    std::vector<size_t> pattern_index(prof_size);
     
     for (size_t i=0; i<prof_size; i++) {
       // CS can only store 15 stimulus patterns.
@@ -160,7 +160,7 @@ namespace CML {
         res = std::prev(fda_vec.end());
       }
       auto pat_index = res - fda_vec.begin();
-      profile.pattern_index[i] = size_t(pat_index);
+      pattern_index[i] = size_t(pat_index);
     }
 
     for (size_t i=0; i<fda_vec.size(); i++) {
@@ -206,11 +206,11 @@ namespace CML {
       // anode-first / then cathode-first, same settings.
       ErrorCheck(
         CS_AutoStimulus(profile.stim_profile[i].electrode_pos,
-          uint16_t(2*(profile.pattern_index[i])+1))
+          uint16_t(2*(pattern_index[i])+1))
       );
       ErrorCheck(
         CS_AutoStimulus(profile.stim_profile[i].electrode_neg,
-          uint16_t(2*(profile.pattern_index[i])+2))
+          uint16_t(2*(pattern_index[i])+2))
       );
     }
 

@@ -2,6 +2,7 @@
 #include "ConfigFile.h"
 #include "EventLog.h"
 #include "Handler.h"
+#include "JSONLines.h"
 #include "NetWorker.h"
 #include "StatusPanel.h"
 
@@ -11,7 +12,7 @@ namespace CML {
   }
 
 
-  void StimWorker::ConfigureStimulation_Handler(CSStimProfile& profile) {
+  void StimWorker::ConfigureStimulation_Handler(const CSStimProfile& profile) {
     cur_profile = profile;
     cerestim.ConfigureStimulation(profile);
 
@@ -26,7 +27,7 @@ namespace CML {
     cerestim.Stimulate();
     status_panel->SetStimming(max_duration);
 
-    JSONFile event_base = NetWorker::MakeResp("STIMMING");
+    JSONFile event_base = MakeResp("STIMMING");
     for (size_t i=0; i<cur_profile.size(); i++) {
       JSONFile event = event_base;
       event.Set(uint32_t(cur_profile[i].electrode_pos), "data",

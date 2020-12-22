@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QSpinBox>
 
 
@@ -198,7 +199,6 @@ namespace CML {
   };
 
 
-
   // CheckBox
 
   class CheckBox : public QCheckBox, public RCqt::Worker {
@@ -207,10 +207,15 @@ namespace CML {
     public:
 
     CheckBox(RC::Caller<void, const bool&> callback, const RC::RStr &text);
+    // Passes the index value back to the callback at each toggle.
+    CheckBox(RC::Caller<void, const size_t&, const bool&> callback_indexed,
+        const RC::RStr &text, size_t index);
+
 
     protected:
     void Set_Handler(const bool& state);
     void SetEnabled_Handler(const bool& enabled);
+    virtual void Toggled(bool state);
 
     public:
     RCqt::TaskCaller<const bool> Set = TaskHandler(CheckBox::Set_Handler);
@@ -222,14 +227,57 @@ namespace CML {
     }
 
     protected slots:
-    void ToggledSlot(int state) {
-      Toggled(state != Qt::Unchecked);
+    void ToggledSlot(bool state) {
+      Toggled(state);
     }
+
     protected:
-    virtual void Toggled(bool state) { callback(state); }
 
     RC::Caller<void, const bool&> callback;
+    RC::Caller<void, const size_t&, const bool&> callback_indexed;
+    size_t index = -1;
   };
+
+
+  // CheckBox
+
+  class RadioButton : public QRadioButton, public RCqt::Worker {
+    Q_OBJECT
+
+    public:
+
+    RadioButton(RC::Caller<void, const bool&> callback, const RC::RStr &text);
+    // Passes the index value back to the callback at each toggle.
+    RadioButton(RC::Caller<void, const size_t&, const bool&> callback_indexed,
+        const RC::RStr &text, size_t index);
+
+
+    protected:
+    void Set_Handler(const bool& state);
+    void SetEnabled_Handler(const bool& enabled);
+    virtual void Toggled(bool state);
+
+    public:
+    RCqt::TaskCaller<const bool> Set = TaskHandler(RadioButton::Set_Handler);
+    RCqt::TaskCaller<const bool> SetEnabled =
+      TaskHandler(RadioButton::SetEnabled_Handler);
+
+    void SetToolTip(const RC::RStr &tip) {
+      setToolTip(tip.c_str());
+    }
+
+    protected slots:
+    void ToggledSlot(bool state) {
+      Toggled(state);
+    }
+
+    protected:
+
+    RC::Caller<void, const bool&> callback;
+    RC::Caller<void, const size_t&, const bool&> callback_indexed;
+    size_t index = -1;
+  };
+
 
   // ComboBox
 

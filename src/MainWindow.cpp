@@ -4,6 +4,7 @@
 #include "GuiParts.h"
 #include "MainWindow.h"
 #include "Popup.h"
+#include "LocGUIConfig.h"
 #include "StimGUIConfig.h"
 #include "Utils.h"
 #include <QAction>
@@ -14,6 +15,7 @@
 #include <QVBoxLayout>
 #include <QGridLayout>
 #include <QScrollArea>
+#include <QStackedLayout>
 #include <QGroupBox>
 #include <QMenu>
 #include <QMenuBar>
@@ -73,7 +75,7 @@ namespace CML {
   }
 
 
-  RC::Ptr<QGridLayout> MainWindow::BuildStimGrid() {
+  RC::Ptr<QWidget> MainWindow::BuildStimPanelFR() {
     int stim_cols = 2;
     int stim_rows = 3;
     stim_config_boxes.Clear();
@@ -87,8 +89,44 @@ namespace CML {
       }
     }
 
-    return stim_grid;
+    RC::Ptr<QWidget> stim_panel = new QWidget();
+    stim_panel->setLayout(stim_grid);
+    return stim_panel;
   }
+
+
+  RC::Ptr<QWidget> MainWindow::BuildStimPanelLoc() {
+    RC::Ptr<QWidget> stimloc_panel = new QWidget();
+
+    RC::Ptr<QVBoxLayout> stimloc_layout = new QVBoxLayout();
+
+    loc_config_chans = new LocConfigBox(hndl->TestSelLocChan,
+        hndl->SetLocChansApproved, "Channels");
+    loc_config_amp = new LocConfigBox(hndl->TestSelLocAmp,
+        hndl->SetLocAmpApproved, "Amplitudes");
+    loc_config_freq = new LocConfigBox(hndl->TestSelLocFreq,
+        hndl->SetLocFreqApproved, "Frequencies");
+    loc_config_dur = new LocConfigBox(hndl->TestSelLocDur,
+        hndl->SetLocDurApproved, "Durations");
+
+    stimloc_layout->addWidget(loc_config_chans);
+    stimloc_layout->addWidget(loc_config_amp);
+    stimloc_layout->addWidget(loc_config_freq);
+    stimloc_layout->addWidget(loc_config_dur);
+
+    RC::Ptr<QHBoxLayout> button_layout = new QHBoxLayout();
+    RC::Ptr<Button> test_stim = new Button(hndl->TestLocStim,
+        "Test Stimulation");
+    button_layout->addWidget(test_stim);
+    button_layout->addWidget(new QWidget());
+    stimloc_layout->addLayout(button_layout);
+    
+    stimloc_layout->addWidget(new QWidget());
+    stimloc_panel->setLayout(stimloc_layout);
+
+    return stimloc_panel;
+  }
+
 
 
   void MainWindow::BuildLayout() {
@@ -99,7 +137,30 @@ namespace CML {
     RC::Ptr<QHBoxLayout> control_and_display = new QHBoxLayout();
 
     RC::Ptr<QVBoxLayout> stim_and_start = new QVBoxLayout();
-    stim_and_start->addLayout(BuildStimGrid());
+
+//    RC::Ptr<QScrollArea> scroll_stim_panels = new QScrollArea();
+//    scroll_stim_panels->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    stim_panels = new QStackedLayout();
+
+
+    RC::Ptr<QScrollArea> FR_panel_scroll = new QScrollArea();
+    FR_panel_scroll->setWidget(BuildStimPanelFR());
+    FR_panel_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    FR_panel_scroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
+    stim_panels->addWidget(FR_panel_scroll);
+    //stim_panels->addWidget(BuildStimPanelFR());
+
+    RC::Ptr<QScrollArea> Loc_panel_scroll = new QScrollArea();
+    Loc_panel_scroll->setWidget(BuildStimPanelLoc());
+    Loc_panel_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //Loc_panel_scroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
+    stim_panels->addWidget(Loc_panel_scroll);
+    //stim_panels->addWidget(BuildStimPanelLoc());
+
+    stim_and_start->addLayout(stim_panels);
+    //scroll_stim_panels->setLayout(stim_panels);
+    //stim_and_start->addWidget(scroll_stim_panels);
 
     RC::Ptr<QHBoxLayout> start_stop_buttons = new QHBoxLayout();
     start_button = new Button(hndl->StartExperiment,
@@ -176,6 +237,14 @@ namespace CML {
 
   void MainWindow::SetReadyToStart_Handler(const bool& ready) {
     start_button->SetEnabled(ready);
+  }
+
+  void MainWindow::SwitchToStimPanelFR_Handler() {
+    stim_panels->setCurrentIndex(0);
+  }
+
+  void MainWindow::SwitchToStimPanelLoc_Handler() {
+    stim_panels->setCurrentIndex(1);
   }
 
 

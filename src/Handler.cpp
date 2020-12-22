@@ -18,7 +18,8 @@ namespace CML {
       edf_save(this),
       net_worker(this),
       elemem_dir(File::FullPath(GetDesktop(), "ElememData")),
-      non_session_dir(File::FullPath(elemem_dir, "NonSessionData")) {
+      non_session_dir(File::FullPath(elemem_dir, "NonSessionData")),
+      exper_ops(this) {
 
     File::MakeDir(elemem_dir);\
     File::MakeDir(non_session_dir);
@@ -32,6 +33,7 @@ namespace CML {
     main_window = new_main;
     net_worker.SetStatusPanel(main_window->GetStatusPanel());
     stim_worker.SetStatusPanel(main_window->GetStatusPanel());
+    exper_ops.SetStatusPanel(main_window->GetStatusPanel());
   }
 
   void Handler::CerebusTest_Handler() {
@@ -56,14 +58,14 @@ namespace CML {
 
   void Handler::SetStimSettings_Handler(const size_t& index,
       const StimSettings& updated_settings) {
-    if (index >= stim_settings.size()) {
+    if (index >= settings.stimconf.size()) {
       return;
     }
 
     // No.  Put that back.
     if (experiment_running) {
       main_window->GetStimConfigBox(index).SetParameters(
-          stim_settings[index].params);
+          settings.stimconf[index].params);
       return;
     }
 
@@ -73,57 +75,136 @@ namespace CML {
     // maintenance.
     if (
       (updated_settings.params.electrode_pos !=
-       stim_settings[index].params.electrode_pos) ||
+       settings.stimconf[index].params.electrode_pos) ||
       (updated_settings.params.electrode_neg !=
-       stim_settings[index].params.electrode_neg) ||
+       settings.stimconf[index].params.electrode_neg) ||
       (updated_settings.params.amplitude >
-       max_stim_settings[index].params.amplitude) ||
+       settings.max_stimconf[index].params.amplitude) ||
       (updated_settings.params.amplitude <
-       min_stim_settings[index].params.amplitude) ||
+       settings.min_stimconf[index].params.amplitude) ||
       (updated_settings.params.frequency >
-       max_stim_settings[index].params.frequency) ||
+       settings.max_stimconf[index].params.frequency) ||
       (updated_settings.params.frequency <
-       min_stim_settings[index].params.frequency) ||
+       settings.min_stimconf[index].params.frequency) ||
       (updated_settings.params.duration >
-       max_stim_settings[index].params.duration) ||
+       settings.max_stimconf[index].params.duration) ||
       (updated_settings.params.duration <
-       min_stim_settings[index].params.duration)) {
+       settings.min_stimconf[index].params.duration)) {
       main_window->GetStimConfigBox(index).SetParameters(
-        stim_settings[index].params);
+        settings.stimconf[index].params);
       ErrorWin("Attempted to set invalid stim settings.", "Safety check");
       return;
     }
 
-    stim_settings[index] = updated_settings;
+    settings.stimconf[index] = updated_settings;
   }
 
   void Handler::TestStim_Handler(const size_t& index) {
-    if (index >= stim_settings.size()) {
-      ErrorWin("Stim channel not configured.");
-      return;
-    }
-
     if (experiment_running) {
       ErrorWin("Cannot test stim while experiment running.");
       return;
     }
 
+    if (index >= settings.stimconf.size()) {
+      ErrorWin("Stim channel not configured.");
+      return;
+    }
+
     CSStimProfile profile;
-    profile += stim_settings[index].params;
+    profile += settings.stimconf[index].params;
 
     stim_worker.ConfigureStimulation(profile);
     stim_worker.Stimulate();
   }
 
+  void Handler::TestLocStim_Handler() {
+    if (experiment_running) {
+      ErrorWin("Cannot test stim while experiment running.");
+      return;
+    }
+
+    if (settings.stimloctest_chanind >= settings.stimconf.size() ||
+        settings.stimloctest_amp >= settings.stimgrid_amp_uA.size() ||
+        settings.stimloctest_freq >= settings.stimgrid_freq_Hz.size() ||
+        settings.stimloctest_dur >= settings.stimgrid_dur_us.size()) {
+      ErrorWin("A valid set of parameters must be selected to test "
+               "stimulation");
+      return;
+    }
+
+    CSStimProfile profile;
+    CSStimChannel stimchan =
+      settings.stimconf[settings.stimloctest_chanind].params;
+    stimchan.amplitude = settings.stimgrid_amp_uA[settings.stimloctest_amp];
+    stimchan.frequency = settings.stimgrid_freq_Hz[settings.stimloctest_freq];
+    stimchan.duration = settings.stimgrid_dur_us[settings.stimloctest_dur];
+    profile += stimchan;
+
+    stim_worker.ConfigureStimulation(profile);
+    stim_worker.Stimulate();
+  }
+
+  void Handler::TestSelLocChan_Handler(const size_t& selected) {
+    if (selected < settings.stimconf.size()) {
+      settings.stimloctest_chanind = selected;
+    }
+  }
+
+  void Handler::TestSelLocAmp_Handler(const size_t& selected) {
+    if (selected < settings.stimgrid_amp_uA.size()) {
+      settings.stimloctest_amp = selected;
+    }
+  }
+
+  void Handler::TestSelLocFreq_Handler(const size_t& selected) {
+    if (selected < settings.stimgrid_freq_Hz.size()) {
+      settings.stimloctest_freq = selected;
+    }
+  }
+
+  void Handler::TestSelLocDur_Handler(const size_t& selected) {
+    if (selected < settings.stimgrid_dur_us.size()) {
+      settings.stimloctest_dur = selected;
+    }
+  }
+
+  void Handler::SetLocChansApproved_Handler(const RC::Data1D<bool>& approved) {
+    if (approved.size() != settings.stimconf.size()) {
+      Throw_RC_Error("Channel approval size assertion failed.");
+    }
+    settings.stimgrid_chan_on = approved;
+  }
+
+  void Handler::SetLocAmpApproved_Handler(const RC::Data1D<bool>& approved) {
+    if (approved.size() != settings.stimgrid_amp_uA.size()) {
+      Throw_RC_Error("Amplitude approval size assertion failed.");
+    }
+    settings.stimgrid_amp_on = approved;
+  }
+
+  void Handler::SetLocFreqApproved_Handler(const RC::Data1D<bool>& approved) {
+    if (approved.size() != settings.stimgrid_freq_Hz.size()) {
+      Throw_RC_Error("Frequency approval size assertion failed.");
+    }
+    settings.stimgrid_freq_on = approved;
+  }
+
+  void Handler::SetLocDurApproved_Handler(const RC::Data1D<bool>& approved) {
+    if (approved.size() != settings.stimgrid_dur_us.size()) {
+      Throw_RC_Error("Duration approval size assertion failed.");
+    }
+    settings.stimgrid_dur_on = approved;
+  }
+
   void Handler::StartExperiment_Handler() {
-    if (exp_config.IsNull() || elec_config.IsNull()) {
+    if (settings.exp_config.IsNull() || settings.elec_config.IsNull()) {
       ErrorWin("You must load a valid experiment configuration file before "
                "starting an experiment session.", "Unconfigured");
       return;
     }
 
     std::string stim_mode_str;
-    exp_config->Get(stim_mode_str, "experiment", "stim_mode");
+    settings.exp_config->Get(stim_mode_str, "experiment", "stim_mode");
     RStr stim_mode = stim_mode_str;
     stim_mode.ToLower();
     if (stim_mode != "open" && stim_mode != "none") {
@@ -132,22 +213,39 @@ namespace CML {
       return;
     }
 
-    CSStimProfile profile;
-    for (size_t c=0; c<stim_settings.size(); c++) {
-      if (stim_settings[c].approved) {
-        profile += stim_settings[c].params;
-      }
-    }
-    if (profile.size() == 0 && stim_mode != "none") {
-      if (!ConfirmWin("No stim channels approved on experiment configured "
-           "with stimulation.  Proceed?")) {
+    if (settings.grid_exper) {
+      size_t grid_size = settings.GridSize();
+      if (grid_size == 0) {
+        ErrorWin("Error!  At least one value must be approved for each "
+            "stim parameter of a grid search experiment.");
+
         return;
       }
+
+      Data1D<CSStimProfile> grid_profiles = CreateGridProfiles();
+      exper_ops.SetOPSSpecs(settings.ops_specs);
+      exper_ops.SetStimProfiles(grid_profiles);
     }
-    if (profile.size() > 0 && stim_mode == "none") {
-      ErrorWin("Error!  Stim channels enabled on experiment with "
-               "experiment:stim_mode set to \"none\".");
-      return;
+    else {
+      CSStimProfile profile;
+      for (size_t c=0; c<settings.stimconf.size(); c++) {
+        if (settings.stimconf[c].approved) {
+          profile += settings.stimconf[c].params;
+        }
+      }
+      if (profile.size() == 0 && stim_mode != "none") {
+        if (!ConfirmWin("No stim channels approved on experiment configured "
+             "with stimulation.  Proceed?")) {
+          return;
+        }
+      }
+      if (profile.size() > 0 && stim_mode == "none") {
+        ErrorWin("Error!  Stim channels enabled on experiment with "
+                 "experiment:stim_mode set to \"none\".");
+        return;
+      }
+
+      stim_worker.ConfigureStimulation(profile);
     }
 
     experiment_running = true;
@@ -156,32 +254,25 @@ namespace CML {
       main_window->GetStimConfigBox(i).SetEnabled(false);
     }
 
-    stim_worker.ConfigureStimulation(profile);
-
-    std::string sub_name;
-    exp_config->Get(sub_name, "subject");
-
-    session_dir = File::FullPath(elemem_dir, RStr(sub_name) + "_" +
+    session_dir = File::FullPath(elemem_dir, RStr(settings.sub) + "_" +
         Time::GetDateTime());
     File::MakeDir(session_dir);
 
     // Save updated experiment configuration.
-    JSONFile current_config = *exp_config;
-    for (size_t c=0; c<stim_settings.size(); c++) {
-      current_config.Set(stim_settings[c].params.amplitude,
-          "experiment", "stim_channels", c, "amplitude_mA");
-      current_config.Set(stim_settings[c].params.frequency,
-          "experiment", "stim_channels", c, "frequency_Hz");
-      current_config.Set(stim_settings[c].params.duration,
-          "experiment", "stim_channels", c, "duration_ms");
+    JSONFile current_config = *(settings.exp_config);
+    if (settings.exper.find("OPS") == 0) {
+      settings.UpdateConfOPS(current_config);
+    }
+    else {
+      settings.UpdateConfFR(current_config);
     }
     current_config.Save(File::FullPath(session_dir,
           "experiment_config.json"));
 
     // Save copy of loaded electrode config.
     FileWrite fw(File::FullPath(session_dir,
-          File::Basename(elec_config->GetFilename())));
-    fw.Put(elec_config->file_lines, true);
+          File::Basename(settings.elec_config->GetFilename())));
+    fw.Put(settings.elec_config->file_lines, true);
     fw.Close();
 
     event_log.StartFile(File::FullPath(session_dir, "event.log"));
@@ -190,20 +281,25 @@ namespace CML {
     edf_save.StartFile(File::FullPath(session_dir,
           "eeg_data.edf"));
 
-    // Defaults should always work on standard setup.
-    std::string ipaddress = "192.168.137.1";
-    uint16_t port = 8889;
-    try {
-      exp_config->Get(ipaddress, "ipaddress");
+    if (settings.grid_exper) {
+      exper_ops.Start();
     }
-    catch (...) { }
-    try {
-      exp_config->Get(port, "port");
-    }
-    catch (...) { }
+    else { // Network experiment.
+      // Defaults should always work on standard setup.
+      std::string ipaddress = "192.168.137.1";
+      uint16_t port = 8889;
+      try {
+        settings.exp_config->Get(ipaddress, "ipaddress");
+      }
+      catch (ErrorMsgFile&) { }
+      try {
+        settings.exp_config->Get(port, "port");
+      }
+      catch (ErrorMsgFile&) { }
 
-    net_worker.Listen(ipaddress, port);
-    main_window->GetStatusPanel()->SetEvent("WAITING");
+      net_worker.Listen(ipaddress, port);
+      main_window->GetStatusPanel()->SetEvent("WAITING");
+    }
   }
 
   void Handler::StopExperiment_Handler() {
@@ -252,154 +348,96 @@ namespace CML {
       return;
     }
 
+    // Clear the gui stim elements.
     for (size_t c=0; c<main_window->StimConfigCount(); c++) {
       main_window->GetStimConfigBox(c).Clear();
     }
+    main_window->GetLocConfigChan().Clear();
+    main_window->GetLocConfigAmp().Clear();
+    main_window->GetLocConfigFreq().Clear();
+    main_window->GetLocConfigDur().Clear();
 
     APtr<JSONFile> conf = new JSONFile();
     conf->Load(fr);
-    exp_config = conf.ExtractConst();
+    RStr base_dir = File::Dirname(fr.GetFilename());
 
-    std::string elecfilename_str;
-    exp_config->Get(elecfilename_str, "electrode_config_file");
-    RStr elecfilename;
-    if (File::Basename(elecfilename_str) == elecfilename_str) {
-      elecfilename = File::FullPath(File::Dirname(fr.GetFilename()),
-          elecfilename_str);
+    settings.Clear();
+    settings.exp_config = conf.ExtractConst();
+
+
+    Data1D<EEGChan> new_chans;
+    try {
+      settings.exp_config->Get(settings.sub, "subject");
+      settings.exp_config->Get(settings.exper, "experiment", "type");
+
+      if (settings.exper.find("OPS") == 0) {
+        settings.grid_exper = true;
+        settings.task_driven = false;
+      }
+
+      new_chans = settings.LoadElecConfig(base_dir);
+      settings.LoadChannelSettings();
+
+      if (settings.grid_exper) {
+        settings.LoadStimParamGrid();
+      }
     }
-    else {
-      elecfilename = elecfilename_str;
+    catch (ErrorMsg&) {
+      // Something was wrong with this file.  Cannot proceed.
+      settings.Clear();
+      throw;
     }
 
-    APtr<CSVFile> elecs = new CSVFile();
-    elecs->Load(elecfilename);
-    elec_config = elecs.ExtractConst();
-    if (elec_config->data.size1() < 2) {
-      elec_config.Delete();
-      ErrorWin("Montage CSV file has insufficient columns.");
-      return;
-    }
-    Data1D<EEGChan> new_chans(elec_config->data.size2());
-    for (size_t r=0; r<elec_config->data.size2(); r++) {
-      new_chans[r] = EEGChan(elec_config->data[r][1].Get_u32()-1,
-                             elec_config->data[r][0]);
-    }
+
+    // Setup gui elements.
+    main_window->GetStatusPanel()->SetSubject(settings.sub);
     main_window->GetChannelSelector()->SetChannels(new_chans);
 
-    auto stim_channels = exp_config->Node("experiment", "stim_channels");
-    stim_settings.Resize(stim_channels.size());
-    min_stim_settings.Resize(stim_channels.size());
-    max_stim_settings.Resize(stim_channels.size());
-    for (size_t c=0; c<stim_channels.size(); c++) {
-      std::string label;
-      std::vector<u8> elecs;
-      try {
-        stim_channels[c].Get(label, "electrodes");
-        auto split = RStr(label).Split('_');
-        if (split.size() != 2 || split[0] == split[1]) {
-          Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
-              " string must be in LA1_LA2 bipolar format").c_str());
-        }
-        elecs.resize(2);
-        size_t found = 0;
-        for (size_t i=0; i<elec_config->data.size2(); i++) {
-          if (elec_config->data[i][0] == split[0]) {
-            elecs[0] = u8(elec_config->data[i][1].Get_u32());
-            found++;
-          }
-          if (elec_config->data[i][0] == split[1]) {
-            elecs[1] = u8(elec_config->data[i][1].Get_u32());
-            found++;
-          }
-        }
-        if (found != 2) {
-          Throw_RC_Type(File, (RStr("Expected 2 channels in CSV for ")
-                + label + ", but found " + RStr(found)).c_str());
-        }
+    if (settings.exper.find("OPS") == 0) {
+      Data1D<RStr> chan_strs(settings.stimconf.size());
+      Data1D<RStr> amp_strs(settings.stimgrid_amp_uA.size());
+      Data1D<RStr> freq_strs(settings.stimgrid_freq_Hz.size());
+      Data1D<RStr> dur_strs(settings.stimgrid_dur_us.size());
+
+      for (size_t i=0; i<chan_strs.size(); i++) {
+        chan_strs[i] = RStr(settings.stimconf[i].params.electrode_pos) + "_" +
+          RStr(settings.stimconf[i].params.electrode_neg) + " (" +
+          settings.stimconf[i].label + ")";
       }
-      catch (ErrorMsg& e) {
-        try {
-          stim_channels[c].Get(elecs, "electrodes");
-          if (elecs.size() != 2) {
-            Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
-                  " specifies wrong number of electrodes").c_str());
-          }
-        }
-        catch (ErrorMsg&) {
-          throw (e);  // From outer catch
-        }
+      for (size_t i=0; i<amp_strs.size(); i++) {
+        amp_strs[i] = RStr(settings.stimgrid_amp_uA[i]/1000.0, AUTO, 8) +
+          " A";
+      }
+      for (size_t i=0; i<freq_strs.size(); i++) {
+        freq_strs[i] = RStr(settings.stimgrid_freq_Hz[i]) + " Hz";
+      }
+      for (size_t i=0; i<dur_strs.size(); i++) {
+        dur_strs[i] = RStr(settings.stimgrid_dur_us[i]/1000.0, AUTO, 8) +
+          " ms";
       }
 
-      stim_settings[c].label = label;
-      stim_settings[c].params.electrode_pos = elecs[0];
-      stim_settings[c].params.electrode_neg = elecs[1];
-      float f;
-      stim_channels[c].Get(f, "amplitude_mA");
-      stim_settings[c].params.amplitude = uint16_t(f*1000+0.5f);
-      stim_channels[c].Get(stim_settings[c].params.frequency, "frequency_Hz");
-      stim_channels[c].Get(stim_settings[c].params.duration, "duration_ms");
-      stim_settings[c].params.duration *= 1000;
-      stim_settings[c].approved = false;
+      main_window->GetLocConfigChan().SetOptions(chan_strs);
+      main_window->GetLocConfigAmp().SetOptions(amp_strs);
+      main_window->GetLocConfigFreq().SetOptions(freq_strs);
+      main_window->GetLocConfigDur().SetOptions(dur_strs);
 
-      min_stim_settings[c] = stim_settings[c];
-      max_stim_settings[c] = stim_settings[c];
-
-      std::vector<float> vf;
-      std::vector<uint32_t> vi;
-
-      stim_channels[c].Get(vf, "amplitude_range_mA");
-      if (vf.size() != 2) {
-        Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
-            " amplitude_range_mA needs 2 values").c_str());
-      }
-
-      min_stim_settings[c].params.amplitude = uint16_t(vf[0]*1000+0.5f);
-      max_stim_settings[c].params.amplitude = uint16_t(vf[1]*1000+0.5f);
-
-      stim_channels[c].Get(vi, "frequency_range_Hz");
-      if (vi.size() != 2) {
-        Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
-            " frequency_range_Hz needs 2 values").c_str());
-      }
-      min_stim_settings[c].params.frequency = vi[0];
-      max_stim_settings[c].params.frequency = vi[1];
-
-      stim_channels[c].Get(vi, "duration_range_ms");
-      if (vi.size() != 2) {
-        Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
-            " duration_range_ms needs 2 values").c_str());
-      }
-      min_stim_settings[c].params.duration = vi[0] * 1000;
-      max_stim_settings[c].params.duration = vi[1] * 1000;
-
-      if ( ! (
-        (min_stim_settings[c].params.amplitude <=
-         Betw(stim_settings[c].params.amplitude) <=
-         max_stim_settings[c].params.amplitude) &&
-        (min_stim_settings[c].params.frequency <=
-         Betw(stim_settings[c].params.frequency) <=
-         max_stim_settings[c].params.frequency) &&
-        (min_stim_settings[c].params.duration <=
-         Betw(stim_settings[c].params.duration) <=
-         max_stim_settings[c].params.duration))) {
-        Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
-            " default stim value outside of allowed range").c_str());
-      }
-
-      if (c < main_window->StimConfigCount()) {
-        main_window->GetStimConfigBox(c).SetChannel(min_stim_settings[c].params,
-            max_stim_settings[c].params, stim_settings[c].label, c);
+      main_window->SwitchToStimPanelLoc();
+    }
+    else {
+      size_t config_box_cnt = std::min(settings.stimconf.size(),
+          main_window->StimConfigCount());
+      for (size_t c=0; c<config_box_cnt; c++) {
+        main_window->GetStimConfigBox(c).SetChannel(
+            settings.min_stimconf[c].params, settings.max_stimconf[c].params,
+            settings.stimconf[c].label, c);
         main_window->GetStimConfigBox(c).SetParameters(
-            stim_settings[c].params);
+            settings.stimconf[c].params);
       }
+
+      main_window->SwitchToStimPanelFR();
     }
 
-    std::string sub_name;
-    exp_config->Get(sub_name, "subject");
-    main_window->GetStatusPanel()->SetSubject(sub_name);
-    std::string exp_type;
-    exp_config->Get(exp_type, "experiment", "type");
-    main_window->GetStatusPanel()->SetExperiment(exp_type);
+    main_window->GetStatusPanel()->SetExperiment(settings.exper);
     main_window->GetStatusPanel()->SetEvent("RECORDING");
 
     SaveDefaultEEG();
@@ -411,24 +449,58 @@ namespace CML {
   }
 
   void Handler::SaveDefaultEEG() {
-    if (exp_config.IsNull()) {
+    if (settings.exp_config.IsNull()) {
       return;
     }
 
     std::string sub_name;
-    exp_config->Get(sub_name, "subject");
+    settings.exp_config->Get(sub_name, "subject");
 
     RStr event_file = File::FullPath(non_session_dir,
-        RStr(sub_name)+"_event_log_"+Time::GetDateTime()+".json");
+        RStr(settings.sub)+"_event_log_"+Time::GetDateTime()+".json");
     RStr eeg_file = File::FullPath(non_session_dir,
-        RStr(sub_name)+"_nonsession_eeg_"+Time::GetDateTime()+".edf");
+        RStr(settings.sub)+"_nonsession_eeg_"+Time::GetDateTime()+".edf");
 
     event_log.StartFile(event_file);
     edf_save.StartFile(eeg_file);
   }
 
+  RC::Data1D<CSStimProfile> Handler::CreateGridProfiles() {
+    Data1D<CSStimProfile> grid_profiles;
+    
+    for (size_t c=0; c<settings.stimgrid_chan_on.size(); c++) {
+      if (!settings.stimgrid_chan_on[c]) { continue; }
+      auto& chan = settings.stimconf[c];
+      for (size_t a=0; a<settings.stimgrid_amp_on.size(); a++) {
+        if (!settings.stimgrid_amp_on[a]) { continue; }
+        auto& amp = settings.stimgrid_amp_uA[a];
+        for (size_t f=0; f<settings.stimgrid_freq_on.size(); f++) {
+          if (!settings.stimgrid_freq_on[f]) { continue; }
+          auto& freq = settings.stimgrid_freq_Hz[f];
+          for (size_t d=0; d<settings.stimgrid_dur_on.size(); d++) {
+            if (!settings.stimgrid_dur_on[d]) { continue; }
+            auto& dur = settings.stimgrid_dur_us[d];
+
+            CSStimChannel target = chan.params;
+            target.amplitude = amp;
+            target.frequency = freq;
+            target.duration = dur;
+
+            CSStimProfile profile;
+            profile += target;
+
+            grid_profiles += profile;
+          }
+        }
+      }
+    }
+
+    return grid_profiles;
+  }
+
   void Handler::CloseExperimentComponents() {
     net_worker.Close();
+    exper_ops.Stop();
 
     edf_save.StopSaving();
     event_log.CloseFile();

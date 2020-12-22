@@ -16,13 +16,6 @@
 #include <string>
 #include <vector>
 
-#ifndef WIN32
-#include <unistd.h>
-#ifndef Sleep
-#define Sleep(x) usleep((x) * 1000)
-#endif
-#endif
-
 namespace CML {
   class CBException : public std::runtime_error {
     public:

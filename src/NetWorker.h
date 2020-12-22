@@ -38,8 +38,6 @@ namespace CML {
     RCqt::TaskCaller<const bool> WarnOnDisconnect =
       TaskHandler(NetWorker::WarnOnDisconnect_Handler);
 
-    static JSONFile MakeResp(RC::RStr type, uint64_t id=uint64_t(-1));
-
     protected slots:
     void NewConnection();
     void DataReady();
