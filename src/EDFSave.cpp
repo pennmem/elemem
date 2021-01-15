@@ -6,14 +6,6 @@
 #include "ConfigFile.h"
 
 namespace CML {
-  EDFSave::EDFSave(RC::Ptr<Handler> hndl)
-    : hndl(hndl) {
-  }
-
-  EDFSave::~EDFSave() {
-    StopSaving_Handler();
-  }
-
   void EDFSave::StartFile_Handler(const RC::RStr& filename) {
     auto conf = hndl->GetConfig();
 

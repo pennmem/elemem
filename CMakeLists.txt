@@ -9,7 +9,7 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 # Compilation settings
 
 set(IS_RELEASE true)
-option(CEREBUS_STUB "Use the Cerebus simulator" ON) # cmake CEREBUS_STUB .
+option(CEREBUS_STUB "Use the Cerebus simulator" OFF) # cmake CEREBUS_STUB .
 
 if (IS_RELEASE)
   set(CMAKE_BUILD_TYPE Release)
@@ -79,6 +79,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/EEGData.h
   src/EEGDisplay.h
   src/EEGDisplay.cpp
+  src/EEGFileSave.h
+  src/EEGFileSave.cpp
   src/EventLog.h
   src/EventLog.cpp
   src/ExperOPS.h

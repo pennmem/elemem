@@ -6,18 +6,8 @@
 #include "Handler.h"
 #include "ConfigFile.h"
 
-#include <H5Cpp.h>
 
 namespace CML {
-  HDF5Save::HDF5Save(RC::Ptr<Handler> hndl)
-    : hndl(hndl) {
-    H5::Exception::dontPrint();
-  }
-
-  HDF5Save::~HDF5Save() {
-    StopSaving_Handler();
-  }
-
   void HDF5Save::StartFile_Handler(const RC::RStr& filename) {
     auto conf = hndl->GetConfig();
 
@@ -107,16 +97,6 @@ namespace CML {
     H5::DataSpace mem_space(num_dims, cur_dims, max_dims);
     hdf_data->write(serialize.Raw(), H5::PredType::NATIVE_INT16, mem_space,
         *hdf_dataspace);
-  }
-
-
-  template<class F, class P>
-  void HDF5Save::SetChanParam(F func, P p, RC::RStr error_msg) {
-    for (size_t i=0; i<channels.size(); i++) {
-      if (func(hdf_hdl, int(i), p)) {
-        Throw_RC_Type(File, error_msg.c_str());
-      }
-    }
   }
 }
 

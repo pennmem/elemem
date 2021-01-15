@@ -1,6 +1,7 @@
 #include "ChannelSelector.h"
 #include "ConfigFile.h"
 #include "Handler.h"
+#include "HDF5Save.h"
 #include "MainWindow.h"
 #include "Popup.h"
 #include "Utils.h"
@@ -15,13 +16,13 @@ using namespace RC;
 namespace CML {
   Handler::Handler()
     : stim_worker(this),
-      edf_save(this),
+      eeg_save(new HDF5Save(this)),
       net_worker(this),
       elemem_dir(File::FullPath(GetDesktop(), "ElememData")),
       non_session_dir(File::FullPath(elemem_dir, "NonSessionData")),
       exper_ops(this) {
 
-    File::MakeDir(elemem_dir);\
+    File::MakeDir(elemem_dir);
     File::MakeDir(non_session_dir);
   }
 
@@ -278,8 +279,8 @@ namespace CML {
     event_log.StartFile(File::FullPath(session_dir, "event.log"));
 
     // Start acqusition
-    edf_save.StartFile(File::FullPath(session_dir,
-          "eeg_data.edf"));
+    eeg_save->StartFile(File::FullPath(session_dir,
+          "eeg_data.h5"));
 
     if (settings.grid_exper) {
       exper_ops.Start();
@@ -459,10 +460,10 @@ namespace CML {
     RStr event_file = File::FullPath(non_session_dir,
         RStr(settings.sub)+"_event_log_"+Time::GetDateTime()+".json");
     RStr eeg_file = File::FullPath(non_session_dir,
-        RStr(settings.sub)+"_nonsession_eeg_"+Time::GetDateTime()+".edf");
+        RStr(settings.sub)+"_nonsession_eeg_"+Time::GetDateTime()+".h5");
 
     event_log.StartFile(event_file);
-    edf_save.StartFile(eeg_file);
+    eeg_save->StartFile(eeg_file);
   }
 
   RC::Data1D<CSStimProfile> Handler::CreateGridProfiles() {
@@ -502,7 +503,7 @@ namespace CML {
     net_worker.Close();
     exper_ops.Stop();
 
-    edf_save.StopSaving();
+    eeg_save->StopSaving();
     event_log.CloseFile();
   }
 }

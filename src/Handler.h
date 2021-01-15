@@ -4,8 +4,8 @@
 #include "RC/RC.h"
 #include "RCqt/Worker.h"
 #include "APITests.h"
-#include "EDFSave.h"
 #include "EEGAcq.h"
+#include "EEGFileSave.h"
 #include "EventLog.h"
 #include "ExperOPS.h"
 #include "NetWorker.h"
@@ -86,7 +86,7 @@ namespace CML {
 
     StimWorker stim_worker;
     EEGAcq eeg_acq;
-    EDFSave edf_save;
+    RC::APtr<EEGFileSave> eeg_save;
     NetWorker net_worker;
     EventLog event_log;
 
