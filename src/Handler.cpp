@@ -1,7 +1,11 @@
 #include "ChannelSelector.h"
 #include "ConfigFile.h"
 #include "Handler.h"
+#ifdef NO_HDF5
+#include "EDFSave.h"
+#else
 #include "HDF5Save.h"
+#endif
 #include "MainWindow.h"
 #include "Popup.h"
 #include "Utils.h"
@@ -16,7 +20,11 @@ using namespace RC;
 namespace CML {
   Handler::Handler()
     : stim_worker(this),
+#ifdef NO_HDF5
+      eeg_save(new EDFSave(this)),
+#else
       eeg_save(new HDF5Save(this)),
+#endif
       net_worker(this),
       elemem_dir(File::FullPath(GetDesktop(), "ElememData")),
       non_session_dir(File::FullPath(elemem_dir, "NonSessionData")),
@@ -280,7 +288,7 @@ namespace CML {
 
     // Start acqusition
     eeg_save->StartFile(File::FullPath(session_dir,
-          "eeg_data.h5"));
+          RC::RStr("eeg_data.") + eeg_save->GetExt()));
 
     if (settings.grid_exper) {
       exper_ops.Start();
@@ -407,7 +415,7 @@ namespace CML {
       }
       for (size_t i=0; i<amp_strs.size(); i++) {
         amp_strs[i] = RStr(settings.stimgrid_amp_uA[i]/1000.0, AUTO, 8) +
-          " A";
+          " mA";
       }
       for (size_t i=0; i<freq_strs.size(); i++) {
         freq_strs[i] = RStr(settings.stimgrid_freq_Hz[i]) + " Hz";
@@ -460,7 +468,8 @@ namespace CML {
     RStr event_file = File::FullPath(non_session_dir,
         RStr(settings.sub)+"_event_log_"+Time::GetDateTime()+".json");
     RStr eeg_file = File::FullPath(non_session_dir,
-        RStr(settings.sub)+"_nonsession_eeg_"+Time::GetDateTime()+".h5");
+        RStr(settings.sub)+"_nonsession_eeg_"+Time::GetDateTime() +
+        "." + eeg_save->GetExt());
 
     event_log.StartFile(event_file);
     eeg_save->StartFile(eeg_file);

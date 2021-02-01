@@ -10,6 +10,7 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 
 set(IS_RELEASE true)
 option(CEREBUS_STUB "Use the Cerebus simulator" OFF) # cmake CEREBUS_STUB .
+option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake HDF5_EXPORT .
 
 if (IS_RELEASE)
   set(CMAKE_BUILD_TYPE Release)
@@ -37,6 +38,7 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRC_HAVE_QT")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 set (CMAKE_CXX_FLAGS_RELEASE "-O3 -g -ffast-math")
+set (ELEMEM_DEFINES)
 
 ##############
 # Source files
@@ -96,7 +98,6 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/JSONLines.cpp
   src/LocGUIConfig.h
   src/LocGUIConfig.cpp
-  src/HDF5Save.cpp
   src/MainWindow.h
   src/MainWindow.cpp
   src/NetWorker.h
@@ -166,7 +167,13 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
 find_package (Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Svg PrintSupport Network)
 qt5_use_modules(${PROJECT_NAME} Core Gui Widgets Concurrent Svg PrintSupport Network)
 
-find_package (HDF5 REQUIRED COMPONENTS CXX)
+if (HDF5_EXPORT)
+  find_package (HDF5 REQUIRED COMPONENTS CXX)
+else (HDF5_EXPORT)
+  set (HDF5_ENCLUDE_DIRS)
+  set (HDF5_LIBRARIES)
+  set (ELEMEM_DEFINES ${ELEMEM_DEFINES} NO_HDF5)
+endif (HDF5_EXPORT)
 
 find_library (CBSDK_LIB "cbsdk" PATHS ${PROJECT_SOURCE_DIR}/lib64)
 if (NOT CBSDK_LIB)
@@ -189,7 +196,7 @@ endif (WIN32)
 ############################
 # Set includes and libraries
 
-target_include_directories (${PROJECT_NAME} PRIVATE
+target_include_directories (${PROJECT_NAME} PUBLIC
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/src
   ${PROJECT_SOURCE_DIR}/src/RC
@@ -203,6 +210,10 @@ target_link_libraries (${PROJECT_NAME}
   ${CBSDK_LIB}
   ${CSTIM_LIB}
   ${HDF5_LIBRARIES}
+)
+
+target_compile_definitions (${PROJECT_NAME} PUBLIC
+  ${ELEMEM_DEFINES}
 )
 
 ########################################################

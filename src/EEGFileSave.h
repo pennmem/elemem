@@ -3,6 +3,7 @@
 
 #include "EEGData.h"
 #include "RC/Ptr.h"
+#include "RC/RStr.h"
 #include "RCqt/Worker.h"
 
 namespace CML {
@@ -24,6 +25,8 @@ namespace CML {
 
     RCqt::TaskCaller<RC::APtr<const EEGData>> SaveData =
       TaskHandler(EEGFileSave::SaveData_Handler);
+
+    virtual RC::RStr GetExt() const { return ""; }
 
     protected:
     virtual void StartFile_Handler(const RC::RStr& filename);

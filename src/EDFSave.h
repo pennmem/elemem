@@ -14,6 +14,8 @@ namespace CML {
     public:
     EDFSave(RC::Ptr<Handler> hndl) : EEGFileSave(hndl) {}
 
+    RC::RStr GetExt() const { return "edf"; }
+
     protected:
     void StartFile_Handler(const RC::RStr& filename) override;
     void StopSaving_Handler() override;

@@ -1,7 +1,9 @@
 #include "RC/RC.h"
 #include "RCQApplication.h"
 #include "Popup.h"
+#ifndef NO_HDF5
 #include <H5Cpp.h>
+#endif // NO_HDF5
 
 using namespace RC;
 using namespace CML;
@@ -25,11 +27,13 @@ bool RCQApplication::notify(QObject *receiver, QEvent *e) {
     ErrorWin(errormsg);
     return true;
   }
+#ifndef NO_HDF5
   catch (H5::Exception& ex) {
     RStr errormsg = RStr("HDF5 Error:  ")+ex.getCDetailMsg();
     ErrorWin(errormsg);
     return true;
   }
+#endif // NO_HDF5
   catch (std::exception &ex) {
     RStr errormsg = RStr("Unhandled exception: ") + ex.what();
     ErrorWin(errormsg);

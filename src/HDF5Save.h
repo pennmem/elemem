@@ -1,5 +1,6 @@
 #ifndef HDF5SAVE_H
 #define HDF5SAVE_H
+#ifndef NO_HDF5
 
 #include "EEGFileSave.h"
 #include <H5Cpp.h>
@@ -11,6 +12,8 @@ namespace CML {
   class HDF5Save : public EEGFileSave {
     public:
     HDF5Save(RC::Ptr<Handler> hndl) : EEGFileSave(hndl) {}
+
+    RC::RStr GetExt() const { return "h5"; }
 
     protected:
     void StartFile_Handler(const RC::RStr& filename) override;
@@ -26,5 +29,6 @@ namespace CML {
   };
 }
 
+#endif // NO_HDF5
 #endif // HDF5SAVE_H
 

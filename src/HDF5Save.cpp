@@ -1,6 +1,8 @@
 // TODO add license to About
 // https://portal.hdfgroup.org/pages/viewpage.action?pageId=50073884
 
+#ifndef NO_HDF5
+
 #include "HDF5Save.h"
 #include "EEGAcq.h"
 #include "Handler.h"
@@ -99,4 +101,6 @@ namespace CML {
         *hdf_dataspace);
   }
 }
+
+#endif // NO_HDF5
 
