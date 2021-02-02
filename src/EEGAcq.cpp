@@ -109,12 +109,14 @@ namespace CML {
 
   void EEGAcq::CloseCerebus_Handler() {
     cereb.Close();
+    StopEverything();
   }
 
 
   void EEGAcq::StopEverything() {
     if (acq_timer.IsSet()) {
       acq_timer->stop();
+      acq_timer.Delete();
     }
   }
 

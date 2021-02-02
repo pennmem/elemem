@@ -454,6 +454,7 @@ namespace CML {
   }
 
   void Handler::Shutdown_Handler() {
+    eeg_acq.CloseCerebus();
     CloseExperimentComponents();
   }
 
