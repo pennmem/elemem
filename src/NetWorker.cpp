@@ -98,12 +98,16 @@ namespace CML {
     if (con->write(line.c_str(), qint64(line.size())) != qint64(line.size())) {
       Close_Handler();
     }
-//    cout << (RC::RStr("Response time: ") +
-//             RC::RStr(timer.SinceStart()) + "\n");
+#ifdef NETWORKER_TIMING
+    cout << (RC::RStr("Response time: ") +
+             RC::RStr(timer.SinceStart()) + "\n");
+#endif // NETWORKER_TIMING
   }
 
   void NetWorker::ProcessCommand(RC::RStr cmd) {
-//    timer.Start();
+#ifdef NETWORKER_TIMING
+    timer.Start();
+#endif // NETWORKER_TIMING
 
     JSONFile inp;
     inp.SetFilename("TaskLaptopCommand");

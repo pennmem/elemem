@@ -23,14 +23,10 @@ namespace CML {
     virtual ~CImage();
 
     protected:
-    //void SetData_Handler(ImageData& new_data);
-    //ImageData GetData_Handler();
     void ReDraw_Handler();
     void SetPalette_Handler(const PaletteType& type);
 
     public:
-    //RCqt::TaskCaller<ImageData> SetData = TaskHandler(CImage::SetData_Handler);
-    //RCqt::TaskGetter<ImageData> GetData = TaskHandler(CImage::GetData_Handler);
     RCqt::TaskCaller<> ReDraw = TaskHandler(CImage::ReDraw_Handler);
     RCqt::TaskCaller<const PaletteType> SetPalette =
       TaskHandler(CImage::SetPalette_Handler);

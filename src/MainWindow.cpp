@@ -132,14 +132,9 @@ namespace CML {
   void MainWindow::BuildLayout() {
     QWidget *central = new QWidget(this);
 
-    // waveform_disp = new WaveformDisplay();
-
     RC::Ptr<QHBoxLayout> control_and_display = new QHBoxLayout();
 
     RC::Ptr<QVBoxLayout> stim_and_start = new QVBoxLayout();
-
-//    RC::Ptr<QScrollArea> scroll_stim_panels = new QScrollArea();
-//    scroll_stim_panels->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     stim_panels = new QStackedLayout();
 
@@ -149,18 +144,13 @@ namespace CML {
     FR_panel_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     FR_panel_scroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
     stim_panels->addWidget(FR_panel_scroll);
-    //stim_panels->addWidget(BuildStimPanelFR());
 
     RC::Ptr<QScrollArea> Loc_panel_scroll = new QScrollArea();
     Loc_panel_scroll->setWidget(BuildStimPanelLoc());
     Loc_panel_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    //Loc_panel_scroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
     stim_panels->addWidget(Loc_panel_scroll);
-    //stim_panels->addWidget(BuildStimPanelLoc());
 
     stim_and_start->addLayout(stim_panels);
-    //scroll_stim_panels->setLayout(stim_panels);
-    //stim_and_start->addWidget(scroll_stim_panels);
 
     RC::Ptr<QHBoxLayout> start_stop_buttons = new QHBoxLayout();
     start_button = new Button(hndl->StartExperiment,
@@ -184,13 +174,6 @@ namespace CML {
     eeg_disp = new EEGDisplay(800, 800);
     eeg_and_chan->addWidget(eeg_disp);
     hndl->eeg_acq.RegisterCallback("EEGDisplay", eeg_disp->UpdateData);
-
-    //RC::Ptr<QVBoxLayout> test_layout = new QVBoxLayout();
-    //RC::Ptr<Button> cerebus_test = new Button(hndl->CerebusTest, "Cerebus Test");
-    //RC::Ptr<Button> cerestim_test = new Button(hndl->CereStimTest, "CereStim Test");
-
-    //test_layout->addWidget(cerebus_test);
-    //test_layout->addWidget(cerestim_test);
 
     channel_selector = new ChannelSelector(this);
     Data1D<EEGChan> demo_chans;
