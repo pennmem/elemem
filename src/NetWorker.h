@@ -71,7 +71,9 @@ namespace CML {
     bool stop_on_disconnect = false;
     bool configured = false;
     bool connected = false;
+#ifdef NETWORKER_TIMING
     RC::Time timer;
+#endif // NETWORKER_TIMING
   };
 }
 
