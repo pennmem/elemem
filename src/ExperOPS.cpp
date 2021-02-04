@@ -103,6 +103,7 @@ namespace CML {
     // Confirm window for run time.
     if (!ConfirmWin(RC::RStr("Total run time will be ") + minutes + " min. "
           + seconds + " sec.", "Session Duration")) {
+      hndl->StopExperiment();
       return;
     }
 
