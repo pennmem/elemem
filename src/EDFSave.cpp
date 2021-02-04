@@ -43,8 +43,10 @@ namespace CML {
     SetChanParam(edf_set_physical_dimension, "250nV",
         "Could not set units");
     
-    if (edf_set_label(edf_hdl, 0, RC::Time::GetDateTime().c_str())) {
-      Throw_RC_Type(File, "Could not set edf label");
+    for (size_t c=0; c<channels.size(); c++) {
+      if (edf_set_label(edf_hdl, c, conf.elec_config->data[c][0].c_str())) {
+        Throw_RC_Type(File, "Could not set edf label");
+      }
     }
 
     if (edf_set_equipment(edf_hdl, "Elemem using Blackrock NeuroPort")) {
