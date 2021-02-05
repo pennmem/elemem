@@ -7,6 +7,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <iterator>
 #include <vector>
@@ -73,6 +74,51 @@ namespace CML {
 
       is_open = false;
     }
+  }
+
+  // Shannon, R. V. (1992). A model of safe levels for electrical
+  // stimulation. IEEE Transactions on biomedical engineering, 39(4),
+  // 424-426.  eqn. 2
+  uint16_t CereStim::ShannonCriteria(float area_mmsq) {
+    // I = sqrt(A*10^k)/T
+    // I : uA
+    // T : s
+    // A : cm^2
+    float current_f_uA = std::sqrt(area_mmsq*1e-2*31.622776601683793) /
+                         (stim_width_us*1e-6);
+
+    uint16_t current_uA = uint16_t(current_f_uA);
+    if (current_f_uA > uint16_t(-1)) {
+      current_uA = uint16_t(-1);
+    }
+
+    return current_uA;
+  }
+
+  uint16_t CereStim::ShannonCriteria(const CSStimChannel& chan) {
+    return ShannonCriteria(chan.area);
+  }
+
+  bool CereStim::ShannonSafe(float area_mmsq, uint16_t amplitude_uA) {
+    return amplitude_uA <= ShannonCriteria(area_mmsq);
+  }
+
+  bool CereStim::ShannonSafe(const CSStimChannel& chan) {
+    return ShannonSafe(chan.area, chan.amplitude);
+  }
+
+  void CereStim::ShannonAssert(float area_mmsq, uint16_t amplitude_uA) {
+    if ( ! ShannonSafe(area_mmsq, amplitude_uA)) {
+      throw std::runtime_error(std::string("Requested ") +
+          std::to_string(amplitude_uA*1e-3) +
+          "mA current exceeded Shannon safety criteria for " +
+          std::to_string(area_mmsq) + "mm^2 electrode.  "
+          "Stimulation not done.");
+    }
+  }
+
+  void CereStim::ShannonAssert(const CSStimChannel& chan) {
+    ShannonAssert(chan.area, chan.amplitude);
   }
 
   void CereStim::BeOpen() {
@@ -148,6 +194,10 @@ namespace CML {
       // For bipolar stimulation, only 7 pairs can be stored.
       // Extract and index the unique ones.
       auto& chan = profile.stim_profile[i];
+
+      // Enforce Shannon criteria for safety.
+      ShannonAssert(chan);
+
       FreqDurAmp fda{chan.frequency, chan.duration, chan.amplitude};
       auto res = std::find(fda_vec.begin(), fda_vec.end(), fda);
       if (res == fda_vec.end()) {

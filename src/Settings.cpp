@@ -50,7 +50,7 @@ namespace CML {
     APtr<CSVFile> elecs = new CSVFile();
     elecs->Load(elecfilename);
     elec_config = elecs.ExtractConst();
-    if (elec_config->data.size1() < 2) {
+    if (elec_config->data.size1() < 3) {
       elec_config.Delete();
       Throw_RC_Type(Note, "Montage CSV file has insufficient columns.");
     }
@@ -114,9 +114,39 @@ namespace CML {
         }
       }
 
+      if (elecs[0] == elecs[1]) {
+        Throw_RC_Type(File, ("Invalid bipolar pair ("+RStr(elecs[0])+", "+
+            RStr(elecs[1])+")").c_str());
+      }
+
       stimconf[c].label = label;
       stimconf[c].params.electrode_pos = elecs[0];
       stimconf[c].params.electrode_neg = elecs[1];
+
+      // Get the electrode area from the csv file.  Min of the pairs.
+      float area_mmsq = std::numeric_limits<float>::max();
+      size_t found_pos = 0;
+      size_t found_neg = 0;
+      for (size_t i=0; i<elec_config->data.size2(); i++) {
+        uint32_t check_elec = elec_config->data[i][1].Get_u32();
+        float check_area = elec_config->data[i][2].Get_f32();
+        if (check_elec == stimconf[c].params.electrode_pos) {
+          area_mmsq = std::min(area_mmsq, check_area);
+          found_pos++;
+        }
+        else if (check_elec == stimconf[c].params.electrode_neg) {
+          area_mmsq = std::min(area_mmsq, check_area);
+          found_neg++;
+        }
+      }
+
+      RC_DEBOUT(found_pos, found_neg);
+      if ((found_pos != 1) || (found_neg != 1)) {
+        Throw_RC_Type(File, ("Could not look up montage area info for pair ("
+            + RStr(elecs[0]) + ", " + RStr(elecs[1]) + ")").c_str());
+      }
+
+      stimconf[c].params.area = area_mmsq;
 
       min_stimconf[c] = stimconf[c];
       max_stimconf[c] = stimconf[c];

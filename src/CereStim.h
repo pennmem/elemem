@@ -45,6 +45,13 @@ namespace CML {
     void ConfigureStimulation(CSStimProfile profile);
     void Stimulate();
     void StopStimulation();
+
+    uint16_t ShannonCriteria(float area_mmsq);
+    uint16_t ShannonCriteria(const CSStimChannel& chan);
+    bool ShannonSafe(float area_mmsq, uint16_t amplitude_uA);
+    bool ShannonSafe(const CSStimChannel& chan);
+    void ShannonAssert(float area_mmsq, uint16_t amplitude_uA);
+    void ShannonAssert(const CSStimChannel& chan);
       
     private:
     void BeOpen();

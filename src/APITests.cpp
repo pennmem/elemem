@@ -64,6 +64,7 @@ namespace APITests {
     chan.amplitude = 1000; // Unit 1uA, granularity 100uA for macro.
     chan.frequency = 100; // Unit Hz.
     chan.duration = 1000000;  // Unit us.
+    chan.area = 6.31;  // Unit mm^2
 
     prof += chan;
 
@@ -72,6 +73,7 @@ namespace APITests {
     chan.amplitude = 2000; // Unit 1uA, granularity 100uA for macro.
     chan.frequency = 50; // Unit Hz.
     chan.duration = 1000000;  // Unit us.
+    chan.area = 6.31;  // Unit mm^2
 
     prof += chan;
 
