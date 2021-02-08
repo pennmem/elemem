@@ -140,7 +140,6 @@ namespace CML {
         }
       }
 
-      RC_DEBOUT(found_pos, found_neg);
       if ((found_pos != 1) || (found_neg != 1)) {
         Throw_RC_Type(File, ("Could not look up montage area info for pair ("
             + RStr(elecs[0]) + ", " + RStr(elecs[1]) + ")").c_str());
