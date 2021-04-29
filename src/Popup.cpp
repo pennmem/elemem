@@ -40,7 +40,14 @@ namespace CML {
   }
 
   void PopupManager::Error_Handler(const RStr& message, const RStr& title) {
+    if (log_file.IsOpen()) {
+      log_file.Put(Time::GetStr() + ", " + title + "\n" + message);
+    }
     QMessageBox::warning(0, title.c_str(), message.c_str());
+  }
+
+  void PopupManager::SetLogFile_Handler(const RStr& filename) {
+    log_file.Open(filename, APPEND);
   }
 }
 

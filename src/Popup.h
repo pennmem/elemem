@@ -26,11 +26,18 @@ namespace CML {
     RCqt::TaskCaller<const RC::RStr, const RC::RStr> Error =
       TaskHandler(PopupManager::Error_Handler);
 
+    RCqt::TaskCaller<const RC::RStr> SetLogFile =
+      TaskHandler(PopupManager::SetLogFile_Handler);
+
     protected:
 
     void Info_Handler(const RC::RStr& message, const RC::RStr& title);
     bool Confirm_Handler(const RC::RStr& message, const RC::RStr& title);
     void Error_Handler(const RC::RStr& message, const RC::RStr& title);
+
+    void SetLogFile_Handler(const RC::RStr& filename);
+
+    RC::FileWrite log_file;
 
     private: signals:
     void InfoSignal(RC::RStr message, RC::RStr title);

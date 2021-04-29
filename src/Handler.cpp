@@ -43,6 +43,12 @@ namespace CML {
     net_worker.SetStatusPanel(main_window->GetStatusPanel());
     stim_worker.SetStatusPanel(main_window->GetStatusPanel());
     exper_ops.SetStatusPanel(main_window->GetStatusPanel());
+
+    RC::RStr error_log_dir = File::FullPath(elemem_dir, "ErrorLogs");
+    File::MakeDir(error_log_dir);
+    RC::RStr error_log_file = File::FullPath(error_log_dir,
+        "error_log_" + Time::GetDate());
+    PopupManager::GetManager()->SetLogFile(error_log_file);
   }
 
   void Handler::CerebusTest_Handler() {
