@@ -147,12 +147,12 @@ namespace CML {
   }
 
 
-  void Cerebus::SetChannel(uint16_t channel) {
+  void Cerebus::SetChannel(uint16_t channel, uint32_t samprate_index) {
     BeOpen();
 
     ClearChannels();
 
-    ConfigureChannel(channel);
+    ConfigureChannel(channel, samprate_index);
     first_chan = channel;
     last_chan = channel;
 
@@ -160,7 +160,8 @@ namespace CML {
   }
 
 
-  void Cerebus::SetChannelRange(uint16_t first_channel, uint16_t last_channel) {
+  void Cerebus::SetChannelRange(uint16_t first_channel, uint16_t last_channel,
+      uint32_t samprate_index) {
     if (first_channel > last_channel) {
       throw std::runtime_error("Invalid channel range");
     }
@@ -173,14 +174,15 @@ namespace CML {
     ClearChannels();
 
     for (uint16_t c=first_channel; c<last_channel; c++) {
-      ConfigureChannel(c);
+      ConfigureChannel(c, samprate_index);
     }
 
     SetTrialConfig();
   }
 
 
-  void Cerebus::SetChannels(std::vector<uint16_t> channel_list) {
+  void Cerebus::SetChannels(std::vector<uint16_t> channel_list,
+      uint32_t samprate_index) {
     BeOpen();
 
     ClearChannels();
@@ -188,7 +190,7 @@ namespace CML {
     for (size_t i=0; i<channel_list.size(); i++) {
       first_chan = std::min(first_chan, channel_list[i]);
       last_chan = std::max(last_chan, channel_list[i]);
-      ConfigureChannel(channel_list[i]);
+      ConfigureChannel(channel_list[i], samprate_index);
     }
 
     SetTrialConfig();
@@ -263,15 +265,16 @@ namespace CML {
     }
   }
 
-  void Cerebus::ConfigureChannel(uint16_t channel) {
+  // samprate_index: 0=None, 1=500Hz, 2=1kHz, 3=2kHz, 4=10kHz, 5=30kHz
+  // default is 2=1kHz
+  void Cerebus::ConfigureChannel(uint16_t channel, uint32_t samprate_index) {
     cbPKT_CHANINFO channel_info;
 
     cbSdkResult res;
     res = cbSdkGetChannelConfig(instance, channel+1, &channel_info);
 
     if (res == CBSDKRESULT_SUCCESS) {
-      // 0=None, 1=500Hz, 2=1kHz, 3=2kHz, 4=10kHz, 5=30kHz
-      channel_info.smpgroup = 2; // Continuous sampling, 1kHz rate.
+      channel_info.smpgroup = samprate_index; // Continuous sampling.
 
       res = cbSdkSetChannelConfig(instance, channel+1, &channel_info);
     }

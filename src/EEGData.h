@@ -4,7 +4,12 @@
 #include "RC/Data1D.h"
 
 namespace CML {
-  typedef RC::Data1D<RC::Data1D<int16_t>> EEGData;
+  class EEGData {
+    public:
+    EEGData(size_t sampling_rate) : sampling_rate(sampling_rate) {}
+    size_t sampling_rate;
+    RC::Data1D<RC::Data1D<int16_t>> data;
+  };
 }
 
 #endif // EEGDATA_H

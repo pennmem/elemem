@@ -64,6 +64,10 @@ namespace CML {
     size_t stimloctest_freq;
     size_t stimloctest_dur;
 
+    size_t macro_sampling_rate;
+    size_t micro_sampling_rate;
+    size_t sampling_rate;
+
     RC::RStr exper;
     RC::RStr sub;
 

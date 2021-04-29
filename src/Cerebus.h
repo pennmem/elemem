@@ -65,9 +65,12 @@ namespace CML {
 
     void SetInstance(uint32_t instance);
 
-    void SetChannel(uint16_t channel);
-    void SetChannelRange(uint16_t first_channel, uint16_t last_channel);
-    void SetChannels(std::vector<uint16_t> channel_list);
+    // samprate_index: 0=None, 1=500Hz, 2=1kHz, 3=2kHz, 4=10kHz, 5=30kHz
+    void SetChannel(uint16_t channel, uint32_t samprate_index=2);
+    void SetChannelRange(uint16_t first_channel, uint16_t last_channel,
+        uint32_t samprate_index=2);
+    void SetChannels(std::vector<uint16_t> channel_list,
+        uint32_t samprate_index=2);
 
     const std::vector<TrialData>& GetData();
 
@@ -75,7 +78,7 @@ namespace CML {
     protected:
 
     void ClearChannels();
-    void ConfigureChannel(uint16_t channel);
+    void ConfigureChannel(uint16_t channel, uint32_t samprate_index);
     void SetTrialConfig();
 
     void BeOpen();

@@ -11,12 +11,18 @@ namespace CML {
 
   class HDF5Save : public EEGFileSave {
     public:
-    HDF5Save(RC::Ptr<Handler> hndl) : EEGFileSave(hndl) {}
+    HDF5Save(RC::Ptr<Handler> hndl, size_t sampling_rate)
+      : EEGFileSave(hndl), sampling_rate(sampling_rate) {
+      callback_ID = RC::RStr("HDF5Save_") + RC::RStr(sampling_rate);
+    }
 
     RC::RStr GetExt() const { return "h5"; }
 
     protected:
     void StartFile_Handler(const RC::RStr& filename) override;
+    // Thread ordering constraint:
+    // Must call Stop after Start, before this destructor, and before
+    // hndl->eeg_acq is deleted.
     void StopSaving_Handler() override;
     void SaveData_Handler(RC::APtr<const EEGData>& data) override;
 
@@ -25,7 +31,7 @@ namespace CML {
     RC::APtr<H5::DataSpace> hdf_dataspace;
     RC::Data1D<uint8_t> channels;
     RC::Data1D<int16_t> serialize;
-    size_t sampling_rate = 1000;
+    size_t sampling_rate;
   };
 }
 

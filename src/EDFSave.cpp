@@ -66,13 +66,13 @@ namespace CML {
 
     amount_written = 0;
     amount_buffered = 0;
-    buffer.Clear();
-    hndl->eeg_acq.RegisterCallback("EDFSave", SaveData);
+    buffer.data.Clear();
+    hndl->eeg_acq.RegisterCallback(callback_ID, SaveData);
   }
 
 
   void EDFSave::StopSaving_Handler() {
-    hndl->eeg_acq.RemoveCallback("EDFSave");
+    hndl->eeg_acq.RemoveCallback(callback_ID);
 
     if (edf_hdl >= 0) {
       // No error check, can be a destructor cleanup call.
@@ -87,19 +87,19 @@ namespace CML {
 
 
   void EDFSave::SaveData_Handler(RC::APtr<const EEGData>& data) {
-    auto& datar = *data;
+    auto& datar = data->data;
     if (edf_hdl < 0) {
       StopSaving_Handler();
       return;
     }
 
-    if (buffer.size() < datar.size()) {
-      buffer.Resize(datar.size());
+    if (buffer.data.size() < datar.size()) {
+      buffer.data.Resize(datar.size());
     }
 
     size_t max_written = 0;
     for (size_t c=0; c<datar.size(); c++) {
-      buffer[c] += datar[c];
+      buffer.data[c] += datar[c];
       max_written = std::max(max_written, datar[c].size());
     }
     amount_buffered += max_written;
@@ -108,32 +108,32 @@ namespace CML {
     while (amount_buffered > sampling_rate) {
       // Write data in the order of the montage CSV.
       for (size_t c=0; c<channels.size(); c++) {
-        if (c >= buffer.size()) {
+        if (c >= buffer.data.size()) {
           StopSaving_Handler();
           Throw_RC_Type(File, ("EDF save, configured channel " +
                 RC::RStr(c+1) + " out of bounds").c_str());
         }
 
-        if (buffer[channels[c]].size() < sampling_rate) {
+        if (buffer.data[channels[c]].size() < sampling_rate) {
           StopSaving_Handler();
           Throw_RC_Type(File,
               ("Data missing on edf save, channel " + RC::RStr(c+1)).c_str());
         }
 
         if (edfwrite_digital_short_samples(edf_hdl,
-              buffer[channels[c]].Raw())) {
+              buffer.data[channels[c]].Raw())) {
           StopSaving_Handler();
           Throw_RC_Type(File, "Could not save data to edf file");
         }
       }
 
       // Move remaining data in buffer to beginning and efficiently shrink.
-      for (size_t c=0; c<buffer.size(); c++) {
-        if (buffer[c].size() < sampling_rate) {
+      for (size_t c=0; c<buffer.data.size(); c++) {
+        if (buffer.data[c].size() < sampling_rate) {
           continue;
         }
-        buffer[c].CopyData(0, sampling_rate);
-        buffer[c].Resize(buffer[c].size()-sampling_rate);
+        buffer.data[c].CopyData(0, sampling_rate);
+        buffer.data[c].Resize(buffer.data[c].size()-sampling_rate);
       }
       amount_buffered -= sampling_rate;
       amount_written += sampling_rate;

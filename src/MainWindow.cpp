@@ -165,11 +165,7 @@ namespace CML {
 
     RC::Ptr<QHBoxLayout> eeg_and_chan = new QHBoxLayout();
 
-    Data1D<uint16_t> channels;
-    for (uint16_t c=0; c<128; c++) {
-      channels += c;
-    }
-    hndl->eeg_acq.SetChannels(channels);
+    hndl->InitializeChannels();
 
     eeg_disp = new EEGDisplay(800, 800);
     eeg_and_chan->addWidget(eeg_disp);

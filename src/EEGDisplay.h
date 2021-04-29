@@ -45,15 +45,18 @@ namespace CML {
     void UnsetChannel_Handler(EEGChan& chan);
     void Clear_Handler();
 
+    void SetSamplingRate(size_t sampling_rate);
+
     virtual void DrawBackground();
     virtual void DrawOnTop();
 
     // From cbhwlib.h cbNUM_ANALOG_CHANS
     const size_t num_data_chans = 272;
-    // 6 seconds at 1000Hz
-    size_t data_samples = 6000;
 
-    EEGData data;
+    uint64_t window_seconds = 6;
+    size_t data_samples;
+
+    EEGData data{1000};
     size_t data_offset = 0;
     RC::Data1D<EEGChan> eeg_channels;
 

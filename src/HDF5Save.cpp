@@ -45,22 +45,23 @@ namespace CML {
     f64 sr_f64 = sampling_rate;
     sr_attr.write(H5::PredType::NATIVE_DOUBLE, &sr_f64);
 
-    hndl->eeg_acq.RegisterCallback("HDF5Save", SaveData);
+    hndl->eeg_acq.RegisterCallback(callback_ID, SaveData);
   }
 
 
   void HDF5Save::StopSaving_Handler() {
-    hndl->eeg_acq.RemoveCallback("HDF5Save");
+    hndl->eeg_acq.RemoveCallback(callback_ID);
 
     if (hdf_hdl.IsSet()) {
       hdf_data.Delete();
+      hdf_dataspace.Delete();
       hdf_hdl.Delete();
     }
   }
 
 
   void HDF5Save::SaveData_Handler(RC::APtr<const EEGData>& data) {
-    auto& datar = *data;
+    auto& datar = data->data;
     if (hdf_hdl < 0) {
       StopSaving_Handler();
       return;

@@ -21,9 +21,9 @@ namespace CML {
   Handler::Handler()
     : stim_worker(this),
 #ifdef NO_HDF5
-      eeg_save(new EDFSave(this)),
+      eeg_save(new EDFSave(this, 1000)),
 #else
-      eeg_save(new HDF5Save(this)),
+      eeg_save(new HDF5Save(this, 1000)),
 #endif
       net_worker(this),
       elemem_dir(File::FullPath(GetDesktop(), "ElememData")),
@@ -205,6 +205,14 @@ namespace CML {
     settings.stimgrid_dur_on = approved;
   }
 
+  void Handler::InitializeChannels_Handler() {
+    Data1D<uint16_t> channels;
+    for (uint16_t c=0; c<128; c++) {
+      channels += c;
+    }
+    eeg_acq.SetChannels(channels, settings.sampling_rate);
+  }
+
   void Handler::StartExperiment_Handler() {
     if (settings.exp_config.IsNull() || settings.elec_config.IsNull()) {
       ErrorWin("You must load a valid experiment configuration file before "
@@ -383,6 +391,18 @@ namespace CML {
         settings.grid_exper = true;
         settings.task_driven = false;
       }
+
+      settings.exp_config->Get(settings.macro_sampling_rate,
+          "global_settings", "macro_sampling_rate");
+      settings.sampling_rate = settings.macro_sampling_rate;
+      try { // If available.
+        settings.exp_config->Get(settings.micro_sampling_rate,
+            "global_settings", "micro_sampling_rate");
+        settings.sampling_rate = settings.micro_sampling_rate;
+      }
+      catch(ErrorMsgFile&) { }
+
+      InitializeChannels_Handler();
 
       new_chans = settings.LoadElecConfig(base_dir);
       settings.LoadChannelSettings();

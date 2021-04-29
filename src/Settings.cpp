@@ -29,6 +29,10 @@ namespace CML {
     stimloctest_freq = size_t(-1);
     stimloctest_dur = size_t(-1);
 
+    macro_sampling_rate = 0; // Desired
+    micro_sampling_rate = 0; // Desired
+    sampling_rate = 1000; // All channels. Micro if set, else macro value.
+
     exper.clear();
     sub.clear();
 

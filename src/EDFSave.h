@@ -12,12 +12,20 @@ namespace CML {
 
   class EDFSave : public EEGFileSave {
     public:
-    EDFSave(RC::Ptr<Handler> hndl) : EEGFileSave(hndl) {}
+    EDFSave(RC::Ptr<Handler> hndl, size_t sampling_rate)
+      : EEGFileSave(hndl), buffer(sampling_rate),
+        sampling_rate(sampling_rate) {
+      callback_ID = RC::RStr("EDFSave_") + RC::RStr(sampling_rate);
+      buffer.sampling_rate = sampling_rate;
+    }
 
     RC::RStr GetExt() const { return "edf"; }
 
     protected:
     void StartFile_Handler(const RC::RStr& filename) override;
+    // Thread ordering constraint:
+    // Must call Stop after Start, before this destructor, and before
+    // hndl->eeg_acq is deleted.
     void StopSaving_Handler() override;
     void SaveData_Handler(RC::APtr<const EEGData>& data) override;
 
@@ -29,7 +37,8 @@ namespace CML {
     EEGData buffer;
     size_t amount_buffered = 0;
     size_t amount_written = 0;
-    size_t sampling_rate = 1000;
+    size_t sampling_rate;
+    RC::RStr callback_ID;
   };
 }
 

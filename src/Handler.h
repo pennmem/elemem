@@ -66,6 +66,9 @@ namespace CML {
     RCqt::TaskCaller<const RC::Data1D<bool>> SetLocDurApproved =
       TaskHandler(Handler::SetLocDurApproved_Handler);
 
+    RCqt::TaskCaller<> InitializeChannels =
+      TaskHandler(Handler::InitializeChannels_Handler);
+
     RCqt::TaskCaller<> StartExperiment =
       TaskHandler(Handler::StartExperiment_Handler);
 
@@ -114,6 +117,8 @@ namespace CML {
     void SetLocAmpApproved_Handler(const RC::Data1D<bool>& approved);
     void SetLocFreqApproved_Handler(const RC::Data1D<bool>& approved);
     void SetLocDurApproved_Handler(const RC::Data1D<bool>& approved);
+
+    void InitializeChannels_Handler();
 
     void StartExperiment_Handler();
     void StopExperiment_Handler();

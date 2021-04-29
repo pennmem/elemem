@@ -8,6 +8,7 @@
 #include "Cerebus.h"
 #include "Popup.h"
 #include "RC/RTime.h"
+#include "RC/Errors.h"
 
 namespace CML {
   uint64_t TimeSinceLast_ms() {
@@ -149,12 +150,12 @@ namespace CML {
   }
 
 
-  void Cerebus::SetChannel(uint16_t channel) {
+  void Cerebus::SetChannel(uint16_t channel, uint32_t samprate_index) {
     BeOpen();
 
     ClearChannels();
 
-    ConfigureChannel(channel);
+    ConfigureChannel(channel, samprate_index);
     first_chan = channel;
     last_chan = channel;
 
@@ -162,7 +163,8 @@ namespace CML {
   }
 
 
-  void Cerebus::SetChannelRange(uint16_t first_channel, uint16_t last_channel) {
+  void Cerebus::SetChannelRange(uint16_t first_channel, uint16_t last_channel,
+      uint32_t samprate_index) {
     if (first_channel > last_channel) {
       throw std::runtime_error("Invalid channel range");
     }
@@ -175,14 +177,15 @@ namespace CML {
     ClearChannels();
 
     for (uint16_t c=first_channel; c<last_channel; c++) {
-      ConfigureChannel(c);
+      ConfigureChannel(c, samprate_index);
     }
 
     SetTrialConfig();
   }
 
 
-  void Cerebus::SetChannels(std::vector<uint16_t> channel_list) {
+  void Cerebus::SetChannels(std::vector<uint16_t> channel_list,
+      uint32_t samprate_index) {
     BeOpen();
 
     ClearChannels();
@@ -190,12 +193,19 @@ namespace CML {
     for (size_t i=0; i<channel_list.size(); i++) {
       first_chan = std::min(first_chan, channel_list[i]);
       last_chan = std::max(last_chan, channel_list[i]);
-      ConfigureChannel(channel_list[i]);
+      ConfigureChannel(channel_list[i], samprate_index);
     }
 
     SetTrialConfig();
   }
 
+  uint32_t StubSampRateStash(uint32_t set=uint32_t(-1)) {
+    static uint32_t samprate_index = 0;
+    if (set != uint32_t(-1)) {
+      samprate_index = set;
+    }
+    return samprate_index;
+  }
 
   const std::vector<TrialData>& Cerebus::GetData() {
     if (first_chan > last_chan) {
@@ -205,6 +215,15 @@ namespace CML {
     BeOpen();
 
     size_t data_len = TimeSinceLast_ms(); // 1000Hz
+    switch(StubSampRateStash()) {
+      case 0: data_len = 0; break;
+      case 1: data_len /= 2; break;
+      case 2: break;
+      case 3: data_len *= 2; break;
+      case 4: data_len *= 10; break;
+      case 5: data_len *= 30; break;
+      default: Throw_RC_Error("Unsupported stub sampling rate");
+    }
 
     channel_data.resize(stub_chan_count);
     for (uint32_t c=0; c<channel_data.size(); c++) {
@@ -230,10 +249,12 @@ namespace CML {
     }
   }
 
-  void Cerebus::ConfigureChannel(uint16_t channel) {
+  void Cerebus::ConfigureChannel(uint16_t channel, uint32_t samprate_index) {
     if (stub_chan_count > channel_data.size()) {
       throw std::runtime_error("ConfigureChannel count exceeded maximum.");
     }
+
+    StubSampRateStash(samprate_index);
 
     channel_data[stub_chan_count].chan = channel;
     stub_chan_count++;

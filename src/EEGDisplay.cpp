@@ -9,15 +9,22 @@ namespace CML {
     width = new_width;
     height = new_height;
 
-    data.Resize(num_data_chans);
-    for (size_t i=0; i<data.size(); i++) {
-      data[i].Resize(data_samples);
-      data[i].Zero();
-    }
+    SetSamplingRate(1000);  // Default 1000Hz
+  }
+
+  EEGDisplay::~EEGDisplay() {
   }
 
 
-  EEGDisplay::~EEGDisplay() {
+  void EEGDisplay::SetSamplingRate(size_t sampling_rate) {
+    data.sampling_rate = sampling_rate;
+    data_samples = window_seconds*sampling_rate;
+
+    data.data.Resize(num_data_chans);
+    for (size_t i=0; i<data.data.size(); i++) {
+      data.data[i].Resize(data_samples);
+      data.data[i].Zero();
+    }
   }
 
 
@@ -49,14 +56,14 @@ namespace CML {
 
     for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
       size_t chan = eeg_channels[chan_i].channel;
-      if (chan > data.size()) {
+      if (chan > data.data.size()) {
         continue;
       }
       float dmax = std::numeric_limits<float>::lowest()/4;
       float dmin = std::numeric_limits<float>::max()/4;
-      for (size_t i=0; i<data[chan].size(); i++) {
-        dmax = std::max(dmax, float(data[chan][i]));
-        dmin = std::min(dmin, float(data[chan][i]));
+      for (size_t i=0; i<data.data[chan].size(); i++) {
+        dmax = std::max(dmax, float(data.data[chan][i]));
+        dmin = std::min(dmin, float(data.data[chan][i]));
       }
       float ddiff = 2*std::max(std::abs(dmin), std::abs(dmax));
       ddiff = std::max(ddiff, dmax-dmin);
@@ -65,11 +72,12 @@ namespace CML {
       }
       yscale = float(draw_height) / ddiff;
 
-      if (data[chan].size() > 0) {
+      if (data.data[chan].size() > 0) {
         SetPen(palette.NormToARGB(0.0f, 0.4f, 1.0f, 1.0f));
-        QPointF last(qreal(margin_left), qreal(draw_mid - (data[chan][0]*yscale)));
-        for (x = 1; x < data_samples; x++) {
-          QPointF current(qreal(x * xscale), qreal(draw_mid - (data[chan][x] * yscale)));
+        QPointF last(qreal(margin_left), qreal(draw_mid - (data.data[chan][0]*yscale)));
+        size_t inc = data_samples / 3000;  // skip data for display
+        for (x = inc; x < data_samples; x+=inc) {
+          QPointF current(qreal(x * xscale), qreal(draw_mid - (data.data[chan][x] * yscale)));
           painter.drawLine(last, current);
           last = current;
         }
@@ -99,11 +107,16 @@ namespace CML {
   }
 
   void EEGDisplay::UpdateData_Handler(RC::APtr<const EEGData>& new_data_ptr) {
-    auto& new_data = *new_data_ptr;
+    auto& new_data = new_data_ptr->data;
+
+    // Switch display to new sampling rate.
+    if (new_data_ptr->sampling_rate != data.sampling_rate) {
+      SetSamplingRate(new_data_ptr->sampling_rate);
+    }
 
     // EEGAcq now guarantees all the same size.  This could be simplified.
     size_t max_len = 0;
-    size_t max_chans = std::min(new_data.size(), data.size());
+    size_t max_chans = std::min(new_data.size(), data.data.size());
 
     for (size_t c=0; c<max_chans; c++) {
       max_len = std::max(max_len, new_data[c].size());
@@ -111,7 +124,7 @@ namespace CML {
 
     for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
       uint32_t c = eeg_channels[chan_i].channel;
-      if (c >= new_data.size() || c >= data.size()) {
+      if (c >= new_data.size() || c >= data.data.size()) {
         continue;
       }
 
@@ -119,17 +132,17 @@ namespace CML {
       size_t data_i = data_offset;
       auto inc_data_i = [&](){
         data_i++;
-        if (data_i >= data[c].size()) {
+        if (data_i >= data.data[c].size()) {
           data_i = 0;
         }
       };
 
       for (; i<new_data[c].size(); i++) {
-        data[c][data_i] = new_data[c][i];
+        data.data[c][data_i] = new_data[c][i];
         inc_data_i();
       }
       for (; i<max_len; i++) {
-        data[c][data_i] = 0;
+        data.data[c][data_i] = 0;
         inc_data_i();
       }
     }
@@ -158,8 +171,8 @@ namespace CML {
 
 
   void EEGDisplay::UnsetChannel_Handler(EEGChan& chan) {
-    if (chan.channel < data.size()) {
-      data[chan.channel].Zero();
+    if (chan.channel < data.data.size()) {
+      data.data[chan.channel].Zero();
     }
     for (size_t i=0; i<eeg_channels.size(); i++) {
       if (chan.channel == eeg_channels[i].channel) {
@@ -170,8 +183,8 @@ namespace CML {
   }
 
   void EEGDisplay::Clear_Handler() {
-    for (size_t i=0; i<data.size(); i++) {
-      data[i].Zero();
+    for (size_t i=0; i<data.data.size(); i++) {
+      data.data[i].Zero();
     }
     eeg_channels.Clear();
   }

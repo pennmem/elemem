@@ -25,7 +25,7 @@ namespace CML {
     RCqt::TaskCaller<uint32_t> SetInstance =
       TaskHandler(EEGAcq::SetInstance_Handler);
 
-    RCqt::TaskCaller<ChannelList> SetChannels =
+    RCqt::TaskCaller<ChannelList, const size_t> SetChannels =
       TaskHandler(EEGAcq::SetChannels_Handler);
 
     RCqt::TaskCaller<const RC::RStr, const EEGCallback>
@@ -45,7 +45,8 @@ namespace CML {
     protected:
 
     void SetInstance_Handler(uint32_t& instance);
-    void SetChannels_Handler(ChannelList& channels);
+    void SetChannels_Handler(ChannelList& channels,
+        const size_t& new_sampling_rate);
 
     // All channels have either 0 data or the same amount.
     void RegisterCallback_Handler(const RC::RStr& tag,
@@ -58,6 +59,7 @@ namespace CML {
     void BeAllocatedTimer();
 
     Cerebus cereb;
+    size_t sampling_rate = 1000;
 
     RC::APtr<QTimer> acq_timer;
     int polling_interval_ms = 30;
