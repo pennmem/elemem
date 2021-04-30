@@ -25,6 +25,7 @@ namespace CML {
       data.data[i].Resize(data_samples);
       data.data[i].Zero();
     }
+    data_offset = 0;
   }
 
 
