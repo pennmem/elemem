@@ -243,6 +243,10 @@ namespace RC {
     }
 
     inline void BaseOpen(FILE *fp, bool do_close) {
+      helper->Del();
+
+      helper = new FileHelper();
+
       helper->fp = fp;
       helper->do_close = do_close;
     }

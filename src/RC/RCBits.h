@@ -351,10 +351,12 @@ class DebugTrack {
 class DynamicLibrary {
   public:
 #ifdef unix
+  /// Direct access to the loaded library.
   void* library;
 #elif defined(WIN32)
   HMODULE library;
 #endif
+  /// Loads the library of the given name.
   template<size_t N>
   DynamicLibrary(const char (&libname)[N]) {
 #ifdef unix
@@ -391,6 +393,7 @@ class DynamicFunction {
     return (*func)(args...);
   }
 };
+/// @endcond
 
 
 /// \def RC_DYNAMIC_LOAD_FUNC
