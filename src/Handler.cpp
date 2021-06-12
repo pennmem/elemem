@@ -277,8 +277,8 @@ namespace CML {
       main_window->GetStimConfigBox(i).SetEnabled(false);
     }
 
-    session_dir = File::FullPath(elemem_dir, RStr(settings.sub) + "_" +
-        Time::GetDateTime());
+    RStr sub_dir = RStr(settings.sub) + "_" + Time::GetDateTime();
+    session_dir = File::FullPath(elemem_dir, sub_dir);
     File::MakeDir(session_dir);
 
     // Save updated experiment configuration.
@@ -303,6 +303,11 @@ namespace CML {
     // Start acqusition
     eeg_save->StartFile(File::FullPath(session_dir,
           RC::RStr("eeg_data.") + eeg_save->GetExt()));
+
+    // Mark when eeg file started in event log.
+    JSONFile evlog_start_data;
+    evlog_start_data.Parse(R"({"sub_dir": )" + sub_dir + "}");
+    event_log.Log(MakeResp("EEGSTART", 0, evlog_start_data));
 
     if (settings.grid_exper) {
       exper_ops.Start();

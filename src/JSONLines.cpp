@@ -1,11 +1,11 @@
 #include "JSONLines.h"
 
 namespace CML {
-  JSONFile MakeResp(RC::RStr type, uint64_t id) {
+  JSONFile MakeResp(RC::RStr type, uint64_t id, auto data=R"({})"_json) {
     JSONFile resp;
     resp.SetFilename("HostResponse");
     resp.Set(type.Raw(), "type");
-    resp.Set(R"({})"_json, "data");
+    resp.Set(data, "data");
     if (id != uint64_t(-1)) {
       resp.Set(id, "id");
     }

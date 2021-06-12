@@ -33,6 +33,10 @@ namespace CML {
         max_len = std::max(max_len, cereb_chandata[c].data.size());
       }
 
+      if (max_len == 0) {
+        return;
+      }
+
       for(size_t i=0; i<cereb_chandata.size(); i++) {
         auto cereb_chan = cereb_chandata[i].chan;
         if (cereb_chan >= data.size()) {

@@ -62,7 +62,7 @@ namespace CML {
     size_t sampling_rate = 1000;
 
     RC::APtr<QTimer> acq_timer;
-    int polling_interval_ms = 30;
+    int polling_interval_ms = 5;
 
     struct TaggedCallback {
       RC::RStr tag;
