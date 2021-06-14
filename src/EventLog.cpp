@@ -8,6 +8,10 @@ namespace CML {
   void EventLog::Log_Handler(const RC::RStr& event) {
     if (fw.IsOpen()) {
       fw.Put(event);
+      if (last_flush.SinceStart() > 5) {
+        fw.Flush();
+        last_flush.Start();
+      }
     }
   }
 

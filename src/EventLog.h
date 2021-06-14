@@ -23,6 +23,7 @@ namespace CML {
     void CloseFile_Handler();
 
     RC::FileWrite fw;
+    RC::Time last_flush;
   };
 }
 
