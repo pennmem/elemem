@@ -6,6 +6,7 @@
 #else
 #include "HDF5Save.h"
 #endif
+#include "JSONLines.h"
 #include "MainWindow.h"
 #include "Popup.h"
 #include "Utils.h"
@@ -306,8 +307,8 @@ namespace CML {
 
     // Mark when eeg file started in event log.
     JSONFile evlog_start_data;
-    evlog_start_data.Parse(R"({"sub_dir": )" + sub_dir + "}");
-    event_log.Log(MakeResp("EEGSTART", 0, evlog_start_data));
+    evlog_start_data.Set(sub_dir, "sub_dir");
+    event_log.Log(MakeResp("EEGSTART", 0, evlog_start_data).Line());
 
     if (settings.grid_exper) {
       exper_ops.Start();

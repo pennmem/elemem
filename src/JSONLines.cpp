@@ -1,7 +1,7 @@
 #include "JSONLines.h"
 
 namespace CML {
-  JSONFile MakeResp(RC::RStr type, uint64_t id, auto data=R"({})"_json) {
+  JSONFile MakeResp(RC::RStr type, uint64_t id, const JSONFile& data) {
     JSONFile resp;
     resp.SetFilename("HostResponse");
     resp.Set(type.Raw(), "type");
