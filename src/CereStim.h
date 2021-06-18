@@ -20,7 +20,7 @@ namespace CML {
   class CSMaxValues {
     public:
     uint8_t voltage; // [7,15], (0.5 + 0.6*voltage) = value in volts.
-    uint16_t amplitude; // Unit 1us, granularity 100uA for macro.
+    uint16_t amplitude; // Unit 1uA, granularity 100uA for macro.
     uint32_t phase_charge; // Unit pC.  amplitude_us * width_us.  (Not 100us)
     uint32_t frequency; // Unit Hz.
   };
