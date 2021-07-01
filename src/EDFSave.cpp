@@ -4,6 +4,7 @@
 #include "EEGAcq.h"
 #include "Handler.h"
 #include "ConfigFile.h"
+#include "Popup.h"
 
 namespace CML {
   void EDFSave::StartFile_Handler(const RC::RStr& filename) {
@@ -116,6 +117,16 @@ namespace CML {
 
         if (buffer.data[channels[c]].size() < sampling_rate) {
           StopSaving_Handler();
+
+          RC::RStr deb_msg("Data missing details\n");
+          deb_msg += "sampling_rate = " + RC::RStr(sampling_rate) + "\n";
+          for (size_t dc=0; dc<channels.size(); dc++) {
+            deb_msg += RC::RStr(buffer.data[channels[c]].size()) + " elements:  ";
+            deb_msg += RC::RStr::Join(buffer.data[channels[c]], ", ");
+            deb_msg += "\n";
+          }
+          DebugLog(deb_msg);
+
           Throw_RC_Type(File,
               ("Data missing on edf save, channel " + RC::RStr(c+1)).c_str());
         }
