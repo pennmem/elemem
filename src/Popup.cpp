@@ -39,10 +39,14 @@ namespace CML {
             == QMessageBox::Yes);
   }
 
-  void PopupManager::Error_Handler(const RStr& message, const RStr& title) {
+  void PopupManager::LogMsg_Handler(const RStr& message) {
     if (log_file.IsOpen()) {
-      log_file.Put(Time::GetStr() + ", " + title + "\n" + message);
+      log_file.Put(Time::GetStr() + ", " + message);
     }
+  }
+
+  void PopupManager::Error_Handler(const RStr& message, const RStr& title) {
+    LogMsg_Handler(title + "\n" + message);
     QMessageBox::warning(0, title.c_str(), message.c_str());
   }
 
