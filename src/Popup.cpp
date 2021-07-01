@@ -22,6 +22,9 @@ namespace CML {
     PopupManager::GetManager()->Error(message, title);
   }
 
+  void DebugLog(const RStr& message) {
+    PopupManager::GetManager()->LogMsg(message);
+  }
 
   Ptr<PopupManager> PopupManager::GetManager() {
     static PopupManager singleton;
