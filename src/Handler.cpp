@@ -303,7 +303,7 @@ namespace CML {
 
     // Start acqusition
     eeg_save->StartFile(File::FullPath(session_dir,
-          RC::RStr("eeg_data.") + eeg_save->GetExt()));
+          RC::RStr("eeg_data.") + eeg_save->GetExt()), GetConfig_Handler());
 
     // Mark when eeg file started in event log.
     JSONFile evlog_start_data;
@@ -376,6 +376,8 @@ namespace CML {
                "configuration");
       return;
     }
+
+    CloseExperimentComponents();
 
     // Clear the gui stim elements.
     for (size_t c=0; c<main_window->StimConfigCount(); c++) {
@@ -481,6 +483,9 @@ namespace CML {
     main_window->GetStatusPanel()->SetExperiment(settings.exper);
     main_window->GetStatusPanel()->SetEvent("RECORDING");
 
+    // The Neuroport hardware needs some time to initialize and adjust
+    // to the new settings before we start making use of the data.
+    RC::Time::Sleep(1);
     SaveDefaultEEG();
     main_window->SetReadyToStart(true);
   }
@@ -505,7 +510,7 @@ namespace CML {
         "." + eeg_save->GetExt());
 
     event_log.StartFile(event_file);
-    eeg_save->StartFile(eeg_file);
+    eeg_save->StartFile(eeg_file, GetConfig_Handler());
   }
 
   RC::Data1D<CSStimProfile> Handler::CreateGridProfiles() {

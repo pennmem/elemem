@@ -7,9 +7,8 @@
 #include "Popup.h"
 
 namespace CML {
-  void EDFSave::StartFile_Handler(const RC::RStr& filename) {
-    auto conf = hndl->GetConfig();
-
+  void EDFSave::StartFile_Handler(const RC::RStr& filename,
+                                  const FullConf& conf) {
     if (conf.elec_config.IsNull()) {
       Throw_RC_Error("Cannot save data with no channels set");
     }
@@ -119,7 +118,8 @@ namespace CML {
           StopSaving_Handler();
 
           RC::RStr deb_msg("Data missing details\n");
-          deb_msg += "sampling_rate = " + RC::RStr(sampling_rate) + "\n";
+          deb_msg += "sampling_rate = " + RC::RStr(sampling_rate) + ", ";
+          deb_msg += "amount_buffered = " + RC::RStr(amount_buffered) + "\n";
           for (size_t dc=0; dc<channels.size(); dc++) {
             deb_msg += RC::RStr(buffer.data[channels[c]].size()) + " elements:  ";
             deb_msg += RC::RStr::Join(buffer.data[channels[c]], ", ");

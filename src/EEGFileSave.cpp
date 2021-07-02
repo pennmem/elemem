@@ -10,7 +10,8 @@ namespace CML {
     StopSaving_Handler();
   }
 
-  void EEGFileSave::StartFile_Handler(const RC::RStr& /*filename*/) {
+  void EEGFileSave::StartFile_Handler(const RC::RStr& /*filename*/,
+                                      const FullConf& /*conf*/) {
     // Do not save data.
   }
 

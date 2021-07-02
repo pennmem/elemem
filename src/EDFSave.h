@@ -22,7 +22,8 @@ namespace CML {
     RC::RStr GetExt() const { return "edf"; }
 
     protected:
-    void StartFile_Handler(const RC::RStr& filename) override;
+    void StartFile_Handler(const RC::RStr& filename,
+                           const FullConf& conf) override;
     // Thread ordering constraint:
     // Must call Stop after Start, before this destructor, and before
     // hndl->eeg_acq is deleted.
