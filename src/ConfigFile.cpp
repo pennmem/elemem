@@ -50,5 +50,12 @@ namespace CML {
       }
     }
   }
+
+  void RemoveBOM(RC::RStr& line) {
+    if (line.size() >= 3 &&
+        line[0] == '\xef' && line[1] == '\xbb' && line[2] == '\xbf') {
+      line = line.substr(3);
+    }
+  }
 }
 

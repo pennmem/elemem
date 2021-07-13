@@ -11,6 +11,9 @@ namespace CML {
   // Removes # and // comments, left/right whitespace, and blank lines.
   void RemoveComments(RC::Data1D<RC::RStr>& lines);
 
+  // Remove UTF-8 byte order marks if present. (There's no byte order to mark!)
+  void RemoveBOM(RC::RStr& line);
+
   class JSONFile {
     public:
     JSONFile() {
@@ -33,6 +36,9 @@ namespace CML {
     void Load(RC::FileRead& fr) {
       RC::Data1D<RC::RStr> lines;
       fr.ReadAllLines(lines);
+      if (lines.size() >= 1) {
+        RemoveBOM(lines[0]);
+      }
       RemoveComments(lines);
       json = json.parse(RC::RStr::Join(lines, "\n").c_str());
     }
@@ -325,6 +331,9 @@ namespace CML {
       }
       RC::Data1D<RC::RStr> lines;
       fr.ReadAllLines(lines);
+      if (lines.size() >= 1) {
+        RemoveBOM(lines[0]);
+      }
       file_lines = lines;
       RemoveComments(lines);
       
