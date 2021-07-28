@@ -7,6 +7,7 @@
 #include "HDF5Save.h"
 #endif
 #include "JSONLines.h"
+#include "About.h"
 #include "MainWindow.h"
 #include "Popup.h"
 #include "Utils.h"
@@ -300,6 +301,10 @@ namespace CML {
     fw.Close();
 
     event_log.StartFile(File::FullPath(session_dir, "event.log"));
+
+    JSONFile version_info;
+    version_info.Set(ElememVersion(), "version");
+    event_log.Log(MakeResp("ELEMEM", 0, version_info).Line());
 
     // Start acqusition
     eeg_save->StartFile(File::FullPath(session_dir,
