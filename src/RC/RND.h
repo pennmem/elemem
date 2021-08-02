@@ -58,10 +58,10 @@ namespace RC {
     typedef u32 result_type;
 
     /// Returns 0 for UniformRandomNumberGenerator compliance.
-    inline u32 min() const { return 0; }
+    constexpr static inline u32 min() { return 0; }
 
     /// Returns u32 max for UniformRandomNumberGenerator compliance.
-    inline u32 max() const { return 0xFFFFFFFF; }
+    constexpr static inline u32 max() { return 0xFFFFFFFF; }
 
 
     /// Provides random i32 values.

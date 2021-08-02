@@ -8,8 +8,8 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 ######################
 # Compilation settings
 
-set(IS_RELEASE true)
-option(CEREBUS_STUB "Use the Cerebus simulator" OFF) # cmake CEREBUS_STUB .
+set(IS_RELEASE false)
+option(CEREBUS_STUB "Use the Cerebus simulator" ON) # cmake CEREBUS_STUB .
 option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake HDF5_EXPORT .
 
 if (IS_RELEASE)
@@ -31,14 +31,19 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/dist)
 
 set (CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-error=unused -Wno-error=unused-parameter")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=unused-variable")
-if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-non-c-typedef-for-linkage")
+else()
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=unused-but-set-variable")
 endif()
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-zero-as-null-pointer-constant")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnull-dereference -Werror")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRC_HAVE_QT")
+if(APPLE)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1")
+endif(APPLE)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
+set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g -fno-omit-frame-pointer")
 set (CMAKE_CXX_FLAGS_RELEASE "-O3 -g -ffast-math")
 set (ELEMEM_DEFINES)
 

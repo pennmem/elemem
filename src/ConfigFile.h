@@ -193,7 +193,7 @@ namespace CML {
 
     template<class T, class JSONT, class... Keys>
     void GetRecurse(T& data, RC::RStr err_msg, JSONT& cur_node,
-        Keys... keys) const {
+        __attribute__((unused)) Keys... keys) const {
       try {
         cur_node.get_to(data);
       }
@@ -204,7 +204,7 @@ namespace CML {
 
     template<class T, class JSONT, class Key, class... Keys>
     void GetRecurse(T& data, RC::RStr err_msg, JSONT& cur_node,
-        Key key, Keys... keys) const {
+        Key key, __attribute__((unused)) Keys... keys) const {
       err_msg += RC::RStr(key) + ":";
       auto itr = cur_node.find(key);
       if (itr == cur_node.end()) {
@@ -214,7 +214,8 @@ namespace CML {
     }
 
     template<class T, class JSONI, class... Keys>
-    bool TryGetRecurse(T& data, JSONI itr, Keys... keys) const {
+    bool TryGetRecurse(T& data, JSONI itr, 
+        __attribute__((unused)) Keys... keys) const {
       try {
         itr->get_to(data);
       }
@@ -225,7 +226,8 @@ namespace CML {
     }
 
     template<class T, class JSONI, class Key, class... Keys>
-    bool TryGetRecurse(T& data, JSONI itr, Key key, Keys... keys) const {
+    bool TryGetRecurse(T& data, JSONI itr, Key key, 
+        __attribute__((unused)) Keys... keys) const {
       auto next_itr = itr->find(key);
       if (next_itr == itr->end()) {
         return false;
@@ -235,7 +237,7 @@ namespace CML {
 
     template<class T, class JSONI, class... Keys>
     void SetRecurse(const T& data, RC::RStr err_msg, JSONI itr,
-        Keys... keys) {
+        __attribute__((unused)) Keys... keys) {
       try {
         nlohmann::json update_node = data;
         *itr = update_node;
@@ -247,7 +249,7 @@ namespace CML {
 
     template<class T, class JSONI, class... Keys>
     void SetRecurse(const T& data, RC::RStr err_msg, JSONI itr,
-        size_t key, Keys... keys) {
+        size_t key, __attribute__((unused)) Keys... keys) {
       err_msg += RC::RStr(key) + ":";
       if (key >= itr->size()) {
         Throw_RC_Type(File, (err_msg + "\nOut of bounds").c_str());
@@ -285,7 +287,7 @@ namespace CML {
 
     template<class JSONT, class... Keys>
     auto NodeRecurse(RC::RStr err_msg, RC::RStr new_name, JSONT& cur_node,
-        Keys... keys) const {
+        __attribute__((unused)) Keys... keys) const {
       JSONFile new_json;
       try {
         new_json.json = cur_node;

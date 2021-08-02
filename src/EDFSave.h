@@ -19,7 +19,7 @@ namespace CML {
       buffer.sampling_rate = sampling_rate;
     }
 
-    RC::RStr GetExt() const { return "edf"; }
+    RC::RStr GetExt() const override { return "edf"; }
 
     protected:
     void StartFile_Handler(const RC::RStr& filename,
