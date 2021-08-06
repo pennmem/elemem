@@ -1,5 +1,7 @@
 build*
 *~
+*.sw?
 CMakeLists.txt.user
 tags
-*.sw?
+html
+latex

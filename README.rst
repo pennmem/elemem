@@ -1,7 +1,7 @@
 #############
 Elemem
 #############
-This is application used to control stimulation for System 4
+This is the application used to control stimulation for System 4
 
 .. contents:: **Table of Contents**
     :depth: 2
@@ -10,7 +10,7 @@ This is application used to control stimulation for System 4
 Setup Instructions
 *************
 #. Clone the repository
-#. Install 'QtCreator 5.12.11 <https://www.qt.io/offline-installers>'_)
+#. Install `QtCreator 5.12.11 <https://www.qt.io/offline-installers>`_)
 #. Open the project in QtCreator by selecting the *CMakeLists.txt* file
 #. Select *Build > Run CMake* from the top dropdown menu
 #. Open the *General Messages* tab on the bottom and copy the path to the build directory
