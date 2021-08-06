@@ -6,6 +6,7 @@
 #include "APITests.h"
 #include "EEGAcq.h"
 #include "EEGFileSave.h"
+#include "Classifier.h"
 #include "EventLog.h"
 #include "ExperOPS.h"
 #include "NetWorker.h"
@@ -90,6 +91,7 @@ namespace CML {
     StimWorker stim_worker;
     EEGAcq eeg_acq;
     RC::APtr<EEGFileSave> eeg_save;
+    RC::APtr<Classifier> classifier;
     NetWorker net_worker;
     EventLog event_log;
 
