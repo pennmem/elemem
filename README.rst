@@ -4,7 +4,7 @@ Elemem
 This is application used to control stimulation for System 4
 
 .. contents:: **Table of Contents**
- :depth: 2
+    :depth: 2
 
 *************
 Setup Instructions
