@@ -21,7 +21,7 @@ Tasks
 =============
 Tasks are objects that hold an object and a (handler) method.
 When a task is run, it runs the stored method in the context of the stored object.
-There are 3 types of tasks:
+There are 4 types of tasks:
 #. *TaskCaller*
 #. *TaskBlocker*
 #. *TaskGetter*
@@ -33,6 +33,7 @@ NOTES:
 * The *TaskHandler()* is a convenient macro that creates a *TaskCaller* object from a method using the context of the class it is in..
 * Treat tasks with all the respecect of a normal thread.
     * Ex: Do not edit mutable global/shared variables from a *Task* without a critical section.
+* Prefer using *TaskCaller* over *TaskBlocker* and *TaskGetter*
 
 =============
 Handler
