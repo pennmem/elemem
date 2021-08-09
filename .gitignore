@@ -5,3 +5,9 @@ CMakeLists.txt.user
 tags
 html
 latex
+
+# Dist folder (build dir)
+dist/**/*
+!dist/*/
+!dist/**/*.dll
+!dist/**/*.qm
