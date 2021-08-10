@@ -10,6 +10,8 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 
 set(IS_RELEASE true)
 option(CEREBUS_STUB "Use the Cerebus simulator" OFF) # cmake CEREBUS_STUB .
+option(CERESTIM_STUB # cmake CERESTIM_STUB .
+  "Use the CereStim simulator (default ON for non-Windows)" OFF)
 option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake HDF5_EXPORT .
 
 if (IS_RELEASE)
@@ -45,11 +47,15 @@ set (ELEMEM_DEFINES)
 ##############
 # Source files
 
-if (WIN32)
-  set (OS_SPEC_FILES "")
-else (WIN32)
-  set (OS_SPEC_FILES include/stub_CereStimDLL.cpp)
-endif (WIN32)
+if (NOT WIN32)
+  set (CERESTIM_STUB ON CACHE BOOL "CereStim only supported on Windows" FORCE)
+endif(NOT WIN32)
+
+if (CERESTIM_STUB)
+  set (CERESTIM_STUB_FILE include/stub_CereStimDLL.cpp)
+else (CERESTIM_STUB)
+  set (CERESTIM_STUB_FILE "")
+endif (CERESTIM_STUB)
 
 if (CEREBUS_STUB)
   set (CEREBUS_FILE include/stub_Cerebus.cpp)
@@ -69,6 +75,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/CereStim.cpp
   src/Cerebus.h
   ${CEREBUS_FILE}
+  ${CERESTIM_STUB_FILE}
   src/ChannelConf.h
   src/ChannelSelector.h
   src/ChannelSelector.cpp
@@ -159,8 +166,6 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/RCqt/Worker.cpp
 
   include/edflib/edflib.cpp
-
-  ${OS_SPEC_FILES}
 )
 
 ####################

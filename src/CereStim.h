@@ -52,14 +52,22 @@ namespace CML {
     bool ShannonSafe(const CSStimChannel& chan);
     void ShannonAssert(float area_mmsq, uint16_t amplitude_uA);
     void ShannonAssert(const CSStimChannel& chan);
-      
+
+    uint32_t GetBurstSlowFreq() const { return burst_slow_freq; }
+    uint32_t GetBurstDuration_us() const { return burst_duration_us; }
+
     private:
     void BeOpen();
     void ErrorCheck(int err);
 
+    uint32_t burst_slow_freq = 0; // Unit Hz.  Slower envelope freq of bursts.
+    float burst_frac = 1; // Fraction of 1/burst_slow_freq to stimulate for.
+    uint32_t burst_duration_us = 0;
+
     uint16_t stim_width_us = 300;
     bool was_active = false;
     bool is_open = false;
+    bool is_configured = false;
   };
 
 

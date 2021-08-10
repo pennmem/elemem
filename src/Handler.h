@@ -20,8 +20,11 @@ namespace CML {
   class MainWindow;
   class JSONFile;
   class CSVFile;
+  enum class StimMode { NONE=0, OPEN=1, CLOSED=2 };
+  StimMode ToStimMode(const RC::RStr& stim_mode_str);
+  RC::RStr FromStimMode(StimMode stim_mode);
 
-  
+
   class Handler : public RCqt::WorkerThread {
     public:
 
@@ -68,6 +71,8 @@ namespace CML {
 
     RCqt::TaskCaller<> InitializeChannels =
       TaskHandler(Handler::InitializeChannels_Handler);
+    RCqt::TaskCaller<const RC::RStr> SelectStim =
+      TaskHandler(Handler::SelectStim_Handler);
 
     RCqt::TaskCaller<> StartExperiment =
       TaskHandler(Handler::StartExperiment_Handler);
@@ -119,6 +124,7 @@ namespace CML {
     void SetLocDurApproved_Handler(const RC::Data1D<bool>& approved);
 
     void InitializeChannels_Handler();
+    void SelectStim_Handler(const RC::RStr& stimtag);
 
     void StartExperiment_Handler();
     void StopExperiment_Handler();
@@ -141,6 +147,7 @@ namespace CML {
     RC::RStr session_dir;
 
     ExperOPS exper_ops;
+    StimMode stim_mode = StimMode::NONE;
 
     RC::APtr<QTimer> exit_timer;
     bool do_exit = false;

@@ -161,6 +161,11 @@ namespace CML {
       else if (type == "STIM") {
         hndl->stim_worker.Stimulate();
       }
+      else if (type == "STIMSELECT") {
+        RC::RStr stimtag;
+        inp.Get(stimtag, "data", "stimtag");
+        hndl->SelectStim(stimtag);
+      }
       else if (type == "SESSION") {
         int64_t session;
         inp.Get(session, "data", "session");
@@ -188,6 +193,7 @@ namespace CML {
     }
   }
 
+  // TODO - Add support for checking stimtag list.
   void NetWorker::ProtConfigure(const JSONFile& inp) {
     Data1D<RStr> errors;
 

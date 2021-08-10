@@ -24,6 +24,15 @@ namespace CML {
 
 
   void StimWorker::Stimulate_Handler() {
+    size_t num_bursts = 1;
+    f64 burst_period = 0;
+    if (cerestim.GetBurstSlowFreq() != 0) {
+      num_bursts = std::round(1e-6*cerestim.GetBurstDuration_us() *
+          cerestim.GetBurstSlowFreq());
+      burst_period = 1.0 / cerestim.GetBurstSlowFreq();
+    }
+
+    RC::Time timer;
     cerestim.Stimulate();
     status_panel->SetStimming(max_duration);
 
@@ -38,7 +47,27 @@ namespace CML {
       event.Set(cur_profile[i].frequency, "data", "frequency");
       event.Set(cur_profile[i].duration*1e-3, "data", "duration");
 
+      // Log burst data if it's a burst.
+      if (cur_profile[i].burst_frac != 1) {
+        event.Set(cur_profile[i].burst_slow_freq,
+            "data", "burst_slow_frequency");
+        event.Set(cur_profile[i].burst_frac, "data", "burst_fraction");
+      }
+
       hndl->event_log.Log(event.Line());
+    }
+
+    for (size_t b=1; b<num_bursts; b++) {
+      f64 burst_time_left = burst_period*b - timer.SinceStart();
+      if (burst_time_left > 0) {
+        RC::Time::Sleep(burst_time_left);
+      }
+
+      if (ShouldAbort()) {
+        return;
+      }
+
+      cerestim.Stimulate();
     }
   }
 
