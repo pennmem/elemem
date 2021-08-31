@@ -11,6 +11,14 @@ namespace CML {
     : hndl(hndl) {
   }
 
+  StimulatorType StimWorker::GetStimulatorType() const {
+#ifdef CERESTIM_SIMULATOR
+      return StimulatorType::Simulator;
+#else
+      return StimulatorType::CereStim;
+#endif
+
+  }
 
   void StimWorker::ConfigureStimulation_Handler(const CSStimProfile& profile) {
     cur_profile = profile;

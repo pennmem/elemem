@@ -53,6 +53,7 @@ endif(NOT WIN32)
 
 if (CERESTIM_STUB)
   set (CERESTIM_STUB_FILE include/stub_CereStimDLL.cpp)
+  add_definitions (-DCERESTIM_SIMULATOR)
 else (CERESTIM_STUB)
   set (CERESTIM_STUB_FILE "")
 endif (CERESTIM_STUB)

@@ -380,7 +380,12 @@ namespace CML {
     }
     else { // Network experiment.
       // Defaults should always work on standard setup.
+      // Note:  Binding to a specific LAN address is a safety feature.
       std::string ipaddress = "192.168.137.1";
+      if (stim_worker.GetStimulatorType() == StimulatorType::Simulator) {
+        // It's safe to accept connections from anywhere with simulators.
+        ipaddress = "0.0.0.0";
+      }
       uint16_t port = 8889;
       try {
         settings.exp_config->Get(ipaddress, "ipaddress");
