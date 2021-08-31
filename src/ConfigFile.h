@@ -91,6 +91,16 @@ namespace CML {
       }
     }
 
+    template<class... Keys>
+    void Get(RC::Data1D<RC::RStr>& data, Keys... keys) const {
+      std::vector<std::string> v;
+      Get(v, keys...);
+      data.Resize(v.size());
+      for (size_t i=0; i<v.size(); i++) {
+        data[i] = v[i];
+      }
+    }
+
     // Returns true if succeeded
     template<class T, class... Keys>
     bool TryGet(T& data, Keys... keys) const {
@@ -112,6 +122,19 @@ namespace CML {
     template<class T, class... Keys>
     bool TryGet(RC::Data1D<T>& data, Keys... keys) const {
       std::vector<T> v;
+      bool retval = TryGet(v, keys...);
+      if (retval) {
+        data.Resize(v.size());
+        for (size_t i=0; i<v.size(); i++) {
+          data[i] = v[i];
+        }
+      }
+      return retval;
+    }
+
+    template<class... Keys>
+    bool TryGet(RC::Data1D<RC::RStr>& data, Keys... keys) const {
+      std::vector<std::string> v;
       bool retval = TryGet(v, keys...);
       if (retval) {
         data.Resize(v.size());
