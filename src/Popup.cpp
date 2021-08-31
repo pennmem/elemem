@@ -45,7 +45,7 @@ namespace CML {
 
   void PopupManager::LogMsg_Handler(const RStr& message) {
     if (log_file.IsOpen()) {
-      log_file.Put(Time::GetStr() + ", " + message);
+      log_file.Put(Time::GetStr() + ", " + message + "\n");
     }
   }
 
