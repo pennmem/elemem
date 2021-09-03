@@ -73,6 +73,8 @@ namespace CML {
     stimconf.Resize(stim_channels.size());
     min_stimconf.Resize(stim_channels.size());
     max_stimconf.Resize(stim_channels.size());
+    stimgrid_chan_on.Resize(stim_channels.size());
+    stimgrid_chan_on.Zero();
 
     float f;
     std::vector<float> vf;
@@ -282,10 +284,12 @@ namespace CML {
       stimgrid_amp_uA[i] = uint16_t(vf[i]*1000+0.5);
     }
     stimgrid_amp_on.Resize(stimgrid_amp_uA.size());
+    stimgrid_amp_on.Zero();
 
     exp_config->Get(stimgrid_freq_Hz, "experiment", "stim_parameters",
         "frequencies_Hz");
     stimgrid_freq_on.Resize(stimgrid_freq_Hz.size());
+    stimgrid_freq_on.Zero();
 
     exp_config->Get(vi, "experiment", "stim_parameters",
         "durations_ms");
@@ -294,6 +298,7 @@ namespace CML {
       stimgrid_dur_us[i] = uint32_t(vi[i]*1000+0.5);
     }
     stimgrid_dur_on.Resize(stimgrid_dur_us.size());
+    stimgrid_dur_on.Zero();
 
     // Validate values within min/max.
     size_t chcnt = min_stimconf.size();
@@ -356,7 +361,8 @@ namespace CML {
         sel_amp.Append(stimgrid_amp_uA[i]/1000.0f);
       }
     }
-    current_config.Set(sel_amp, "experiment", "stim_parameters", "amplitudes");
+    current_config.Set(sel_amp, "experiment", "stim_parameters",
+        "amplitudes_mA");
 
     RC::Data1D<uint32_t> sel_freq;
     for (size_t i=0; i<stimgrid_freq_Hz.size(); i++) {
@@ -365,7 +371,7 @@ namespace CML {
       }
     }
     current_config.Set(sel_freq, "experiment", "stim_parameters",
-        "frequencies");
+        "frequencies_Hz");
 
     RC::Data1D<uint32_t> sel_dur;
     for (size_t i=0; i<stimgrid_dur_us.size(); i++) {
@@ -373,7 +379,8 @@ namespace CML {
         sel_dur.Append(stimgrid_dur_us[i]/1000.0f+0.5f);
       }
     }
-    current_config.Set(sel_dur, "experiment", "stim_parameters", "durations");
+    current_config.Set(sel_dur, "experiment", "stim_parameters",
+        "durations_ms");
   }
 
 

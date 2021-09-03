@@ -585,7 +585,7 @@ namespace CML {
 
   RC::Data1D<CSStimProfile> Handler::CreateGridProfiles() {
     Data1D<CSStimProfile> grid_profiles;
-    
+
     for (size_t c=0; c<settings.stimgrid_chan_on.size(); c++) {
       if (!settings.stimgrid_chan_on[c]) { continue; }
       auto& chan = settings.stimconf[c];

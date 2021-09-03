@@ -16,7 +16,7 @@ namespace CML {
   ExperOPS::~ExperOPS() {
     Stop_Handler();
   }
-  
+
   void ExperOPS::SetStimProfiles_Handler(
         const RC::Data1D<CSStimProfile>& new_stim_profiles) {
     stim_profiles = new_stim_profiles;
@@ -78,7 +78,7 @@ namespace CML {
 
   void ExperOPS::DoShamEvent() {
     JSONFile sham_event = MakeResp("SHAM");
-    sham_event.Set(ops_specs.sham_duration_ms, "duration");
+    sham_event.Set(ops_specs.sham_duration_ms, "data", "duration");
     hndl->event_log.Log(sham_event.Line());
     status_panel->SetEvent("SHAM");
   }
@@ -99,7 +99,7 @@ namespace CML {
     uint64_t seconds = (total_time + 500)/1000;
     uint64_t minutes = seconds / 60;
     seconds = seconds % 60;
-    
+
     // Confirm window for run time.
     if (!ConfirmWin(RC::RStr("Total run time will be ") + minutes + " min. "
           + seconds + " sec.", "Session Duration")) {

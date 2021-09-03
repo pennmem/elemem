@@ -217,7 +217,7 @@ namespace CML {
       Compare(errors, "experiment", task_experiment, host_experiment);
       Compare(errors, "subject", task_subject, host_subject);
 
-      if (inp.TryGet(stimtags, "data", "tags")) {
+      if (inp.TryGet(stimtags, "data", "stimtags")) {
         for (size_t s=0; s<stimtags.size(); s++) {
           hndl->SelectStim(stimtags[s]);
         }
