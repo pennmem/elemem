@@ -65,7 +65,7 @@ namespace CML {
       hndl->event_log.Log(event.Line());
     }
 
-    for (size_t b=1; b<num_bursts; b++) {
+    for (size_t b=1; (b<num_bursts) && KeepGoing(); b++) {
       f64 burst_time_left = burst_period*b - timer.SinceStart();
       if (burst_time_left > 0) {
         RC::Time::Sleep(burst_time_left);
