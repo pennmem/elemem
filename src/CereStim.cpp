@@ -255,9 +255,11 @@ namespace CML {
       auto& afd = fda_vec[i];
       uint16_t interphase = 53;
       uint64_t pulses_64 = (uint64_t(afd.duration) * afd.frequency) / 1000000;
-
-      // Configure stim profile for burst-on period only.
-      pulses_64 = std::round(pulses_64 * burst_frac);
+      if (burst_frac < 1) {
+        // Configure stim profile for burst-on period only.
+        pulses_64 = uint64_t(round(afd.frequency * burst_frac /
+                                   burst_slow_freq));
+      }
 
       if (pulses_64 < 1) {
         pulses_64 = 1;
