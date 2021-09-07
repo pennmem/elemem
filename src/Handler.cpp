@@ -8,18 +8,35 @@
 #endif
 #include "Classifier.h"
 #include "JSONLines.h"
+#include "About.h"
 #include "MainWindow.h"
 #include "Popup.h"
 #include "Utils.h"
 #include "RC/RC.h"
 #include <QDir>
 #include <QObject>
+#include <type_traits>
 
 using namespace std;
 using namespace RC;
 
 
 namespace CML {
+  StimMode ToStimMode(const RC::RStr& stim_mode_str) {
+    if (stim_mode_str == "none") { return StimMode::NONE; }
+    if (stim_mode_str == "open") { return StimMode::OPEN; }
+    if (stim_mode_str == "closed") { return StimMode::CLOSED; }
+    Throw_RC_Error((stim_mode_str + " is not a valid stim mode.").c_str());
+  }
+
+  RC::RStr FromStimMode(StimMode stim_mode) {
+    if (stim_mode == StimMode::NONE) { return "none"; }
+    if (stim_mode == StimMode::OPEN) { return "open"; }
+    if (stim_mode == StimMode::CLOSED) { return "closed"; }
+    Throw_RC_Error((RC::RStr(uint64_t(stim_mode)) +
+        " does not represent a recognized StimMode.").c_str());
+  }
+
   Handler::Handler()
     : stim_worker(this),
 #ifdef NO_HDF5
@@ -107,7 +124,15 @@ namespace CML {
       (updated_settings.params.duration >
        settings.max_stimconf[index].params.duration) ||
       (updated_settings.params.duration <
-       settings.min_stimconf[index].params.duration)) {
+       settings.min_stimconf[index].params.duration) ||
+      (updated_settings.params.area !=
+       settings.stimconf[index].params.area) ||
+      (updated_settings.params.burst_frac !=
+       settings.stimconf[index].params.burst_frac) ||
+      (updated_settings.params.burst_slow_freq !=
+       settings.stimconf[index].params.burst_slow_freq) ||
+      (updated_settings.stimtag !=
+       settings.stimconf[index].stimtag)) {
       main_window->GetStimConfigBox(index).SetParameters(
         settings.stimconf[index].params);
       ErrorWin("Attempted to set invalid stim settings.", "Safety check");
@@ -222,6 +247,31 @@ namespace CML {
     eeg_acq.SetChannels(channels, settings.sampling_rate);
   }
 
+  // TODO - SelectStim_Handler goes through settings.stimconf and extracts
+  // values that are both approved and matching given stimtag.
+  void Handler::SelectStim_Handler(const RC::RStr& stimtag) {
+    if (stim_mode == StimMode::NONE) {
+      Throw_RC_Error("Attempted to select a stim tag outside of a "
+          "stimulation experiment.");
+    }
+
+    CSStimProfile profile;
+    for (size_t c=0; c<settings.stimconf.size(); c++) {
+      if (settings.stimconf[c].approved &&
+          (settings.stimconf[c].stimtag == stimtag)) {
+        profile += settings.stimconf[c].params;
+      }
+    }
+
+    if (profile.size() == 0) {
+      ErrorWin("No approved stim configurations match stim tag '" +
+          stimtag + "'", "Stim Tag Selection Failed");
+      StopExperiment_Handler();
+    }
+
+    stim_worker.ConfigureStimulation(profile);
+  }
+
   void Handler::StartExperiment_Handler() {
     if (settings.exp_config.IsNull() || settings.elec_config.IsNull()) {
       ErrorWin("You must load a valid experiment configuration file before "
@@ -229,11 +279,12 @@ namespace CML {
       return;
     }
 
-    std::string stim_mode_str;
+    RStr stim_mode_str;
     settings.exp_config->Get(stim_mode_str, "experiment", "stim_mode");
-    RStr stim_mode = stim_mode_str;
-    stim_mode.ToLower();
-    if (stim_mode != "open" && stim_mode != "none") {
+    stim_mode_str.ToLower();
+    stim_mode = ToStimMode(stim_mode_str);
+
+    if (stim_mode != StimMode::OPEN && stim_mode != StimMode::NONE) {
       ErrorWin("Configuration file experiment:stim_mode must be \"open\" or "
           "\"none\" for this version of Elemem.  Cannot start experiment.");
       return;
@@ -253,22 +304,32 @@ namespace CML {
       exper_ops.SetStimProfiles(grid_profiles);
     }
     else {
-      CSStimProfile profile;
+      // Count all approved.
+      CSStimProfile cnt_profile;
       for (size_t c=0; c<settings.stimconf.size(); c++) {
         if (settings.stimconf[c].approved) {
-          profile += settings.stimconf[c].params;
+          cnt_profile += settings.stimconf[c].params;
         }
       }
-      if (profile.size() == 0 && stim_mode != "none") {
+      if (cnt_profile.size() == 0 && stim_mode != StimMode::NONE) {
         if (!ConfirmWin("No stim channels approved on experiment configured "
              "with stimulation.  Proceed?")) {
           return;
         }
       }
-      if (profile.size() > 0 && stim_mode == "none") {
+      if (cnt_profile.size() > 0 && stim_mode == StimMode::NONE) {
         ErrorWin("Error!  Stim channels enabled on experiment with "
                  "experiment:stim_mode set to \"none\".");
         return;
+      }
+
+      // But default select only those with no stimtag.
+      CSStimProfile profile;
+      for (size_t c=0; c<settings.stimconf.size(); c++) {
+        if (settings.stimconf[c].approved &&
+            settings.stimconf[c].stimtag.empty()) {
+          profile += settings.stimconf[c].params;
+        }
       }
 
       stim_worker.ConfigureStimulation(profile);
@@ -303,6 +364,10 @@ namespace CML {
 
     event_log.StartFile(File::FullPath(session_dir, "event.log"));
 
+    JSONFile version_info;
+    version_info.Set(ElememVersion(), "version");
+    event_log.Log(MakeResp("ELEMEM", 0, version_info).Line());
+
     // Start acqusition
     eeg_save->StartFile(File::FullPath(session_dir,
           RC::RStr("eeg_data.") + eeg_save->GetExt()), GetConfig_Handler());
@@ -317,7 +382,12 @@ namespace CML {
     }
     else { // Network experiment.
       // Defaults should always work on standard setup.
+      // Note:  Binding to a specific LAN address is a safety feature.
       std::string ipaddress = "192.168.137.1";
+      if (stim_worker.GetStimulatorType() == StimulatorType::Simulator) {
+        // It's safe to accept connections from anywhere with simulators.
+        ipaddress = "0.0.0.0";
+      }
       uint16_t port = 8889;
       try {
         settings.exp_config->Get(ipaddress, "ipaddress");
@@ -474,7 +544,7 @@ namespace CML {
       for (size_t c=0; c<config_box_cnt; c++) {
         main_window->GetStimConfigBox(c).SetChannel(
             settings.min_stimconf[c].params, settings.max_stimconf[c].params,
-            settings.stimconf[c].label, c);
+            settings.stimconf[c].label, settings.stimconf[c].stimtag, c);
         main_window->GetStimConfigBox(c).SetParameters(
             settings.stimconf[c].params);
       }
@@ -517,7 +587,7 @@ namespace CML {
 
   RC::Data1D<CSStimProfile> Handler::CreateGridProfiles() {
     Data1D<CSStimProfile> grid_profiles;
-    
+
     for (size_t c=0; c<settings.stimgrid_chan_on.size(); c++) {
       if (!settings.stimgrid_chan_on[c]) { continue; }
       auto& chan = settings.stimconf[c];

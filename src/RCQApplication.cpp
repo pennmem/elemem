@@ -8,6 +8,12 @@
 using namespace RC;
 using namespace CML;
 
+// Note - This robustness model was intentionally broken for Qt6 out in 2021,
+// requiring a significant architectural change before any upgrade.
+// Calls to QApplication::notify will simply no longer happen in the future.
+// Possible strategy:  Move catches to RCqt/Worker with a registered
+// exception handler, integrate timers into Worker, and clean up any possible
+// exception propagation from raw gui connects.
 bool RCQApplication::notify(QObject *receiver, QEvent *e) {
   try {
     return QApplication::notify(receiver, e);
@@ -23,8 +29,9 @@ bool RCQApplication::notify(QObject *receiver, QEvent *e) {
     return true;
   }
   catch (RC::ErrorMsg& err) {
-    RStr errormsg = RStr("Error:  ")+err.what();
-    ErrorWin(errormsg);
+    RStr errormsg = RStr("Error:  ")+err.GetError();
+    RStr logmsg = RStr("Error:  ")+err.what();
+    ErrorWin(errormsg, "Error", logmsg);
     return true;
   }
 #ifndef NO_HDF5

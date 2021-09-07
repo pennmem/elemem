@@ -12,7 +12,8 @@ namespace RC {
 namespace CML {
   void PopupWin(const RC::RStr& message, const RC::RStr& title="");
   bool ConfirmWin(const RC::RStr& message, const RC::RStr& title="");
-  void ErrorWin(const RC::RStr& message, const RC::RStr& title="Error");
+  void ErrorWin(const RC::RStr& message, const RC::RStr& title="Error",
+      const RC::RStr& log_message="");
   void DebugLog(const RC::RStr& message);
 
   class PopupManager : public RCqt::Worker {
@@ -27,7 +28,7 @@ namespace CML {
     // No pop-up for this one.  Debugging only.
     RCqt::TaskCaller<const RC::RStr> LogMsg =
       TaskHandler(PopupManager::LogMsg_Handler);
-    RCqt::TaskCaller<const RC::RStr, const RC::RStr> Error =
+    RCqt::TaskCaller<const RC::RStr, const RC::RStr, const RC::RStr> Error =
       TaskHandler(PopupManager::Error_Handler);
 
     RCqt::TaskCaller<const RC::RStr> SetLogFile =
@@ -38,7 +39,8 @@ namespace CML {
     void Info_Handler(const RC::RStr& message, const RC::RStr& title);
     bool Confirm_Handler(const RC::RStr& message, const RC::RStr& title);
     void LogMsg_Handler(const RC::RStr& message);
-    void Error_Handler(const RC::RStr& message, const RC::RStr& title);
+    void Error_Handler(const RC::RStr& message, const RC::RStr& title,
+        const RC::RStr& log_message);
 
     void SetLogFile_Handler(const RC::RStr& filename);
 

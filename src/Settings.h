@@ -22,6 +22,7 @@ namespace CML {
     public:
     CSStimChannel params;
     RC::RStr label;
+    RC::RStr stimtag;
     bool approved;
   };
 

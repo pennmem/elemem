@@ -1,5 +1,4 @@
 #include "Popup.h"
-#include "RC/RC.h"
 #include <QMessageBox>
 
 #define MYTIMESTAMP __TIMESTAMP__
@@ -7,6 +6,10 @@
 using namespace RC;
 
 namespace CML {
+  RC::RStr ElememVersion() {
+    return RC::RStr(MYTIMESTAMP);
+  }
+
   // For the Lohmann JSON library:
   const RC::RStr LICENSE_JSON {
     "<p>JSON for Modern C++ library component:</p>"
@@ -30,7 +33,7 @@ namespace CML {
     "SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>"
   };
 
-	// For the EDFLib library
+  // For the EDFLib library
   const RC::RStr LICENSE_EDFLIB {
     "<p>EDFLib library component:</p>"
     "<p>BSD 3-Clause License</p>"
@@ -63,7 +66,7 @@ namespace CML {
   };
 
   void AboutWin() {
-    RStr year = RStr(MYTIMESTAMP).SplitWords().Last();
+    RStr year = ElememVersion().SplitWords().Last();
 
     RStr title = "Elemem";
     RStr copyright = RStr("&copy; 2019");
@@ -71,7 +74,7 @@ namespace CML {
       copyright += "-" + year;
     }
     copyright += RStr(", Computational Memory Lab, Universiy of Pennsylvania");
-    RStr version = RStr("Build:  ") + MYTIMESTAMP;
+    RStr version = RStr("Build:  ") + ElememVersion();
 
     RStr text = RStr("<p style=\"font-size:x-large\">") + title + "</p>"
               + "<p>" + copyright + "<p/>"
@@ -80,7 +83,7 @@ namespace CML {
     text += "<i>";
     text += "<hr/>";
     text += LICENSE_JSON;
-		text += LICENSE_EDFLIB;
+    text += LICENSE_EDFLIB;
     text += "</i>";
 
     QMessageBox::about(0, title.c_str(), text.c_str());

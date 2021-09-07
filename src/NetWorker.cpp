@@ -161,6 +161,11 @@ namespace CML {
       else if (type == "STIM") {
         hndl->stim_worker.Stimulate();
       }
+      else if (type == "STIMSELECT") {
+        RC::RStr stimtag;
+        inp.Get(stimtag, "data", "stimtag");
+        hndl->SelectStim(stimtag);
+      }
       else if (type == "SESSION") {
         int64_t session;
         inp.Get(session, "data", "session");
@@ -188,8 +193,10 @@ namespace CML {
     }
   }
 
+  // TODO - Add support for checking stimtag list.
   void NetWorker::ProtConfigure(const JSONFile& inp) {
     Data1D<RStr> errors;
+    Data1D<RStr> stimtags;
 
     std::string task_stim_mode;
     std::string task_experiment;
@@ -209,6 +216,12 @@ namespace CML {
       Compare(errors, "stim_mode", task_stim_mode, host_stim_mode);
       Compare(errors, "experiment", task_experiment, host_experiment);
       Compare(errors, "subject", task_subject, host_subject);
+
+      if (inp.TryGet(stimtags, "data", "stimtags")) {
+        for (size_t s=0; s<stimtags.size(); s++) {
+          hndl->SelectStim(stimtags[s]);
+        }
+      }
     }
     catch (ErrorMsg& e) {
       errors += RStr(e.what()).SplitFirst("\n")[0];

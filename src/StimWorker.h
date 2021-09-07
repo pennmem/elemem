@@ -6,6 +6,7 @@
 #include "RCqt/Worker.h"
 
 namespace CML {
+  enum class StimulatorType { CereStim, Simulator };
   class Handler;
   class StatusPanel;
 
@@ -25,6 +26,8 @@ namespace CML {
 
     RCqt::TaskBlocker<> CloseCereStim =
       TaskHandler(StimWorker::CloseCereStim_Handler);
+
+    StimulatorType GetStimulatorType() const;
 
     protected:
     void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {

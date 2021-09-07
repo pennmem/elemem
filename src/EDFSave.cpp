@@ -121,8 +121,8 @@ namespace CML {
           deb_msg += "sampling_rate = " + RC::RStr(sampling_rate) + ", ";
           deb_msg += "amount_buffered = " + RC::RStr(amount_buffered) + "\n";
           for (size_t dc=0; dc<channels.size(); dc++) {
-            deb_msg += RC::RStr(buffer.data[channels[c]].size()) + " elements:  ";
-            deb_msg += RC::RStr::Join(buffer.data[channels[c]], ", ");
+            deb_msg += RC::RStr(buffer.data[channels[dc]].size()) + " elements:  ";
+            deb_msg += RC::RStr::Join(buffer.data[channels[dc]], ", ");
             deb_msg += "\n";
           }
           DebugLog(deb_msg);
