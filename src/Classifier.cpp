@@ -1,26 +1,28 @@
-#include "Classifier.h"
-#include "RC/Macros.h"
-#include "Handler.h"
-#include "EEGAcq.h"
+#ifndef CLASSIFIER_H
+#define CLASSIFIER_H
+
+#include "EEGData.h"
+#include "RC/Ptr.h"
+#include "RC/RStr.h"
+#include "RCqt/Worker.h"
+
 
 namespace CML {
-  Classifier::Classifier(RC::Ptr<Handler> hndl, size_t sampling_rate)
-      : hndl(hndl), buffer(sampling_rate),
-        sampling_rate(sampling_rate) {
-      callback_ID = RC::RStr("Classifier_") + RC::RStr(sampling_rate);
-      buffer.sampling_rate = sampling_rate;
+  class Classifier : public RCqt::WorkerThread {
+    public:
 
-      hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
-    }
+    Classifier::Classifier() {}
 
-  void Classifier::ClassifyData_Handler(RC::APtr<const EEGData>& data) {
-    auto& datar = data->data;
-    if (buffer.data.size() < datar.size()) {
-      buffer.data.Resize(datar.size());
+    int Classifier::classify(RC::APtr<const EEGData> eegData) {
+      // TODO: Ryan, this feels wrong to me (I don't think there is a valid
+      //       default classifier). Are you okay with this?
+      // Always return true;
+      return true;
     }
     
-    RC::RStr deb_msg("Data\n");
-    //DebugLog(deb_msg);
-    RC_DEBOUT(deb_msg);
-  }
+    protected:
+    RC::RStr callback_ID;
+  };
 }
+
+#endif // CLASSIFIER_EVEN_ODD_H

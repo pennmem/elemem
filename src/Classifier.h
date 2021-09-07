@@ -8,39 +8,17 @@
 
 
 namespace CML {
-  class Handler;
-
   class Classifier : public RCqt::WorkerThread {
     public:
 
-    Classifier(RC::Ptr<Handler> hndl, size_t sampling_rate); 
+    Classifier();
 
-    //Classifier(RC::Ptr<Handler> hndl, size_t sampling_rate) 
-    //  : hndl(hndl), buffer(sampling_rate), 
-    //    sampling_rate(sampling_rate) {
-    //  callback_ID = RC::RStr("Classifier_") + RC::RStr(sampling_rate);
-    //  buffer.sampling_rate = sampling_rate;
-
-    //  hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
-    //}
+    // TODO: Decide whether this should return an int or a bool
+    int classify(RC::APtr<const EEGData> eegData);
     
-    RCqt::TaskCaller<RC::APtr<const EEGData>> ClassifyData = 
-      TaskHandler(Classifier::ClassifyData_Handler);
-
     protected:
-    //void StartClassifier_Handler(const RC::RStr& filename,
-    //                             const FullConf& conf) override;
-    // Thread ordering constraint:
-    // Must call Stop after Start, before this Destructor, and before
-    // hndl->eeg_acq is deleted.
-    //void StopClassifier_Handler() override;
-    void ClassifyData_Handler(RC::APtr<const EEGData>& data);
-
-    RC::Ptr<Handler> hndl;
-    EEGData buffer;
-    size_t sampling_rate;
     RC::RStr callback_ID;
   };
 }
 
-#endif // CLASSIFIER_H
+#endif // CLASSIFIER_EVEN_ODD_H

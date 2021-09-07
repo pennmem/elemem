@@ -79,8 +79,9 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/ChannelSelector.cpp
   src/CImage.h
   src/CImage.cpp
+  src/ClassificationData.h
+  src/ClassificationData.cpp
   src/Classifier.h
-  src/Classifier.cpp
   src/ConfigFile.h
   src/ConfigFile.cpp
   src/EDFSave.h
