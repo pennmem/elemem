@@ -44,7 +44,7 @@ namespace CML {
 #else
       eeg_save(new HDF5Save(this, 1000)),
 #endif
-      classifier(new Classifier(this, 1000)),
+      classification_data(this, 1000),
       net_worker(this),
       elemem_dir(File::FullPath(GetDesktop(), "ElememData")),
       non_session_dir(File::FullPath(elemem_dir, "NonSessionData")),
