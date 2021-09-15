@@ -1,6 +1,7 @@
 #include "EEGDisplay.h"
 #include "RC/RC.h"
 #include <algorithm>
+#include <cmath>
 
 using namespace RC;
 

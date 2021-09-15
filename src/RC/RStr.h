@@ -1013,7 +1013,9 @@ namespace RC {
     RC_RSTR_Int_Input(i32)
     RC_RSTR_Int_Input(u64)
     RC_RSTR_Int_Input(i64)
-
+#ifdef __APPLE__
+    RC_RSTR_Int_Input(size_t)
+#endif
 
 #define RC_RSTR_Float_Input(TYPE) \
     /** \brief Formats x as a string in the given style, and with it rounded
