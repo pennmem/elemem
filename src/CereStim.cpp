@@ -57,8 +57,9 @@ namespace CML {
     max_vals.phase_charge = 20000000; // Won't go above 1.05e6 with 300us
     max_vals.frequency = 1000; // Hz
     was_active = false;
+    is_configured = false;
 
-    SetMaxValues(max_vals);    
+    SetMaxValues(max_vals);
   }
 
   CereStim::~CereStim() {
@@ -73,6 +74,7 @@ namespace CML {
       CS_Disconnect();
 
       is_open = false;
+      is_configured = false;
     }
   }
 
@@ -150,9 +152,15 @@ namespace CML {
   }
 
   void CereStim::ConfigureStimulation(CSStimProfile profile) {
+    is_configured = false;
     BeOpen();
 
     StopStimulation();
+
+    // Reset defaults.
+    burst_slow_freq = 0;
+    burst_frac = 1;
+    burst_duration_us = 0;
 
     struct FreqDurAmp {
       uint32_t frequency;
@@ -176,7 +184,9 @@ namespace CML {
 
     // Verify electrodes are all unique.
     std::vector<uint8_t> uniqueness_check(256);
-    for (auto& prof: profile.stim_profile) {
+    for (size_t i=0; i<profile.stim_profile.size(); i++) {
+      auto& prof =  profile.stim_profile[i];
+
       if (uniqueness_check.at(prof.electrode_pos) ||
           uniqueness_check.at(prof.electrode_neg) ||
           prof.electrode_pos == prof.electrode_neg) {
@@ -184,11 +194,39 @@ namespace CML {
       }
       uniqueness_check.at(prof.electrode_pos) = 1;
       uniqueness_check.at(prof.electrode_neg) = 1;
+
+      if (i==0) {  // Save first burst setting.
+        burst_slow_freq = prof.burst_slow_freq;
+        burst_frac = prof.burst_frac;
+        burst_duration_us = prof.duration;
+      }  // All burst settings must be identical.
+      else if ((burst_slow_freq != prof.burst_slow_freq) ||
+               (std::abs(burst_frac - prof.burst_frac) > 0.001) ||
+               (burst_duration_us != prof.duration)) {
+        throw std::runtime_error("Simultaneous stim channels must be all "
+            "identical duration and burst stim settings, or all not burst "
+            "stim.");
+      }
+    }
+
+    // Sensible burst settings only.
+    if (burst_frac > 1) {
+      throw std::runtime_error("Attempted to configure stim burst fraction "
+          "greater than 1.");
+    }
+    if (burst_frac < 1) {
+      if (burst_slow_freq == 0) {
+        throw std::runtime_error("Attempted burst fraction less than 1 at "
+            "0 Hz.");
+      }
+    }
+    if (burst_frac == 1) {
+      burst_slow_freq = 0;  // Triggers no burst in stim worker.
     }
 
 
     std::vector<size_t> pattern_index(prof_size);
-    
+
     for (size_t i=0; i<prof_size; i++) {
       // CS can only store 15 stimulus patterns.
       // For bipolar stimulation, only 7 pairs can be stored.
@@ -217,6 +255,12 @@ namespace CML {
       auto& afd = fda_vec[i];
       uint16_t interphase = 53;
       uint64_t pulses_64 = (uint64_t(afd.duration) * afd.frequency) / 1000000;
+      if (burst_frac < 1) {
+        // Configure stim profile for burst-on period only.
+        pulses_64 = uint64_t(round(afd.frequency * burst_frac /
+                                   burst_slow_freq));
+      }
+
       if (pulses_64 < 1) {
         pulses_64 = 1;
       }
@@ -266,9 +310,16 @@ namespace CML {
     ErrorCheck(
       CS_EndOfSequence()
     );
+
+    is_configured = true;
   }
 
   void CereStim::Stimulate() {
+    if ( ! is_configured ) {
+      throw std::runtime_error("Stimulation attempted when no stim pattern "
+          "was internally configured.");
+    }
+
     BeOpen();
 
     StopStimulation();

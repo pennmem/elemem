@@ -23,14 +23,14 @@ namespace CML {
     protected:
     void SetChannel_Handler(const CSStimChannel& minvals,
       const CSStimChannel& maxvals, const RC::RStr& label="",
-      const size_t& index=0);
+      const RC::RStr& stimtag="", const size_t& index=0);
     void SetParameters_Handler(const CSStimChannel& stim_params);
     void Clear_Handler();
     void SetEnabled_Handler(const bool& enabled);
 
     public:
     RCqt::TaskCaller<const CSStimChannel, const CSStimChannel,
-      const RC::RStr, const size_t>
+      const RC::RStr, const RC::RStr, const size_t>
       SetChannel = TaskHandler(StimConfigBox::SetChannel_Handler);
     RCqt::TaskCaller<const CSStimChannel> SetParameters =
       TaskHandler(StimConfigBox::SetParameters_Handler);

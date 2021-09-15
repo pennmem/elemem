@@ -18,8 +18,9 @@ namespace CML {
   }
 
 
-  void ErrorWin(const RStr& message, const RStr& title) {
-    PopupManager::GetManager()->Error(message, title);
+  void ErrorWin(const RStr& message, const RStr& title,
+      const RStr& log_message) {
+    PopupManager::GetManager()->Error(message, title, log_message);
   }
 
   void DebugLog(const RStr& message) {
@@ -44,12 +45,18 @@ namespace CML {
 
   void PopupManager::LogMsg_Handler(const RStr& message) {
     if (log_file.IsOpen()) {
-      log_file.Put(Time::GetStr() + ", " + message);
+      log_file.Put(Time::GetStr() + ", " + message + "\n");
     }
   }
 
-  void PopupManager::Error_Handler(const RStr& message, const RStr& title) {
-    LogMsg_Handler(title + "\n" + message);
+  void PopupManager::Error_Handler(const RStr& message, const RStr& title,
+      const RStr& log_message) {
+    if (log_message.empty()) {
+      LogMsg_Handler(title + "\n" + message);
+    }
+    else {
+      LogMsg_Handler(title + "\n" + log_message);
+    }
     QMessageBox::warning(0, title.c_str(), message.c_str());
   }
 

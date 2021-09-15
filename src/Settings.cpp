@@ -64,19 +64,21 @@ namespace CML {
                              elec_config->data[r][0]);
     }
 
-		return new_chans;
+    return new_chans;
   }
 
-	void Settings::LoadChannelSettings() {
+  void Settings::LoadChannelSettings() {
     auto stim_channels = exp_config->Node("experiment",
         "stim_channels");
     stimconf.Resize(stim_channels.size());
     min_stimconf.Resize(stim_channels.size());
     max_stimconf.Resize(stim_channels.size());
+    stimgrid_chan_on.Resize(stim_channels.size());
+    stimgrid_chan_on.Zero();
 
-		float f;
-		std::vector<float> vf;
-		std::vector<uint32_t> vi;
+    float f;
+    std::vector<float> vf;
+    std::vector<uint32_t> vi;
 
     for (size_t c=0; c<stim_channels.size(); c++) {
       std::string label;
@@ -126,6 +128,36 @@ namespace CML {
       stimconf[c].label = label;
       stimconf[c].params.electrode_pos = elecs[0];
       stimconf[c].params.electrode_neg = elecs[1];
+
+      // burst settings
+      float burst_frac = 1;
+      uint32_t burst_slow_freq = 0;
+      if (!stim_channels[c].TryGet(burst_frac, "burst_fraction")) {
+        uint32_t throwaway = 0;
+        if (stim_channels[c].TryGet(throwaway, "burst_slow_freq_Hz")) {
+          Throw_RC_Type(File, "In experiment stim_channels config, "
+              "burst_slow_freq_Hz cannot be processed if "
+              "burst_fraction is not set.");
+        }
+      }
+
+      if (burst_frac != 1) {
+        stim_channels[c].Get(burst_slow_freq, "burst_slow_freq_Hz");
+        if (burst_slow_freq == 0) {
+          Throw_RC_Type(File, "In experiment stim_channels config, if "
+              "burst_fraction is set and not equal to 1, "
+              "burst_slow_freq_Hz must be set and non-zero.");
+        }
+      }
+
+      stimconf[c].params.burst_frac = burst_frac;
+      stimconf[c].params.burst_slow_freq = burst_slow_freq;
+
+
+      RC::RStr stimtag;
+      stim_channels[c].TryGet(stimtag, "stimtag");
+      stimconf[c].stimtag = stimtag;
+
 
       // Get the electrode area from the csv file.  Min of the pairs.
       float area_mmsq = std::numeric_limits<float>::max();
@@ -223,7 +255,7 @@ namespace CML {
             " default stim value outside of allowed range").c_str());
       }
     }
-	}
+  }
 
 
   template<class D, class R>
@@ -238,11 +270,11 @@ namespace CML {
   }
 
 
-	void Settings::LoadStimParamGrid() {
+  void Settings::LoadStimParamGrid() {
     // stim_parameter ranges for grid search, if they exist.
 
-		std::vector<float> vf;
-		std::vector<uint32_t> vi;
+    std::vector<float> vf;
+    std::vector<uint32_t> vi;
 
     // Grab grid params from config.  Exception if missing.
     exp_config->Get(vf, "experiment", "stim_parameters",
@@ -252,10 +284,12 @@ namespace CML {
       stimgrid_amp_uA[i] = uint16_t(vf[i]*1000+0.5);
     }
     stimgrid_amp_on.Resize(stimgrid_amp_uA.size());
+    stimgrid_amp_on.Zero();
 
     exp_config->Get(stimgrid_freq_Hz, "experiment", "stim_parameters",
         "frequencies_Hz");
     stimgrid_freq_on.Resize(stimgrid_freq_Hz.size());
+    stimgrid_freq_on.Zero();
 
     exp_config->Get(vi, "experiment", "stim_parameters",
         "durations_ms");
@@ -264,6 +298,7 @@ namespace CML {
       stimgrid_dur_us[i] = uint32_t(vi[i]*1000+0.5);
     }
     stimgrid_dur_on.Resize(stimgrid_dur_us.size());
+    stimgrid_dur_on.Zero();
 
     // Validate values within min/max.
     size_t chcnt = min_stimconf.size();
@@ -293,7 +328,7 @@ namespace CML {
   }
 
 
-	void Settings::UpdateConfFR(JSONFile& current_config) {
+  void Settings::UpdateConfFR(JSONFile& current_config) {
     for (size_t c=0; c<stimconf.size(); c++) {
       current_config.Set(stimconf[c].params.amplitude,
           "experiment", "stim_channels", c, "amplitude_mA");
@@ -305,7 +340,7 @@ namespace CML {
   }
 
 
-	void Settings::UpdateConfOPS(JSONFile& current_config) {
+  void Settings::UpdateConfOPS(JSONFile& current_config) {
     RC::Data1D<RC::RStr> sel_chans;
     for (size_t i=0; i<stimconf.size(); i++) {
       if (stimgrid_chan_on[i]) {
@@ -326,7 +361,8 @@ namespace CML {
         sel_amp.Append(stimgrid_amp_uA[i]/1000.0f);
       }
     }
-    current_config.Set(sel_amp, "experiment", "stim_parameters", "amplitudes");
+    current_config.Set(sel_amp, "experiment", "stim_parameters",
+        "amplitudes_mA");
 
     RC::Data1D<uint32_t> sel_freq;
     for (size_t i=0; i<stimgrid_freq_Hz.size(); i++) {
@@ -335,7 +371,7 @@ namespace CML {
       }
     }
     current_config.Set(sel_freq, "experiment", "stim_parameters",
-        "frequencies");
+        "frequencies_Hz");
 
     RC::Data1D<uint32_t> sel_dur;
     for (size_t i=0; i<stimgrid_dur_us.size(); i++) {
@@ -343,8 +379,9 @@ namespace CML {
         sel_dur.Append(stimgrid_dur_us[i]/1000.0f+0.5f);
       }
     }
-    current_config.Set(sel_dur, "experiment", "stim_parameters", "durations");
-	}	
+    current_config.Set(sel_dur, "experiment", "stim_parameters",
+        "durations_ms");
+  }
 
 
   size_t SumBool(const RC::Data1D<bool> &data) {

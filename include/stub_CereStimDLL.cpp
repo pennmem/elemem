@@ -52,7 +52,7 @@ CS_EXPORT int CS_SetMaxValues(uint8_t voltage, uint16_t amplitude, uint32_t
 CS_EXPORT int CS_ConfigureStimulusPattern(uint16_t waveform, uint8_t
     cathodic_first, uint8_t pulses, uint16_t amp1, uint16_t amp2, uint16_t
     width1, uint16_t width2, uint32_t frequency, uint16_t interphase) {
-  cout << "CS_ConfigureStimulusPattern(" << waveform << ", " << cathodic_first << ", " << pulses << ", amp=[" << amp1 << ", " << amp2 << "], width=[" << width1 << ", " << width2 << "], " << frequency << ", " << interphase << ")\n";
+  cout << "CS_ConfigureStimulusPattern(" << waveform << ", " << uint32_t(cathodic_first) << ", " << uint32_t(pulses) << ", amp=[" << amp1 << ", " << amp2 << "], width=[" << width1 << ", " << width2 << "], " << frequency << ", " << interphase << ")\n";
   if (waveform == 0 || waveform > 15 ||
       cathodic_first > 1 ||
       amp1 == 0 || amp1 > 10000 ||

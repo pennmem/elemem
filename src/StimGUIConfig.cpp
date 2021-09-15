@@ -53,12 +53,17 @@ namespace CML {
 
   void StimConfigBox::SetChannel_Handler(const CSStimChannel& minvals,
       const CSStimChannel& maxvals, const RC::RStr& label,
-      const size_t& index) {
+      const RC::RStr& stimtag, const size_t& index) {
     disabled = true;
-    setTitle((RStr(minvals.electrode_pos) + "_" +
-          RStr(minvals.electrode_neg)).ToQString());
+    RC::RStr new_title = RStr(minvals.electrode_pos) + "_" +
+          RStr(minvals.electrode_neg);
+    if (!stimtag.empty()) {
+      new_title += " \"" + stimtag + "\"";
+    }
+    setTitle(new_title.ToQString());
     settings.params = minvals;
     settings.label = label;
+    settings.stimtag = stimtag;
     settings.approved = false;
     amp->SetRange(minvals.amplitude * 1e-3, maxvals.amplitude * 1e-3);
     freq->SetRange(minvals.frequency, maxvals.frequency);
