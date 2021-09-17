@@ -73,7 +73,7 @@ namespace CML {
     if (year != "2019") {
       copyright += "-" + year;
     }
-    copyright += RStr(", Computational Memory Lab, Universiy of Pennsylvania");
+    copyright += RStr(", Computational Memory Lab, University of Pennsylvania");
     RStr version = RStr("Build:  ") + ElememVersion();
 
     RStr text = RStr("<p style=\"font-size:x-large\">") + title + "</p>"
