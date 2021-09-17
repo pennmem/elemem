@@ -39,17 +39,13 @@ namespace CML {
 
   Handler::Handler()
     : stim_worker(this),
-#ifdef NO_HDF5
-      eeg_save(new EDFSave(this, 1000)),
-#else
-      eeg_save(new HDF5Save(this, 1000)),
-#endif
       classification_data(this, 1000),
       net_worker(this),
       elemem_dir(File::FullPath(GetDesktop(), "ElememData")),
       non_session_dir(File::FullPath(elemem_dir, "NonSessionData")),
       exper_ops(this) {
 
+    NewEEGSave();
     File::MakeDir(elemem_dir);
     File::MakeDir(non_session_dir);
   }
@@ -503,6 +499,9 @@ namespace CML {
       throw;
     }
 
+    // Resets sampling rate from the config file value.
+    NewEEGSave();
+
 
     // Setup gui elements.
     main_window->GetStatusPanel()->SetSubject(settings.sub);
@@ -565,6 +564,14 @@ namespace CML {
   void Handler::Shutdown_Handler() {
     eeg_acq.CloseCerebus();
     CloseExperimentComponents();
+  }
+
+  void Handler::NewEEGSave() {
+#ifdef NO_HDF5
+    eeg_save = new EDFSave(this, settings.sampling_rate);
+#else
+    eeg_save = new HDF5Save(this, settings.sampling_rate);
+#endif
   }
 
   void Handler::SaveDefaultEEG() {

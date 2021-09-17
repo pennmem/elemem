@@ -139,6 +139,7 @@ namespace CML {
     }
     void Shutdown_Handler();
 
+    void NewEEGSave();
     void SaveDefaultEEG();
     RC::Data1D<CSStimProfile> CreateGridProfiles();
 
