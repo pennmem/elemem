@@ -1,0 +1,54 @@
+{
+  "electrode_config_file": "R1999J_17JAN2020L0M0NOSTIM.csv",
+  "experiment": {
+    "stim_mode": "open",
+    "stim_channels": [
+      {
+        "electrodes": "LA1_LA2",  // Splitter mode.
+        "amplitude_range_mA": [0, 0.5],
+        "frequency_range_Hz": [100, 200],
+        "duration_range_ms": [250, 500]
+      },
+      {
+        "electrodes": "LA3_LA4",  // Splitter mode.
+        "amplitude_range_mA": [0, 0.5],
+        "frequency_range_Hz": [100, 200],
+        "duration_range_ms": [250, 500]
+      },
+      {
+        "electrodes": [5, 6],  // Channel numbers in montage.
+        "amplitude_range_mA": [0, 0.5],
+        "frequency_range_Hz": [100, 200],
+        "duration_range_ms": [250, 500]
+      }
+    ],
+    "stim_parameters": {
+      "amplitudes_mA": [0.1, 0.25, 0.5],
+      "frequencies_Hz": [100, 150, 200],
+      "durations_ms": [250, 375, 500]
+    },
+    "experiment_specs": {
+      "num_stim_trials": 90,
+      "num_sham_trials": 90,
+      "intertrial_range_ms": [2750, 3250],
+      "sham_duration_ms": 5000
+    },
+    "type": "OPS"
+  },
+  "global_settings": {
+    "connect_to_task_laptop": false,
+    "data_dir": "AUTOMATIC",
+    "experiment_config_filename": "AUTOMATIC",
+    "hardware_lnc": true,
+    "lnc_time_constant": 10,
+    "dc_offset_correction": true,
+    "plot_window_length": 6000,
+    #"micro_sampling_rate": 30000,  
+    "macro_sampling_rate": 1000
+  },
+#  "montage_file": "config_files/contacts.json",
+#  "excluded_montage_file": "config_files/excluded_contacts.json",
+  "ipaddress": "192.168.215.1", // Second ethernet port for Mac laptop connection.
+#  "port": 8889,  // Set this only if override needed.
+  "subject": "R1999J"
+}
