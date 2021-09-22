@@ -14,3 +14,6 @@ latex
 # Dist folder (build dir)
 dist/**
 
+nohup.out
+*/nohup.out
+
