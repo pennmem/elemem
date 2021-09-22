@@ -2,3 +2,6 @@ build*
 *~
 CMakeLists.txt.user
 tags
+config/
+nohup.out
+*/nohup.out

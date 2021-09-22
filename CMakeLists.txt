@@ -8,8 +8,8 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 ######################
 # Compilation settings
 
-set(IS_RELEASE true)
-option(CEREBUS_STUB "Use the Cerebus simulator" OFF) # cmake CEREBUS_STUB .
+set(IS_RELEASE false)
+option(CEREBUS_STUB "Use the Cerebus simulator" ON) # cmake CEREBUS_STUB .
 option(CERESTIM_STUB # cmake CERESTIM_STUB .
   "Use the CereStim simulator (default ON for non-Windows)" OFF)
 option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake HDF5_EXPORT .
