@@ -342,11 +342,11 @@ namespace CML {
 
   void Settings::UpdateConfFR(JSONFile& current_config) {
     for (size_t c=0; c<stimconf.size(); c++) {
-      current_config.Set(stimconf[c].params.amplitude,
+      current_config.Set(stimconf[c].params.amplitude*1e-3,
           "experiment", "stim_channels", c, "amplitude_mA");
       current_config.Set(stimconf[c].params.frequency,
           "experiment", "stim_channels", c, "frequency_Hz");
-      current_config.Set(stimconf[c].params.duration,
+      current_config.Set(uint32_t((stimconf[c].params.duration+500)/1000),
           "experiment", "stim_channels", c, "duration_ms");
     }
   }
