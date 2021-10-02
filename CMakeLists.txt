@@ -69,6 +69,20 @@ else (CEREBUS_STUB)
   set (CEREBUS_FILE src/Cerebus.cpp)
 endif (CEREBUS_STUB)
 
+set (PTSA_INCLUDE_DIRS
+  ptsa_new/ptsa/extensions/morlet
+  ptsa_new/ptsa/extensions/ThreadPool
+)
+set (PTSA_FILES
+  ptsa_new/ptsa/extensions/morlet/enums.h
+  ptsa_new/ptsa/extensions/morlet/morlet.h
+  ptsa_new/ptsa/extensions/morlet/morlet.cpp
+  ptsa_new/ptsa/extensions/morlet/MorletWaveletTransformMP.h
+  ptsa_new/ptsa/extensions/morlet/MorletWaveletTransformMP.cpp
+  ptsa_new/ptsa/extensions/ThreadPool/ThreadPool.h
+)
+
+
 add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Elemem.cpp
   #src/api_tests.cpp
@@ -106,6 +120,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/ExperOPS.h
   src/ExperOPS.cpp
   src/ExpEvent.h
+  src/FeatureGenerator.h
   src/GuiParts.h
   src/GuiParts.cpp
   src/Handler.h
@@ -118,6 +133,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/LocGUIConfig.cpp
   src/MainWindow.h
   src/MainWindow.cpp
+  src/MorletTransformer.h
+  src/MorletTransformer.cpp
   src/NetWorker.h
   src/NetWorker.cpp
   src/OpenConfigDialog.h
@@ -175,6 +192,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/RCqt/Worker.cpp
 
   include/edflib/edflib.cpp
+  ${PTSA_FILES}
 )
 
 ####################
@@ -210,6 +228,16 @@ else (WIN32)
 endif (WIN32)
 
 
+find_package(PkgConfig REQUIRED)
+pkg_search_module(FFTW REQUIRED fftw3 IMPORTED_TARGET)
+include_directories(PkgConfig::FFTW)
+set(FFTW_LIB PkgConfig::FFTW)
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+set(PTHREAD_LIB Threads::Threads pthread)
+
+# Download submodules
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
   option(GIT_SUBMODULE "Check submodules during build" ON)
@@ -239,6 +267,7 @@ target_include_directories (${PROJECT_NAME} PUBLIC
   ${PROJECT_SOURCE_DIR}/src/RC
   ${PROJECT_SOURCE_DIR}/src/RCqt
   ${HDF5_INCLUDE_DIRS}
+  ${PTSA_INCLUDE_DIRS}
 )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
@@ -247,6 +276,8 @@ target_link_libraries (${PROJECT_NAME}
   ${CBSDK_LIB}
   ${CSTIM_LIB}
   ${HDF5_LIBRARIES}
+  ${FFTW_LIB}
+  ${PTHREAD_LIB}
 )
 
 target_compile_definitions (${PROJECT_NAME} PUBLIC

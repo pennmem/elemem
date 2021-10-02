@@ -158,6 +158,11 @@ namespace RC {
 
 
   RC_STREAM_RAWWRAP(RevPtr);
+
+  template<class T, class... Args>
+  RevPtr<T> MakeRevPtr(Args&&... args) {
+    return RevPtr<T>(new T(std::forward<Args>(args)...));
+  }
 }
 
 

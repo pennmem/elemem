@@ -118,6 +118,12 @@ namespace RC {
 
 
   RC_STREAM_RAWWRAP(APtr);
+
+
+  template<class T, class... Args>
+  APtr<T> MakeAPtr(Args&&... args) {
+    return APtr<T>(new T(std::forward<Args>(args)...));
+  }
 }
 
 

@@ -13,6 +13,12 @@ namespace CML {
     float burst_frac = 1; // Fraction of 1/burst_slow_freq to stimulate for.
     uint32_t burst_slow_freq = 0; // Unit Hz.  Slower envelope freq of bursts.
   };
+
+  class BipolarPair {
+    public:
+    uint8_t pos = 0;
+    uint8_t neg = 0;
+  };
 }
 
 #endif // CHANNELCONF_G
