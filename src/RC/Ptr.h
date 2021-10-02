@@ -91,6 +91,12 @@ namespace RC {
 
 
   RC_STREAM_RAWWRAP(Ptr);
+
+  template<class T, class... Args>
+  Ptr<T> MakePtr(Args&&... args) {
+    return Ptr<T>(new T(std::forward<Args>(args)...));
+  }
+
 }
 
 

@@ -38,8 +38,8 @@ namespace CML {
     } 
     deb_msg += "\n\n";
     RC_DEBOUT(deb_msg);
-    #include <stdlib.h>
-    exit(0);
+//    #include <stdlib.h>
+//    exit(0);
   }
   
 }

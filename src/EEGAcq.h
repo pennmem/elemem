@@ -14,7 +14,7 @@ namespace CML {
 
   class EEGAcq : public RCqt::WorkerThread, public QObject {
     public:
-    
+
     EEGAcq();
     ~EEGAcq();
 
