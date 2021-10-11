@@ -77,7 +77,9 @@ namespace CML {
       if (data.data[chan].size() > 0) {
         SetPen(palette.NormToARGB(0.0f, 0.4f, 1.0f, 1.0f));
         QPointF last(qreal(margin_left), qreal(draw_mid - (data.data[chan][0]*yscale)));
-        size_t inc = data_samples / 3000;  // skip data for display
+        // Skip data for display, slicing at 500Hz.
+        size_t inc = data_samples / (window_seconds*500);
+
         for (x = inc; x < data_samples; x+=inc) {
           QPointF current(qreal(x * xscale), qreal(draw_mid - (data.data[chan][x] * yscale)));
           painter.drawLine(last, current);
