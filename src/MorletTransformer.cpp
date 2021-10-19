@@ -10,7 +10,7 @@ namespace CML {
       Throw_RC_Error("Must configure at least one channel and one frequency "
           "for classification.");
     }
-
+    return; //JPB: TODO: Remove (this causes an exception)
     mt = new MorletWaveletTransformMP(mor_set.cpus);
 
     mt->set_output_type(OutputType::POWER);
@@ -25,6 +25,7 @@ namespace CML {
 
 
   void MorletTransformer::Process_Handler(RC::APtr<const EEGData>& data) {
+    RC_DEBOUT(RC::RStr("\n\nAHHHHHHHHHHHH\n\n"));
     if ( ! callback.IsSet() ) {
       return;
     }
