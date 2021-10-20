@@ -105,7 +105,7 @@ namespace CML {
     morlet_settings.frequencies = RC::Data1D<double>{1};
     feature_generator = new MorletTransformer(morlet_settings);
     classification_data.callback = feature_generator->Process;
-    classification_data.callback = feature_generator->Temp;
+    //classification_data.callback = RCqt::TaskCaller(feature_generator, RC::MakeCaller(feature_generator, &FeatureGenerator::Process));
 
     File::MakeDir(elemem_dir);
     File::MakeDir(non_session_dir);
