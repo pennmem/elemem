@@ -10,6 +10,8 @@ namespace CML {
       Throw_RC_Error("Must configure at least one channel and one frequency "
           "for classification.");
     }
+
+    Temp = MakeCaller(this, &MorletTransformer::DoNothing);
     return; //JPB: TODO: Remove (this causes an exception)
     mt = new MorletWaveletTransformMP(mor_set.cpus);
 
