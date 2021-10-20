@@ -31,7 +31,6 @@ namespace CML {
     RCqt::TaskCaller<MorletCallback> SetCallback =
       TaskHandler(MorletTransformer::SetCallback_Handler);
 
-    void DoNothing(RC::APtr<const EEGData> data) { RC_DEBOUT(RC::RStr("\n\nDO NOTHING\n\n")); }
 
     protected:
     void Process_Handler(RC::APtr<const EEGData>& data);

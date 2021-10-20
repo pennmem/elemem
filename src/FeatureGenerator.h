@@ -13,9 +13,6 @@ namespace CML {
     RCqt::TaskCaller<RC::APtr<const EEGData>> Process =
       TaskHandler(FeatureGenerator::Process_Handler);
 
-    using EEGCallback = RC::Caller<void, RC::APtr<const EEGData>>;
-    EEGCallback Temp;
-
     protected:
     virtual void Process_Handler(RC::APtr<const EEGData>&) = 0;
   };
