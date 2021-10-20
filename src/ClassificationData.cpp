@@ -40,11 +40,11 @@ namespace CML {
     RC_DEBOUT(deb_msg);
 
     callback(data);
-//    #include <stdlib.h>
-//    exit(0);
+    #include <stdlib.h>
+    exit(0);
   }
   
-  //void ClassificationData::SetCallback_Handler(EEGCallback& new_callback) {
-  //  callback = new_callback;
-  //}
+  void ClassificationData::SetCallback_Handler(EEGCallback& new_callback) {
+    callback = new_callback;
+  }
 }

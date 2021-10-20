@@ -11,7 +11,7 @@ namespace CML {
   class Handler;
   class Classifier;
 
-  //using EEGCallback = RC::Caller<void, RC::APtr<const EEGData>>;
+  using EEGCallback = RC::Caller<void, RC::APtr<const EEGData>>;
 
   class ClassificationData : public RCqt::WorkerThread {
     public:
@@ -20,11 +20,10 @@ namespace CML {
     RCqt::TaskCaller<RC::APtr<const EEGData>> ClassifyData = 
       TaskHandler(ClassificationData::ClassifyData_Handler);
     
-    void DoNothing(RC::APtr<const EEGData>& data) { RC_DEBOUT(RC::RStr("\n\nSETUP FUNC\n\n")); }
-    RCqt::TaskCaller<RC::APtr<const EEGData>> callback = TaskHandler(ClassificationData::DoNothing);
-
     //RCqt::TaskCaller<EEGCallback> SetCallback = 
     //  TaskHandler(ClassificationData::SetCallback_Handler);
+
+    EEGCallback callback;
 
     protected:
     // TODO: Decide whether to have json configurable variables for the
@@ -38,7 +37,7 @@ namespace CML {
     //void StopClassifier_Handler() override;
     void ClassifyData_Handler(RC::APtr<const EEGData>& data);
 
-    //void SetCallback_Handler(EEGCallback& new_callback);
+    void SetCallback_Handler(EEGCallback& new_callback);
 
     RC::Ptr<Handler> hndl;
     EEGData buffer;
