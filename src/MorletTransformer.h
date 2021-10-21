@@ -22,7 +22,7 @@ namespace CML {
     bool complete = true;
   };
 
-  using MorletCallback = RC::Caller<void, RC::APtr<const RC::Data1D<double>>>;
+  using MorletCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
 
   class MorletTransformer : public FeatureGenerator {
     public:

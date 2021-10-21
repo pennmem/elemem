@@ -364,6 +364,7 @@ namespace RCqt {
     virtual RC::CallerBase<void, Params&...>* Copy() const {
       return new BaseTaskClass<task_type, Params...>(worker, handler);
     }
+    virtual bool IsSet() { return handler.IsSet(); }
     protected:
     RC::Ptr<Worker> worker;
     RC::Caller<void, Params&...> handler;
