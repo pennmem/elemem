@@ -1,0 +1,28 @@
+User-relevant updates for external releases.
+Add unreleased user-relevant updates to Dev section at end.
+
+2021-02-09
+ - First release.
+
+2021-06-18
+ - Micros support, with micros frequency for all channels if set.
+ - Error logging to ElememData/ErrorLogs
+ - Flush event logs every 5 seconds.
+ - EEGSTART added to event logs.
+
+2021-07-02
+ - Improved debug logging.
+ - Resolved missing data error from slow Blackrock initialization.
+
+2021-07-13
+ - Remove byte order marks from csv and json files at load.
+
+2021-09-03
+ - Added Elemem version to event logs.
+ - Support for theta bursts and stimtag selection of stimulation types.
+ - Debug log format fixes and better missing data logs.
+ - Fixes to OPS config output putting duration in the right spot.
+ - Fix OPS stim approvals to require a selection for every parameter.
+
+Dev
+
