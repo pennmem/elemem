@@ -59,7 +59,8 @@ namespace CML {
     mt->set_signal_array(flatdata.Raw(), chanlen, datalen);
     mt->compute_wavelets_threads();
 
-    callback(RC::MakeAPtr<const RC::Data1D<double>>(pow_arr));
+    auto pow_arr_ptr = RC::MakeAPtr<const RC::Data1D<double>>(pow_arr);
+    callback(pow_arr_ptr);
   }
 
 
