@@ -65,6 +65,7 @@ endif (CERESTIM_STUB)
 
 if (CEREBUS_HW)
   set (CEREBUS_FILES src/Cerebus.h src/Cerebus.cpp)
+  add_definitions (-DCEREBUS_HW)
 else (CEREBUS_HW)
   set (CEREBUS_FILES)
 endif (CEREBUS_HW)
