@@ -15,6 +15,7 @@ namespace CML {
     }
 
   void ClassificationData::ClassifyData_Handler(RC::APtr<const EEGData>& data) {
+    RC_DEBOUT(RC::RStr("ClassificationData_Handler\n"));
     auto& datar = data->data;
     if (buffer.data.size() < datar.size()) {
       buffer.data.Resize(datar.size());
@@ -40,8 +41,8 @@ namespace CML {
     RC_DEBOUT(deb_msg);
 
     callback(data);
-    #include <stdlib.h>
-    exit(0);
+    //#include <stdlib.h>
+    //exit(0);
   }
   
   void ClassificationData::SetCallback_Handler(EEGCallback& new_callback) {
