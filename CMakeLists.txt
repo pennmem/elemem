@@ -9,7 +9,7 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 # Compilation settings
 
 set(IS_RELEASE true)
-option(CEREBUS_STUB "Use the Cerebus simulator" OFF) # cmake CEREBUS_STUB .
+option(CEREBUS_HW "Use the Cerebus/Neuroport interface" ON) # cmake CEREBUS_HW=OFF .
 option(CERESTIM_STUB # cmake CERESTIM_STUB .
   "Use the CereStim simulator (default ON for non-Windows)" OFF)
 option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake HDF5_EXPORT .
@@ -63,11 +63,11 @@ else (CERESTIM_STUB)
   set (CERESTIM_STUB_FILE "")
 endif (CERESTIM_STUB)
 
-if (CEREBUS_STUB)
-  set (CEREBUS_FILE include/stub_Cerebus.cpp)
-else (CEREBUS_STUB)
-  set (CEREBUS_FILE src/Cerebus.cpp)
-endif (CEREBUS_STUB)
+if (CEREBUS_HW)
+  set (CEREBUS_FILES src/Cerebus.h src/Cerebus.cpp)
+else (CEREBUS_HW)
+  set (CEREBUS_FILES)
+endif (CEREBUS_HW)
 
 set (PTSA_INCLUDE_DIRS
   ptsa_new/ptsa/extensions/morlet
@@ -93,8 +93,9 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/APITests.cpp
   src/CereStim.h
   src/CereStim.cpp
-  src/Cerebus.h
-  ${CEREBUS_FILE}
+  ${CEREBUS_FILES}
+  src/CerebusSim.h
+  src/CerebusSim.cpp
   ${CERESTIM_STUB_FILE}
   src/ChannelConf.h
   src/ChannelSelector.h
@@ -115,6 +116,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/EEGDisplay.cpp
   src/EEGFileSave.h
   src/EEGFileSave.cpp
+  src/EEGSource.h
   src/EventLog.h
   src/EventLog.cpp
   src/ExperOPS.h

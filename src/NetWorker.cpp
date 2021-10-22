@@ -201,7 +201,7 @@ namespace CML {
     }
   }
 
-  // TODO - Add support for checking stimtag list.
+
   void NetWorker::ProtConfigure(const JSONFile& inp) {
     Data1D<RStr> errors;
     Data1D<RStr> stimtags;

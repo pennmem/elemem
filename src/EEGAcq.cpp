@@ -1,6 +1,8 @@
 #include "EEGAcq.h"
 #include "RC/RTime.h"
 #include "RC/Errors.h"
+#include "Cerebus.h" // TODO Remove after moving injection to Handler.
+#include "CerebusSim.h" // TODO Remove after moving injection to Handler.
 
 
 namespace CML {
@@ -21,12 +23,16 @@ namespace CML {
       return;
     }
 
+    if (eeg_source.IsNull()) {
+      return;
+    }
+
     try {
       RC::APtr<EEGData> data_aptr = new EEGData(sampling_rate);
       data_aptr->data.Resize(cbNUM_ANALOG_CHANS);
       auto& data = data_aptr->data;
 
-      auto& cereb_chandata = cereb.GetData();
+      auto& cereb_chandata = eeg_source->GetData();
 
       size_t max_len = 0;
       for (size_t c=0; c<cereb_chandata.size(); c++) {
@@ -67,39 +73,24 @@ namespace CML {
     }
   }
 
-  void EEGAcq::SetInstance_Handler(uint32_t& instance) {
-    StopEverything();
 
-    cereb.SetInstance(instance);
+  void EEGAcq::SetSource_Handler(RC::APtr<EEGSource>& new_source) {
+    eeg_source = new_source;
   }
 
 
-  void EEGAcq::SetChannels_Handler(ChannelList& channels,
-      const size_t& new_sampling_rate) {
-    sampling_rate = new_sampling_rate;
-
-    size_t samprate_index = 0;
-
-    // These are the only values the NeuroPort can handle.
-    switch (sampling_rate) {
-      case 500:   samprate_index = 1; break;
-      case 1000:  samprate_index = 2; break;
-      case 2000:  samprate_index = 3; break;
-      case 10000: samprate_index = 4; break;
-      case 30000: samprate_index = 5; break;
-      default: Throw_RC_Type(File, "Configuration selected invalid sampling "
-                 "rate.  Allowed values are 500, 1000, 2000, 10000, 30000.");
+  void EEGAcq::InitializeChannels_Handler(const size_t& new_sampling_rate) {
+    if (eeg_source.IsNull()) {
+      return;
     }
+
+    sampling_rate = new_sampling_rate;
 
     StopEverything();
 
-    std::vector<uint16_t> channel_vect(channels.size());
+    eeg_source->InitializeChannels(sampling_rate);
 
-    for (size_t i=0; i<channels.size(); i++) {
-      channel_vect[i] = channels[i];
-    }
-
-    cereb.SetChannels(channel_vect, samprate_index);
+    BePollingIfCallbacks();
   }
 
 
@@ -109,11 +100,7 @@ namespace CML {
 
     data_callbacks += TaggedCallback{tag, callback};
 
-    BeAllocatedTimer();
-
-    if (!acq_timer->isActive()) {
-      acq_timer->start(polling_interval_ms);
-    }
+    BePollingIfCallbacks();
   }
 
 
@@ -131,8 +118,10 @@ namespace CML {
   }
 
 
-  void EEGAcq::CloseCerebus_Handler() {
-    cereb.Close();
+  void EEGAcq::CloseSource_Handler() {
+    if (eeg_source.IsSet()) {
+      eeg_source->Close();
+    }
     StopEverything();
   }
 
@@ -152,6 +141,14 @@ namespace CML {
 
       QObject::connect(acq_timer.Raw(), &QTimer::timeout, this,
                      &EEGAcq::GetData_Slot);
+    }
+  }
+
+
+  void EEGAcq::BePollingIfCallbacks() {
+    BeAllocatedTimer();
+    if (!acq_timer->isActive() && data_callbacks.size() > 0) {
+      acq_timer->start(polling_interval_ms);
     }
   }
 }

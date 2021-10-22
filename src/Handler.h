@@ -38,6 +38,11 @@ namespace CML {
 
     void SetMainWindow(RC::Ptr<MainWindow> new_main);
 
+    RCqt::TaskCaller<> LoadSysConfig =
+      TaskHandler(Handler::LoadSysConfig_Handler);
+    RCqt::TaskCaller<> Initialize =
+      TaskHandler(Handler::Initialize_Handler);
+
     RCqt::TaskCaller<> CerebusTest =
       TaskHandler(Handler::CerebusTest_Handler);
 
@@ -106,6 +111,9 @@ namespace CML {
     private:
 
     RC::Ptr<MainWindow> main_window;
+
+    void LoadSysConfig_Handler();
+    void Initialize_Handler();
 
     void CerebusTest_Handler();
     void CereStimTest_Handler();

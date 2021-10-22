@@ -64,6 +64,9 @@ namespace CML {
       return channel_selector;
     }
 
+    RCqt::TaskCaller<> RegisterEEGDisplay =
+      TaskHandler(MainWindow::RegisterEEGDisplay_Handler);
+
     RCqt::TaskCaller<const bool> SetReadyToStart =
       TaskHandler(MainWindow::SetReadyToStart_Handler);
 
@@ -91,6 +94,8 @@ namespace CML {
       const RC::RStr &tip, T qt_slot,
       const QKeySequence &shortcut = QKeySequence::UnknownKey);
     void SetLastOpenDir(const RC::RStr& filename);
+
+    void RegisterEEGDisplay_Handler();
 
     void SetReadyToStart_Handler(const bool& ready);
 
