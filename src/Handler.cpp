@@ -6,7 +6,9 @@
 #else
 #include "HDF5Save.h"
 #endif
+#ifdef CEREBUS_HW
 #include "Cerebus.h"
+#endif
 #include "CerebusSim.h"
 #include "Classifier.h"
 #include "JSONLines.h"
@@ -79,7 +81,12 @@ namespace CML {
     settings.sys_config->Get(eeg_system, "eeg_system");
     RC::APtr<EEGSource> eeg_source;
     if (eeg_system == "Cerebus") {
+      #ifdef CEREBUS_HW
       eeg_source = new Cerebus();
+      #else
+      Throw_RC_Type(File, "sys_config.json eeg_system set to \"Cerebus\", "
+          "but this build does not have Cerebus Hardware support.");
+      #endif
     }
     else if (eeg_system == "CerebusSim") {
       eeg_source = new CerebusSim();

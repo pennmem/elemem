@@ -8,7 +8,9 @@
 // g++ -std=c++17 -rdynamic -O3 -funroll-loops -fdiagnostics-color=always -Wall -Wextra -Wno-unused -Wnull-dereference -Werror -o continuous continuous.cpp -I ../include/ -Wno-unused-parameter -L ../lib64/ -lcbsdk -Wl,-rpath,$ORIGIN -ldl -lrt -lpthread -lstdc++fs
 
 #include "APITests.h"
+#ifdef CEREBUS_HW
 #include "Cerebus.h"
+#endif
 #include "CereStim.h"
 
 #ifdef WIN32
@@ -34,6 +36,7 @@ namespace APITests {
   #endif
   #endif
 
+#ifdef CEREBUS_HW
   void PrintTrial(const cbSdkTrialCont& trial) {
     cout << "Channel count:  " << trial.count << endl;
 
@@ -46,6 +49,7 @@ namespace APITests {
 
     cout << "Start time:  " << trial.time << endl;
   }
+#endif
 
   void CereStimTest() {
     cout << "Stimulation Test:" << endl;
@@ -88,6 +92,9 @@ namespace APITests {
   }
 
   void CereLinkTest() {
+    #ifndef CEREBUS_HW
+    throw std::runtime_error("Cerebus hardware support not built.");
+    #else
     cout << "Continuous Acquisition Test:" << endl;
 
     Cerebus cereb;
@@ -107,5 +114,6 @@ namespace APITests {
     }
 
     cout << endl;
+    #endif
   }
 }
