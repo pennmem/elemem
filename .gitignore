@@ -7,7 +7,5 @@ html
 latex
 
 # Dist folder (build dir)
-dist/**/*
-!dist/*/
-!dist/**/*.dll
-!dist/**/*.qm
+dist/**
+
