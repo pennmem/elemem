@@ -11,13 +11,18 @@ namespace CML {
   class Handler;
   class Classifier;
 
+  using EEGCallback = RCqt::TaskCaller<RC::APtr<const EEGData>>;
+
   class ClassificationData : public RCqt::WorkerThread {
     public:
-
     ClassificationData(RC::Ptr<Handler> hndl, size_t sampling_rate); 
 
     RCqt::TaskCaller<RC::APtr<const EEGData>> ClassifyData = 
       TaskHandler(ClassificationData::ClassifyData_Handler);
+    
+    RCqt::TaskCaller<EEGCallback> SetCallback =
+      TaskHandler(ClassificationData::SetCallback_Handler);
+
 
     protected:
     // TODO: Decide whether to have json configurable variables for the
@@ -31,13 +36,16 @@ namespace CML {
     //void StopClassifier_Handler() override;
     void ClassifyData_Handler(RC::APtr<const EEGData>& data);
 
+    void SetCallback_Handler(EEGCallback& new_callback);
+
     RC::Ptr<Handler> hndl;
     EEGData buffer;
     size_t sampling_rate;
     RC::RStr callback_ID;
 
+    EEGCallback callback;
+
     u32 dataSinceLastClassification;
-    RC::APtr<Classifier> classifier;
   };
 }
 

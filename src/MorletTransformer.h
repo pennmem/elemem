@@ -22,7 +22,7 @@ namespace CML {
     bool complete = true;
   };
 
-  using MorletCallback = RC::Caller<void, RC::APtr<const RC::Data1D<double>>>;
+  using MorletCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
 
   class MorletTransformer : public FeatureGenerator {
     public:
@@ -30,6 +30,7 @@ namespace CML {
 
     RCqt::TaskCaller<MorletCallback> SetCallback =
       TaskHandler(MorletTransformer::SetCallback_Handler);
+
 
     protected:
     void Process_Handler(RC::APtr<const EEGData>& data);

@@ -13,7 +13,6 @@ namespace CML {
     RCqt::TaskCaller<RC::APtr<const EEGData>> Process =
       TaskHandler(FeatureGenerator::Process_Handler);
 
-
     protected:
     virtual void Process_Handler(RC::APtr<const EEGData>&) = 0;
   };

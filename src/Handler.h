@@ -7,6 +7,7 @@
 #include "EEGAcq.h"
 #include "EEGFileSave.h"
 #include "ClassificationData.h"
+#include "MorletTransformer.h"
 #include "EventLog.h"
 #include "ExperOPS.h"
 #include "NetWorker.h"
@@ -102,6 +103,7 @@ namespace CML {
     EEGAcq eeg_acq;
     RC::APtr<EEGFileSave> eeg_save;
     ClassificationData classification_data;
+    RC::APtr<FeatureGenerator> feature_generator;
     NetWorker net_worker;
     EventLog event_log;
 

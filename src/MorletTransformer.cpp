@@ -11,6 +11,9 @@ namespace CML {
           "for classification.");
     }
 
+    //Temp = MakeCaller(this, &MorletTransformer::DoNothing);
+    //Temp = RC::MakeCaller(this, this->DoNothingTask);
+    return; //JPB: TODO: Remove (this causes an exception)
     mt = new MorletWaveletTransformMP(mor_set.cpus);
 
     mt->set_output_type(OutputType::POWER);
@@ -25,6 +28,7 @@ namespace CML {
 
 
   void MorletTransformer::Process_Handler(RC::APtr<const EEGData>& data) {
+    RC_DEBOUT(RC::RStr("MorletTransformer_Handler\n\n"));
     if ( ! callback.IsSet() ) {
       return;
     }
@@ -55,7 +59,8 @@ namespace CML {
     mt->set_signal_array(flatdata.Raw(), chanlen, datalen);
     mt->compute_wavelets_threads();
 
-    callback(RC::MakeAPtr<const RC::Data1D<double>>(pow_arr));
+    auto pow_arr_ptr = RC::MakeAPtr<const RC::Data1D<double>>(pow_arr);
+    callback(pow_arr_ptr);
   }
 
 

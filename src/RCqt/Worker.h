@@ -350,6 +350,7 @@ namespace RCqt {
   template<TaskType task_type, class... Params>
   class BaseTaskClass : public RC::CallerBase<void, Params&...> {
     public:
+    BaseTaskClass(){}
     BaseTaskClass(const RC::Ptr<Worker>& worker,
                   const RC::Caller<void, Params&...>& handler)
       : worker(worker)
@@ -363,6 +364,7 @@ namespace RCqt {
     virtual RC::CallerBase<void, Params&...>* Copy() const {
       return new BaseTaskClass<task_type, Params...>(worker, handler);
     }
+    virtual bool IsSet() { return handler.IsSet(); }
     protected:
     RC::Ptr<Worker> worker;
     RC::Caller<void, Params&...> handler;
@@ -371,6 +373,7 @@ namespace RCqt {
   template<class... Params>
   class TaskCaller : public BaseTaskClass<AUTOTASK, Params...> {
     public:
+    TaskCaller(){}
     TaskCaller(RC::Ptr<Worker> worker, RC::Caller<void, Params&...> handler)
       : BaseTaskClass<AUTOTASK, Params...>(worker, handler) {
     }
@@ -384,6 +387,7 @@ namespace RCqt {
   template<class... Params>
   class TaskBlocker : public BaseTaskClass<BLOCKTASK, Params...> {
     public:
+    TaskBlocker(){}
     TaskBlocker(RC::Ptr<Worker> worker, RC::Caller<void, Params&...> handler)
       : BaseTaskClass<BLOCKTASK, Params...>(worker, handler) {
     }
@@ -397,6 +401,7 @@ namespace RCqt {
   template<class RetType, class... Params>
   class TaskGetter : public RC::CallerBase<RetType, Params&...> {
     public:
+    TaskGetter(){}
     TaskGetter(RC::Ptr<Worker> worker, RC::Caller<RetType, Params&...> handler)
       : worker(worker)
       , handler(handler) {
