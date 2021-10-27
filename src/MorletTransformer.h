@@ -6,7 +6,6 @@
 #include "ChannelConf.h"
 #include "FeatureGenerator.h"
 #include "RC/Data1D.h"
-#include "RC/Data1D.h"
 
 class MorletWaveletTransformMP;
 
