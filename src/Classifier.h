@@ -2,22 +2,32 @@
 #define CLASSIFIER_H
 
 #include "EEGData.h"
-#include "RC/Ptr.h"
-#include "RC/RStr.h"
+#include "RC/APtr.h"
 #include "RCqt/Worker.h"
 
-
 namespace CML {
+  using MorletCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
+  using ClassifierCallback = RCqt::TaskCaller<bool>;
+
   class Classifier : public RCqt::WorkerThread {
     public:
+    virtual ~Classifier() {}
 
-    Classifier();
+    MorletCallback Classify =
+      TaskHandler(Classifier::Classifier_Handler);
 
-    // TODO: Decide whether this should return an int or a bool
-    int classify(RC::APtr<const EEGData> eegData);
-    
+    RCqt::TaskCaller<ClassifierCallback> SetCallback =
+      TaskHandler(Classifier::SetCallback_Handler);
+
     protected:
-    RC::RStr callback_ID;
+    virtual void Classifier_Handler(RC::APtr<const RC::Data1D<double>>&) = 0;
+
+    /// Sets the callback for the classification result
+    /** @param new_callback The new callback to be set
+     */
+    void SetCallback_Handler(ClassifierCallback& new_callback) { callback = new_callback; }
+
+    ClassifierCallback callback;
   };
 }
 

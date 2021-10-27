@@ -32,6 +32,13 @@ namespace CML {
     if ( ! callback.IsSet() ) {
       return;
     }
+    
+    // TODO: JPB: Remove this to enable MorletTranformer function
+    pow_arr.Resize(1);
+    pow_arr[0] = 1;
+    auto temp = RC::MakeAPtr<const RC::Data1D<double>>(pow_arr);
+    callback(temp);
+    return;
 
     auto& datar = data->data;
     size_t datalen = datar[mor_set.channels[0].pos].size();
