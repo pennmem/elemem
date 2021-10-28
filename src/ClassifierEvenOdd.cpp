@@ -22,5 +22,9 @@ namespace CML {
       // TODO: Split the wavelet data into 2 threads for classification
       bool result = F2I((*data)[0]) % 2;
       callback(result);
+
+      for (size_t i=0; i<data_callbacks.size(); i++) {
+        data_callbacks[i].callback(result);
+      }
     }
 }
