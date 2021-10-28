@@ -12,6 +12,7 @@ namespace CML {
 
   /// Handler that actually does the classification and reports the result with a callback
   /** @param data The input data to the classifier
+   *  @return The classifier result
    */
   bool ClassifierEvenOdd::Classification(RC::APtr<const RC::Data1D<double>>& data) {
     RC_DEBOUT(RC::RStr("Classification\n\n"));

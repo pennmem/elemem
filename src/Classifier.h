@@ -16,21 +16,14 @@ namespace CML {
     MorletCallback Classify =
       TaskHandler(Classifier::Classifier_Handler);
 
-    RCqt::TaskCaller<ClassifierCallback> SetCallback =
-      TaskHandler(Classifier::SetCallback_Handler);
+    RCqt::TaskCaller<const RC::RStr, const ClassifierCallback> RegisterCallback =
+      TaskHandler(Classifier::RegisterCallback_Handler);
 
 
     protected:
     // TODO: JPB: Rename "Process"?
     virtual bool Classification(RC::APtr<const RC::Data1D<double>>&) = 0; 
     void Classifier_Handler(RC::APtr<const RC::Data1D<double>>&);
-
-    /// Sets the callback for the classification result
-    /** @param new_callback The new callback to be set
-     */
-    void SetCallback_Handler(ClassifierCallback& new_callback);
-
-    ClassifierCallback callback;
 
     void RegisterCallback_Handler(const RC::RStr& tag,
                                   const ClassifierCallback& callback);

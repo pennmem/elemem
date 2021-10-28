@@ -1,18 +1,20 @@
 #include "Classifier.h"
 
 namespace CML {
-  /// Sets the callback for the classification result
-  /** @param new_callback The new callback to be set
+  /// Handler that registers a callback on the classifier results
+  /** @param A (preferably unique) tag/name for the callback
+   *  @param The callback on the classifier results
    */
-  void Classifier::SetCallback_Handler(ClassifierCallback& new_callback) { callback = new_callback; }
-
   void Classifier::RegisterCallback_Handler(const RC::RStr& tag,
                                             const ClassifierCallback& callback) {
     RemoveCallback_Handler(tag);
     data_callbacks += TaggedCallback{tag, callback};
   }
 
-
+  /// Handler that removes a callback on the classifier results.
+  /** @param The tag to be removed from the list of callbacks
+   *  Note: All tags of the same name will be removed (even if there is more than one)
+   */
   void Classifier::RemoveCallback_Handler(const RC::RStr& tag) {
     for (size_t i=0; i<data_callbacks.size(); i++) {
       if (data_callbacks[i].tag == tag) {
@@ -27,13 +29,11 @@ namespace CML {
    */
   void Classifier::Classifier_Handler(RC::APtr<const RC::Data1D<double>>& data) {
     RC_DEBOUT(RC::RStr("Classifier_Handler\n\n"));
-    if ( ! callback.IsSet() ) {
+    if ( data_callbacks.IsEmpty() ) {
       return;
     }
 
     bool result = Classification(data);
-
-    callback(result);
 
     for (size_t i=0; i<data_callbacks.size(); i++) {
       data_callbacks[i].callback(result);
