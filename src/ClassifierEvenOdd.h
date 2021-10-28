@@ -14,7 +14,7 @@ namespace CML {
     
 
     protected:
-    void Classifier_Handler(RC::APtr<const RC::Data1D<double>>& data);
+    bool Classification(RC::APtr<const RC::Data1D<double>>& data);
   };
 }
 

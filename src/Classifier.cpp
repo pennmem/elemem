@@ -21,4 +21,22 @@ namespace CML {
       }
     }
   }
+
+  /// Handler that starts the classification and reports the result with a callback
+  /** @param data The input data to the classifier
+   */
+  void Classifier::Classifier_Handler(RC::APtr<const RC::Data1D<double>>& data) {
+    RC_DEBOUT(RC::RStr("Classifier_Handler\n\n"));
+    if ( ! callback.IsSet() ) {
+      return;
+    }
+
+    bool result = Classification(data);
+
+    callback(result);
+
+    for (size_t i=0; i<data_callbacks.size(); i++) {
+      data_callbacks[i].callback(result);
+    }
+  }
 }
