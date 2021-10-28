@@ -19,8 +19,11 @@ namespace CML {
     RCqt::TaskCaller<ClassifierCallback> SetCallback =
       TaskHandler(Classifier::SetCallback_Handler);
 
+
     protected:
-    virtual void Classifier_Handler(RC::APtr<const RC::Data1D<double>>&) = 0;
+    // TODO: JPB: Rename "Process"?
+    virtual bool Classification(RC::APtr<const RC::Data1D<double>>&) = 0; 
+    void Classifier_Handler(RC::APtr<const RC::Data1D<double>>&);
 
     /// Sets the callback for the classification result
     /** @param new_callback The new callback to be set
