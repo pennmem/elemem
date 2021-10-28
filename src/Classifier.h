@@ -25,9 +25,19 @@ namespace CML {
     /// Sets the callback for the classification result
     /** @param new_callback The new callback to be set
      */
-    void SetCallback_Handler(ClassifierCallback& new_callback) { callback = new_callback; }
+    void SetCallback_Handler(ClassifierCallback& new_callback);
 
     ClassifierCallback callback;
+
+    void RegisterCallback_Handler(const RC::RStr& tag,
+                                  const ClassifierCallback& callback);
+    void RemoveCallback_Handler(const RC::RStr& tag);
+
+    struct TaggedCallback {
+      RC::RStr tag;
+      ClassifierCallback callback;
+    };
+    RC::Data1D<TaggedCallback> data_callbacks;
   };
 }
 
