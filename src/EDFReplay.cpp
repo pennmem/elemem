@@ -111,7 +111,6 @@ namespace CML {
 
         // Fill up the rest
         file_bufs[s].Resize(buf_target);
-        size_t amnt_empty = buf_target - amnt_buffered;
         int amnt_read = edfread_digital_samples(edf_hdl, s, smpdr,
             file_bufs[s].Raw() + amnt_buffered);
 
