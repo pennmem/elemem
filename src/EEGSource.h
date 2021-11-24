@@ -26,6 +26,7 @@ namespace CML {
     virtual void Close() {}
 
     virtual void InitializeChannels(size_t sampling_rate_Hz) = 0;
+    virtual void StartingExperiment() {}
 
     virtual const std::vector<TrialData>& GetData() = 0;
   };
