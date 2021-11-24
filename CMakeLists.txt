@@ -71,16 +71,16 @@ else (CEREBUS_HW)
 endif (CEREBUS_HW)
 
 set (PTSA_INCLUDE_DIRS
-  ptsa_new/ptsa/extensions/morlet
-  ptsa_new/ptsa/extensions/ThreadPool
+  ptsa/ptsa/extensions/morlet
+  ptsa/ptsa/extensions/ThreadPool
 )
 set (PTSA_FILES
-  ptsa_new/ptsa/extensions/morlet/enums.h
-  ptsa_new/ptsa/extensions/morlet/morlet.h
-  ptsa_new/ptsa/extensions/morlet/morlet.cpp
-  ptsa_new/ptsa/extensions/morlet/MorletWaveletTransformMP.h
-  ptsa_new/ptsa/extensions/morlet/MorletWaveletTransformMP.cpp
-  ptsa_new/ptsa/extensions/ThreadPool/ThreadPool.h
+  ptsa/ptsa/extensions/morlet/enums.h
+  ptsa/ptsa/extensions/morlet/morlet.h
+  ptsa/ptsa/extensions/morlet/morlet.cpp
+  ptsa/ptsa/extensions/morlet/MorletWaveletTransformMP.h
+  ptsa/ptsa/extensions/morlet/MorletWaveletTransformMP.cpp
+  ptsa/ptsa/extensions/ThreadPool/ThreadPool.h
 )
 
 
@@ -117,6 +117,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/EEGDisplay.cpp
   src/EEGFileSave.h
   src/EEGFileSave.cpp
+  src/EDFReplay.h
+  src/EDFReplay.cpp
   src/EEGSource.h
   src/EventLog.h
   src/EventLog.cpp
@@ -256,8 +258,8 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
   endif()
 endif()
 
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ptsa_new/ptsa/extensions/morlet/morlet.cpp")
-  message(FATAL_ERROR "The ptsa_new submodule was not able to successfully download.  Unable to build.")
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ptsa/ptsa/extensions/morlet/morlet.cpp")
+  message(FATAL_ERROR "The ptsa submodule was not able to successfully download.  Unable to build.")
 endif()
 
 

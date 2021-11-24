@@ -107,9 +107,6 @@ namespace CML {
     NetWorker net_worker;
     EventLog event_log;
 
-    const RC::RStr elemem_dir;
-    const RC::RStr non_session_dir;
-
     private:
 
     RC::Ptr<MainWindow> main_window;
@@ -157,6 +154,8 @@ namespace CML {
 
     Settings settings;
 
+    RC::RStr elemem_dir;
+    RC::RStr non_session_dir;
     RC::RStr session_dir;
 
     ExperOPS exper_ops;

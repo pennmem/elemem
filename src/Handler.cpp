@@ -11,6 +11,7 @@
 #endif
 #include "CerebusSim.h"
 #include "Classifier.h"
+#include "EDFReplay.h"
 #include "JSONLines.h"
 #include "About.h"
 #include "MainWindow.h"
@@ -45,8 +46,6 @@ namespace CML {
     : stim_worker(this),
       classification_data(this, 1000),
       net_worker(this),
-      elemem_dir(File::FullPath(GetDesktop(), "ElememData")),
-      non_session_dir(File::FullPath(elemem_dir, "NonSessionData")),
       exper_ops(this) {
     // For error management, everything that could error must go into
     // Initialize_Handler()
@@ -61,12 +60,6 @@ namespace CML {
     net_worker.SetStatusPanel(main_window->GetStatusPanel());
     stim_worker.SetStatusPanel(main_window->GetStatusPanel());
     exper_ops.SetStatusPanel(main_window->GetStatusPanel());
-
-    RC::RStr error_log_dir = File::FullPath(elemem_dir, "ErrorLogs");
-    File::MakeDir(error_log_dir);
-    RC::RStr error_log_file = File::FullPath(error_log_dir,
-        "error_log_" + Time::GetDate());
-    PopupManager::GetManager()->SetLogFile(error_log_file);
   }
 
   void Handler::LoadSysConfig_Handler() {
@@ -91,6 +84,11 @@ namespace CML {
     else if (eeg_system == "CerebusSim") {
       eeg_source = new CerebusSim();
     }
+    else if (eeg_system == "EDFReplay") {
+      RC::RStr edfreplay_file;
+      settings.sys_config->Get(edfreplay_file, "replay_file");
+      eeg_source = new EDFReplay(edfreplay_file);
+    }
     else {
       Throw_RC_Type(File, "Unknown sys_config.json eeg_system value");
     }
@@ -98,17 +96,35 @@ namespace CML {
   }
 
   void Handler::Initialize_Handler() {
+    RStr data_dir;
+    settings.sys_config->Get(data_dir, "data_dir");
+#ifdef WIN32
+    data_dir.Subst("/", File::divider);
+#else
+    data_dir.Subst("\\\\", File::divider);
+#endif
+    data_dir.Subst("\\$DESKTOP", GetDesktop());
+
+    elemem_dir = data_dir;
+    non_session_dir = File::FullPath(elemem_dir, "NonSessionData");
+
+    File::MakeDir(elemem_dir);
+    File::MakeDir(non_session_dir);
+
+    RC::RStr error_log_dir = File::FullPath(elemem_dir, "ErrorLogs");
+    File::MakeDir(error_log_dir);
+    RC::RStr error_log_file = File::FullPath(error_log_dir,
+        "error_log_" + Time::GetDate());
+    PopupManager::GetManager()->SetLogFile(error_log_file);
+
     NewEEGSave();
-    
+
     //TODO: JPB: Remove hardcoded morlet_settings
     MorletSettings morlet_settings;
     morlet_settings.channels = RC::Data1D<BipolarPair>{BipolarPair()};
     morlet_settings.frequencies = RC::Data1D<double>{1};
     feature_generator = new MorletTransformer(morlet_settings);
     classification_data.SetCallback(feature_generator->Process);
-
-    File::MakeDir(elemem_dir);
-    File::MakeDir(non_session_dir);
   }
 
   void Handler::CerebusTest_Handler() {
@@ -408,6 +424,7 @@ namespace CML {
     fw.Put(settings.elec_config->file_lines, true);
     fw.Close();
 
+    eeg_acq.StartingExperiment();  // notify, replay needs this.
     event_log.StartFile(File::FullPath(session_dir, "event.log"));
 
     JSONFile version_info;
@@ -427,7 +444,6 @@ namespace CML {
       exper_ops.Start();
     }
     else { // Network experiment.
-      // Defaults should always work on standard setup.
       // Note:  Binding to a specific LAN address is a safety feature.
       std::string ipaddress = "192.168.137.1";
       if (stim_worker.GetStimulatorType() == StimulatorType::Simulator) {

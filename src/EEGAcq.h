@@ -28,6 +28,9 @@ namespace CML {
     RCqt::TaskCaller<const size_t> InitializeChannels =
       TaskHandler(EEGAcq::InitializeChannels_Handler);
 
+    RCqt::TaskCaller<> StartingExperiment =
+      TaskHandler(EEGAcq::StartingExperiment_Handler);
+
     RCqt::TaskCaller<const RC::RStr, const EEGCallback>
       RegisterCallback =
       TaskHandler(EEGAcq::RegisterCallback_Handler);
@@ -46,6 +49,7 @@ namespace CML {
 
     void SetSource_Handler(RC::APtr<EEGSource>& new_source);
     void InitializeChannels_Handler(const size_t& new_sampling_rate);
+    void StartingExperiment_Handler() { eeg_source->StartingExperiment(); }
 
     // All channels have either 0 data or the same amount.
     void RegisterCallback_Handler(const RC::RStr& tag,
