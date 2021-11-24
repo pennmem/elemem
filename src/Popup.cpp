@@ -47,6 +47,10 @@ namespace CML {
     if (log_file.IsOpen()) {
       log_file.Put(Time::GetStr() + ", " + message + "\n");
     }
+    else {
+      // Fallback.  In case anyone is watching.
+      std::cerr << message << std::endl;
+    }
   }
 
   void PopupManager::Error_Handler(const RStr& message, const RStr& title,
