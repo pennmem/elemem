@@ -370,20 +370,21 @@ namespace RCqt {
     /// Call the referenced function.
     virtual bool IsSet() { return handler.IsSet(); }
     
-    /// Call the referenced function with the parameters given as RC::Tuple
-    /// tup.
-    template<class TupleType>
-    inline Ret Use(TupleType tup) { return handler.Use(tup); }
+    // TODO: JPB: Fix Use and Bind
+    ///// Call the referenced function with the parameters given as RC::Tuple
+    ///// tup.
+    //template<class TupleType>
+    //inline void Use(TupleType tup) { return handler.Use(tup); }
 
-    ///// Return a functor with arguments bound using syntax identical to
-    ///// std::bind.
-    /** The return type of this is an unspecified functor, but it can
-     *  be wrapped in a MakeFunctor with the corresponding types.
-     */ 
-    template<class... Args>
-    auto Bind(Args... args) -> decltype(handler.Bind(args)) {
-      return handler.Bind(args);
-    }
+    /////// Return a functor with arguments bound using syntax identical to
+    /////// std::bind.
+    ///** The return type of this is an unspecified functor, but it can
+    // *  be wrapped in a MakeFunctor with the corresponding types.
+    // */ 
+    //template<class... Args>
+    //auto Bind(Args... args) -> decltype(handler.Bind(args)) {
+    //  return handler.Bind(args);
+    //}
 
     protected:
     RC::Ptr<Worker> worker;
