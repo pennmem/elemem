@@ -69,10 +69,5 @@ namespace CML {
     auto pow_arr_ptr = RC::MakeAPtr<const RC::Data1D<double>>(pow_arr);
     callback(pow_arr_ptr);
   }
-
-
-  void MorletTransformer::SetCallback_Handler(MorletCallback& new_callback) {
-    callback = new_callback;
-  }
 }
 

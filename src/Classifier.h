@@ -6,14 +6,14 @@
 #include "RCqt/Worker.h"
 
 namespace CML {
-  using MorletCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
+  using FeatureCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
   using ClassifierCallback = RCqt::TaskCaller<bool>;
 
   class Classifier : public RCqt::WorkerThread {
     public:
     virtual ~Classifier() {}
 
-    MorletCallback Classify =
+    FeatureCallback Classify =
       TaskHandler(Classifier::Classifier_Handler);
 
     RCqt::TaskCaller<const RC::RStr, const ClassifierCallback> RegisterCallback =

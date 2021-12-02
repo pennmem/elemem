@@ -105,13 +105,12 @@ namespace CML {
     morlet_settings.channels = RC::Data1D<BipolarPair>{BipolarPair()};
     morlet_settings.frequencies = RC::Data1D<double>{1};
     feature_generator = new MorletTransformer(morlet_settings);
-    classification_data.SetCallback(feature_generator->Process);
 
     ClassifierEvenOddSettings classifier_settings;
     classifier = new ClassifierEvenOdd(classifier_settings);
-    // TODO: JPB: This is about as hacky as I could write code in this code base.
-    //            It's and architectural problem (SetCallback doesn't exist in FeatureGenerator)
-    dynamic_cast<MorletTransformer *>(&*feature_generator)->SetCallback(classifier->Classify);
+
+    classification_data.SetCallback(feature_generator->Process);
+    feature_generator->SetCallback(classifier->Classify);
 
     File::MakeDir(elemem_dir);
     File::MakeDir(non_session_dir);
