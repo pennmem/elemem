@@ -1,8 +1,7 @@
 // 2019, Ryan A. Colyer
 // Computational Memory Lab, University of Pennsylvania
 //
-// This file provides C++ RAII wrappers for the Cerebus cbsdk API by Blackrock
-// Microsystems
+// This file provides a stub emulating the Cerebus unit from Blackrock.
 //
 /////////////////////////////////////////////////////////////////////////////
 

@@ -7,6 +7,16 @@
 #include "Popup.h"
 
 namespace CML {
+  template<class F, class P>
+  void EDFSave::SetChanParam(F func, P p, RC::RStr error_msg) {
+    for (size_t i=0; i<channels.size(); i++) {
+      if (func(edf_hdl, int(i), p)) {
+        Throw_RC_Type(File, error_msg.c_str());
+      }
+    }
+  }
+
+
   void EDFSave::StartFile_Handler(const RC::RStr& filename,
                                   const FullConf& conf) {
     if (conf.elec_config.IsNull()) {
@@ -42,7 +52,7 @@ namespace CML {
         "Could not set edf physical minimum");
     SetChanParam(edf_set_physical_dimension, "250nV",
         "Could not set units");
-    
+
     for (size_t c=0; c<channels.size(); c++) {
       if (edf_set_label(edf_hdl, c, conf.elec_config->data[c][0].c_str())) {
         Throw_RC_Type(File, "Could not set edf label");
@@ -52,7 +62,7 @@ namespace CML {
     if (edf_set_equipment(edf_hdl, "Elemem using Blackrock NeuroPort")) {
       Throw_RC_Type(File, "Could not set edf equipment");
     }
-    
+
     std::string sub_name;
 
     conf.exp_config->Get(sub_name, "subject");
@@ -148,16 +158,6 @@ namespace CML {
       }
       amount_buffered -= sampling_rate;
       amount_written += sampling_rate;
-    }
-  }
-
-
-  template<class F, class P>
-  void EDFSave::SetChanParam(F func, P p, RC::RStr error_msg) {
-    for (size_t i=0; i<channels.size(); i++) {
-      if (func(edf_hdl, int(i), p)) {
-        Throw_RC_Type(File, error_msg.c_str());
-      }
     }
   }
 }

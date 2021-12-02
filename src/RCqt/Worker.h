@@ -71,7 +71,7 @@
 // reference, the handler function input parameters must always be written as
 // a reference.  Also, the Task functor always receives parameters by
 // reference.
-// 
+//
 // Efficiency notes:
 //
 //   When the ParameterTypes are by value, the copy constructor is called
@@ -85,7 +85,7 @@
 //
 //   When TaskGetter's ReturnType is a reference, no copy constructors or
 //   assignment operators are called.
-//   
+//
 ////////////////////////////////////////////////////////////////////////////
 
 
@@ -195,7 +195,7 @@ namespace RCqt {
       u64 count;
     };
 
-    
+
     public:
 
     Worker(bool run_as_new_thread=false);
@@ -350,7 +350,7 @@ namespace RCqt {
   template<TaskType task_type, class... Params>
   class BaseTaskClass : public RC::CallerBase<void, Params&...> {
     public:
-    BaseTaskClass(){}
+    BaseTaskClass() { }
     BaseTaskClass(const RC::Ptr<Worker>& worker,
                   const RC::Caller<void, Params&...>& handler)
       : worker(worker)
@@ -394,7 +394,7 @@ namespace RCqt {
   template<class... Params>
   class TaskCaller : public BaseTaskClass<AUTOTASK, Params...> {
     public:
-    TaskCaller(){}
+    TaskCaller() { }
     TaskCaller(RC::Ptr<Worker> worker, RC::Caller<void, Params&...> handler)
       : BaseTaskClass<AUTOTASK, Params...>(worker, handler) {
     }
@@ -408,7 +408,7 @@ namespace RCqt {
   template<class... Params>
   class TaskBlocker : public BaseTaskClass<BLOCKTASK, Params...> {
     public:
-    TaskBlocker(){}
+    TaskBlocker() { }
     TaskBlocker(RC::Ptr<Worker> worker, RC::Caller<void, Params&...> handler)
       : BaseTaskClass<BLOCKTASK, Params...>(worker, handler) {
     }
@@ -422,7 +422,7 @@ namespace RCqt {
   template<class RetType, class... Params>
   class TaskGetter : public RC::CallerBase<RetType, Params&...> {
     public:
-    TaskGetter(){}
+    TaskGetter() { }
     TaskGetter(RC::Ptr<Worker> worker, RC::Caller<RetType, Params&...> handler)
       : worker(worker)
       , handler(handler) {
@@ -448,6 +448,7 @@ namespace RCqt {
   class TaskGetter<RetType&, Params...>
       : public RC::CallerBase<RetType&, Params&...> {
     public:
+    TaskGetter() { }
     TaskGetter(RC::Ptr<Worker> worker, RC::Caller<RetType&, Params&...> handler)
       : worker(worker)
       , handler(handler) {
