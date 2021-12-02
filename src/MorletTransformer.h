@@ -21,24 +21,16 @@ namespace CML {
     bool complete = true;
   };
 
-  using MorletCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
-
   class MorletTransformer : public FeatureGenerator {
     public:
     MorletTransformer(MorletSettings morlet_settings);
 
-    RCqt::TaskCaller<MorletCallback> SetCallback =
-      TaskHandler(MorletTransformer::SetCallback_Handler);
-
 
     protected:
     void Process_Handler(RC::APtr<const EEGData>& data);
-    void SetCallback_Handler(MorletCallback& new_callback);
 
     MorletSettings mor_set;
     RC::APtr<MorletWaveletTransformMP> mt;
-
-    MorletCallback callback;
 
     // Sizes chans*freqs, chans outer, freqs inner.
     RC::Data1D<double> pow_arr;
