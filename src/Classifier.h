@@ -7,7 +7,7 @@
 
 namespace CML {
   using FeatureCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
-  using ClassifierCallback = RCqt::TaskCaller<bool>;
+  using ClassifierCallback = RCqt::TaskCaller<double>;
 
   class Classifier : public RCqt::WorkerThread {
     public:
@@ -21,8 +21,7 @@ namespace CML {
 
 
     protected:
-    // TODO: JPB: Rename "Process"?
-    virtual bool Classification(RC::APtr<const RC::Data1D<double>>&) = 0; 
+    virtual double Classification(RC::APtr<const RC::Data1D<double>>&) = 0; 
     void Classifier_Handler(RC::APtr<const RC::Data1D<double>>&);
 
     void RegisterCallback_Handler(const RC::RStr& tag,

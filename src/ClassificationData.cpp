@@ -15,7 +15,7 @@ namespace CML {
     }
 
   void ClassificationData::ClassifyData_Handler(RC::APtr<const EEGData>& data) {
-    RC_DEBOUT(RC::RStr("ClassificationData_Handler\n"));
+    //RC_DEBOUT(RC::RStr("ClassificationData_Handler\n"));
     auto& datar = data->data;
     if (buffer.data.size() < datar.size()) {
       buffer.data.Resize(datar.size());
@@ -33,12 +33,12 @@ namespace CML {
     // publish the result 
     //------------
     
-    RC::RStr deb_msg = RC::RStr("Data\n");
-    for (size_t c=0; c<datar.size(); c++) {
-      deb_msg += "Channel " + RC::RStr(c) + ": " + RC::RStr::Join(datar[c], ", ") + "\n";
-    } 
-    deb_msg += "\n\n";
-    RC_DEBOUT(deb_msg);
+    //RC::RStr deb_msg = RC::RStr("Data\n");
+    //for (size_t c=0; c<datar.size(); c++) {
+    //  deb_msg += "Channel " + RC::RStr(c) + ": " + RC::RStr::Join(datar[c], ", ") + "\n";
+    //} 
+    //deb_msg += "\n\n";
+    //RC_DEBOUT(deb_msg);
 
     callback(data);
     //#include <stdlib.h>
