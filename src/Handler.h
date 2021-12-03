@@ -8,6 +8,7 @@
 #include "EEGFileSave.h"
 #include "ClassificationData.h"
 #include "MorletTransformer.h"
+#include "ClassifierEvenOdd.h"
 #include "EventLog.h"
 #include "ExperOPS.h"
 #include "NetWorker.h"
@@ -104,6 +105,7 @@ namespace CML {
     RC::APtr<EEGFileSave> eeg_save;
     ClassificationData classification_data;
     RC::APtr<FeatureGenerator> feature_generator;
+    RC::APtr<Classifier> classifier;
     NetWorker net_worker;
     EventLog event_log;
 

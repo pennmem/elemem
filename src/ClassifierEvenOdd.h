@@ -1,21 +1,20 @@
 #ifndef CLASSIFIER_EVEN_ODD_H
 #define CLASSIFIER_EVEN_ODD_H
 
-#include "EEGData.h"
-#include "RC/Ptr.h"
-#include "RC/RStr.h"
-#include "RCqt/Worker.h"
-
+#include "Classifier.h"
 
 namespace CML {
-  class ClassifierEvenOdd : public RCqt::WorkerThread {
-    public:
-    ClassifierEvenOdd(int sampling_rate); 
+  class ClassifierEvenOddSettings {
+    int sampling_rate = 0;
+  };
 
-    int classify(RC::APtr<const EEGData> eegData) override;
+  class ClassifierEvenOdd : public Classifier {
+    public:
+    ClassifierEvenOdd(ClassifierEvenOddSettings classifierSettings); 
     
+
     protected:
-    RC::RStr callback_ID;
+    double Classification(RC::APtr<const RC::Data1D<double>>& data);
   };
 }
 

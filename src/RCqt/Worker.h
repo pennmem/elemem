@@ -356,15 +356,36 @@ namespace RCqt {
       : worker(worker)
       , handler(handler) {
     }
+
     virtual void operator()(Params&... params) const {
       RC::APtr<WorkerCommand> cmd =
         new CommandTempl<void, Params...>(worker, handler, params...);
       worker->CommandEmitter(cmd, task_type);
     }
+
     virtual RC::CallerBase<void, Params&...>* Copy() const {
       return new BaseTaskClass<task_type, Params...>(worker, handler);
     }
+
+    /// Call the referenced function.
     virtual bool IsSet() { return handler.IsSet(); }
+    
+    // TODO: JPB: Fix Use and Bind
+    ///// Call the referenced function with the parameters given as RC::Tuple
+    ///// tup.
+    //template<class TupleType>
+    //inline void Use(TupleType tup) { return handler.Use(tup); }
+
+    /////// Return a functor with arguments bound using syntax identical to
+    /////// std::bind.
+    ///** The return type of this is an unspecified functor, but it can
+    // *  be wrapped in a MakeFunctor with the corresponding types.
+    // */ 
+    //template<class... Args>
+    //auto Bind(Args... args) -> decltype(handler.Bind(args)) {
+    //  return handler.Bind(args);
+    //}
+
     protected:
     RC::Ptr<Worker> worker;
     RC::Caller<void, Params&...> handler;

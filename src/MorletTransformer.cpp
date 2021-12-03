@@ -28,10 +28,17 @@ namespace CML {
 
 
   void MorletTransformer::Process_Handler(RC::APtr<const EEGData>& data) {
-    RC_DEBOUT(RC::RStr("MorletTransformer_Handler\n\n"));
+    //RC_DEBOUT(RC::RStr("MorletTransformer_Handler\n\n"));
     if ( ! callback.IsSet() ) {
       return;
     }
+    
+    // TODO: JPB: Remove this to enable MorletTranformer function
+    pow_arr.Resize(1);
+    pow_arr[0] = 1;
+    auto temp = RC::MakeAPtr<const RC::Data1D<double>>(pow_arr);
+    callback(temp);
+    return;
 
     auto& datar = data->data;
     size_t datalen = datar[mor_set.channels[0].pos].size();
@@ -61,11 +68,6 @@ namespace CML {
 
     auto pow_arr_ptr = RC::MakeAPtr<const RC::Data1D<double>>(pow_arr);
     callback(pow_arr_ptr);
-  }
-
-
-  void MorletTransformer::SetCallback_Handler(MorletCallback& new_callback) {
-    callback = new_callback;
   }
 }
 

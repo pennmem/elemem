@@ -1,28 +1,42 @@
-#ifndef CLASSIFIER_H
-#define CLASSIFIER_H
-
-#include "EEGData.h"
-#include "RC/Ptr.h"
-#include "RC/RStr.h"
-#include "RCqt/Worker.h"
-
+#include "Classifier.h"
 
 namespace CML {
-  class Classifier : public RCqt::WorkerThread {
-    public:
+  /// Handler that registers a callback on the classifier results
+  /** @param A (preferably unique) tag/name for the callback
+   *  @param The callback on the classifier results
+   */
+  void Classifier::RegisterCallback_Handler(const RC::RStr& tag,
+                                            const ClassifierCallback& callback) {
+    RemoveCallback_Handler(tag);
+    data_callbacks += TaggedCallback{tag, callback};
+  }
 
-    Classifier::Classifier() {}
-
-    int Classifier::classify(RC::APtr<const EEGData> eegData) {
-      // TODO: Ryan, this feels wrong to me (I don't think there is a valid
-      //       default classifier). Are you okay with this?
-      // Always return true;
-      return true;
+  /// Handler that removes a callback on the classifier results.
+  /** @param The tag to be removed from the list of callbacks
+   *  Note: All tags of the same name will be removed (even if there is more than one)
+   */
+  void Classifier::RemoveCallback_Handler(const RC::RStr& tag) {
+    for (size_t i=0; i<data_callbacks.size(); i++) {
+      if (data_callbacks[i].tag == tag) {
+        data_callbacks.Remove(i);
+        i--;
+      }
     }
-    
-    protected:
-    RC::RStr callback_ID;
-  };
-}
+  }
 
-#endif // CLASSIFIER_EVEN_ODD_H
+  /// Handler that starts the classification and reports the result with a callback
+  /** @param data The input data to the classifier
+   */
+  void Classifier::Classifier_Handler(RC::APtr<const RC::Data1D<double>>& data) {
+    //RC_DEBOUT(RC::RStr("Classifier_Handler\n\n"));
+    if ( data_callbacks.IsEmpty() ) {
+      return;
+    }
+
+    double result = Classification(data);
+
+    for (size_t i=0; i<data_callbacks.size(); i++) {
+      data_callbacks[i].callback(result);
+    }
+  }
+}

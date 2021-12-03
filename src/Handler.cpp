@@ -124,7 +124,12 @@ namespace CML {
     morlet_settings.channels = RC::Data1D<BipolarPair>{BipolarPair()};
     morlet_settings.frequencies = RC::Data1D<double>{1};
     feature_generator = new MorletTransformer(morlet_settings);
+
+    ClassifierEvenOddSettings classifier_settings;
+    classifier = new ClassifierEvenOdd(classifier_settings);
+
     classification_data.SetCallback(feature_generator->Process);
+    feature_generator->SetCallback(classifier->Classify);
   }
 
   void Handler::CerebusTest_Handler() {

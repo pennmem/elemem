@@ -106,6 +106,9 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/ClassificationData.h
   src/ClassificationData.cpp
   src/Classifier.h
+  src/Classifier.cpp
+  src/ClassifierEvenOdd.h
+  src/ClassifierEvenOdd.cpp
   src/ConfigFile.h
   src/ConfigFile.cpp
   src/EDFSave.h
@@ -126,6 +129,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/ExperOPS.cpp
   src/ExpEvent.h
   src/FeatureGenerator.h
+  src/FeatureGenerator.cpp
   src/GuiParts.h
   src/GuiParts.cpp
   src/Handler.h

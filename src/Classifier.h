@@ -2,22 +2,37 @@
 #define CLASSIFIER_H
 
 #include "EEGData.h"
-#include "RC/Ptr.h"
-#include "RC/RStr.h"
+#include "RC/APtr.h"
 #include "RCqt/Worker.h"
 
-
 namespace CML {
+  using FeatureCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
+  using ClassifierCallback = RCqt::TaskCaller<double>;
+
   class Classifier : public RCqt::WorkerThread {
     public:
+    virtual ~Classifier() {}
 
-    Classifier();
+    FeatureCallback Classify =
+      TaskHandler(Classifier::Classifier_Handler);
 
-    // TODO: Decide whether this should return an int or a bool
-    int classify(RC::APtr<const EEGData> eegData);
-    
+    RCqt::TaskCaller<const RC::RStr, const ClassifierCallback> RegisterCallback =
+      TaskHandler(Classifier::RegisterCallback_Handler);
+
+
     protected:
-    RC::RStr callback_ID;
+    virtual double Classification(RC::APtr<const RC::Data1D<double>>&) = 0; 
+    void Classifier_Handler(RC::APtr<const RC::Data1D<double>>&);
+
+    void RegisterCallback_Handler(const RC::RStr& tag,
+                                  const ClassifierCallback& callback);
+    void RemoveCallback_Handler(const RC::RStr& tag);
+
+    struct TaggedCallback {
+      RC::RStr tag;
+      ClassifierCallback callback;
+    };
+    RC::Data1D<TaggedCallback> data_callbacks;
   };
 }
 

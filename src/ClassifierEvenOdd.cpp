@@ -1,25 +1,23 @@
-#ifndef CLASSIFIER_EVEN_ODD_H
-#define CLASSIFIER_EVEN_ODD_H
+#include "ClassifierEvenOdd.h"
 
-#include "EEGData.h"
-#include "RC/Ptr.h"
-#include "RC/RStr.h"
-#include "RCqt/Worker.h"
+#define F2I(f) ((int)(f >= 0.0 ? (f + 0.5) : (f - 0.5)))
 
-    ClassifierEvenOdd::ClassifierEvenOdd(int sampling_rate) {
-      callback_ID = RC::RStr("ClassifierEvenOdd_") + RC::RStr(sampling_rate);
-    }
+namespace CML {
+  /// Constuctor which sets the sampling rate
+  /** @param sampling_rate The sampling rate of the incoming data
+   */
+  ClassifierEvenOdd::ClassifierEvenOdd(ClassifierEvenOddSettings classifier_settings) {
+    //callback_ID = RC::RStr("ClassifierEvenOdd_") + RC::RStr(classifier_settings);
+  }
 
-    // NOT WORKING (just returns 1)
-    int ClassifierEvenOdd::classify(RC::APtr<const EEGData> eegData) {
-      // TODO: Split the wavelet data into 2 threads for classification
-      // TODO: Change the return to be whether the first EEG value is even or odd 
-      return 1;
-    }
-    
-    protected:
-    RC::RStr callback_ID;
-  };
+  /// Handler that actually does the classification and reports the result with a callback
+  /** @param data The input data to the classifier
+   *  @return The classifier result
+   */
+  double ClassifierEvenOdd::Classification(RC::APtr<const RC::Data1D<double>>& data) {
+    //RC_DEBOUT(RC::RStr("Classification\n\n"));
+
+    // TODO: Split the wavelet data into 2 threads for classification
+    return F2I((*data)[0]) % 2;
+  }
 }
-
-#endif // CLASSIFIER_EVEN_ODD_H
