@@ -1,5 +1,5 @@
-#ifndef CLASSIFICATION_DATA_H
-#define CLASSIFICATION_DATA_H
+#ifndef CLASSIFICATIONDATA_H
+#define CLASSIFICATIONDATA_H
 
 #include "EEGData.h"
 #include "RC/Ptr.h"
@@ -49,4 +49,4 @@ namespace CML {
   };
 }
 
-#endif // CLASSIFICATION_DATA_H
+#endif // CLASSIFICATIONDATA_H

@@ -158,6 +158,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/QtStyle.cpp
   src/RCQApplication.h
   src/RCQApplication.cpp
+  src/RollingStats.h
+  src/RollingStats.cpp
   src/Settings.h
   src/Settings.cpp
   src/StatusPanel.h

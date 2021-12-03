@@ -1,5 +1,5 @@
-#ifndef CLASSIFIER_EVEN_ODD_H
-#define CLASSIFIER_EVEN_ODD_H
+#ifndef CLASSIFIEREVENODD_H
+#define CLASSIFIEREVENODD_H
 
 #include "Classifier.h"
 
@@ -18,4 +18,4 @@ namespace CML {
   };
 }
 
-#endif // CLASSIFIER_EVEN_ODD_H
+#endif // CLASSIFIEREVENODD_H
