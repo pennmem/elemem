@@ -20,7 +20,7 @@ namespace CML {
     RCqt::TaskCaller<RC::APtr<const EEGData>> ClassifyData = 
       TaskHandler(ClassificationData::ClassifyData_Handler);
     
-    RCqt::TaskCaller<EEGCallback> SetCallback =
+    RCqt::TaskCaller<const EEGCallback> SetCallback =
       TaskHandler(ClassificationData::SetCallback_Handler);
 
 
@@ -36,7 +36,7 @@ namespace CML {
     //void StopClassifier_Handler() override;
     void ClassifyData_Handler(RC::APtr<const EEGData>& data);
 
-    void SetCallback_Handler(EEGCallback& new_callback);
+    void SetCallback_Handler(const EEGCallback& new_callback);
 
     RC::Ptr<Handler> hndl;
     EEGData buffer;

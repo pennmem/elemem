@@ -45,7 +45,7 @@ namespace CML {
     //exit(0);
   }
   
-  void ClassificationData::SetCallback_Handler(EEGCallback& new_callback) {
+  void ClassificationData::SetCallback_Handler(const EEGCallback& new_callback) {
     callback = new_callback;
   }
 }

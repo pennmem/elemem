@@ -15,13 +15,13 @@ namespace CML {
     RCqt::TaskCaller<RC::APtr<const EEGData>> Process =
       TaskHandler(FeatureGenerator::Process_Handler);
       
-    RCqt::TaskCaller<FeatureCallback> SetCallback = 
+    RCqt::TaskCaller<const FeatureCallback> SetCallback =
       TaskHandler(FeatureGenerator::SetCallback_Handler);
 
 
     protected:
     virtual void Process_Handler(RC::APtr<const EEGData>&) = 0;
-    void SetCallback_Handler(FeatureCallback &new_callback);
+    void SetCallback_Handler(const FeatureCallback &new_callback);
 
     FeatureCallback callback;
   };
