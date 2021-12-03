@@ -36,4 +36,4 @@ namespace CML {
   };
 }
 
-#endif // CLASSIFIER_EVEN_ODD_H
+#endif // CLASSIFIER_H
