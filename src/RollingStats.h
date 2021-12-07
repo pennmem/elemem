@@ -18,11 +18,13 @@ namespace CML {
 
   class RollingStats {
     public:
-    RollingStats(int num_values);
+    RollingStats(size_t num_values);
 
-    void Update(RC::Data1D<double> new_values);
     void Reset();
+    void Update(const RC::Data1D<double>& new_values);
+    RC::Data1D<double> ZScore(const RC::Data1D<double>& data);
     StatsData GetStats();
+
 
     protected:
     int count;

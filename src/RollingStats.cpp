@@ -4,7 +4,7 @@ namespace CML {
   /// Default constructor that initializes and resets the internal lists
   /** @param the number of values in each list
    */
-  RollingStats::RollingStats(int num_values) {
+  RollingStats::RollingStats(size_t num_values) {
     means.Resize(num_values);
     m2s.Resize(num_values);
     Reset();
@@ -20,9 +20,9 @@ namespace CML {
   /// Update the rolling statistics with a new set of values
   /** @param The new values to be added to the rolling statics
    */
-  void RollingStats::Update(RC::Data1D<double> new_values) {
+  void RollingStats::Update(const RC::Data1D<double>& new_values) {
     if (new_values.size() != means.size())
-      Throw_RC_Type(Bounds, "Data1D size mismatch between new_values and means/m2s");
+      Throw_RC_Type(Bounds, "Data1D size mismatch between new_values and means");
     count += 1;
     RC_ForIndex(i, new_values) {
       double delta = new_values[i] - means[i];
@@ -32,6 +32,20 @@ namespace CML {
     }
   }
 
+  /// Z-score the data with the current statistics
+  /** @param The data to be z-scored
+   */
+  RC::Data1D<double> RollingStats::ZScore(const RC::Data1D<double>& data) {
+    if (data.size() != means.size())
+      Throw_RC_Type(Bounds, "Data1D size mismatch between data and means");
+    RC::Data1D<double> zscored_data(data.size());
+    StatsData stats = GetStats();
+    RC_ForIndex(i, data) {
+      zscored_data[i] = (data[i] - stats.means[i]) / stats.sample_std_devs[i];
+    }
+    return zscored_data;
+  }
+
   /// Returns the current statistics from the collected data
   /** @return The current statistics
    */
@@ -39,6 +53,7 @@ namespace CML {
     RC::Data1D<double> std_dev(m2s.size());
     RC::Data1D<double> sample_std_dev(m2s.size());
     RC_ForIndex(i, m2s) {
+      // TODO: JPB: Sqrt of values
       std_dev[i] = m2s[i] / count;
       sample_std_dev[i] = m2s[i] / (count - 1);
     }
