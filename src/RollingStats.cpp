@@ -1,4 +1,5 @@
 #include "RollingStats.h"
+#include <cmath>
 
 namespace CML {
   /// Default constructor that initializes and resets the internal lists
@@ -53,9 +54,8 @@ namespace CML {
     RC::Data1D<double> std_dev(m2s.size());
     RC::Data1D<double> sample_std_dev(m2s.size());
     RC_ForIndex(i, m2s) {
-      // TODO: JPB: Sqrt of values
-      std_dev[i] = m2s[i] / count;
-      sample_std_dev[i] = m2s[i] / (count - 1);
+      std_dev[i] = std::sqrt(m2s[i] / count);
+      sample_std_dev[i] = std::sqrt(m2s[i] / (count - 1));
     }
     return StatsData {means, std_dev, sample_std_dev};
   }
