@@ -9,7 +9,6 @@
 
 namespace CML {
   class Handler;
-  class Classifier;
 
   using EEGCallback = RCqt::TaskCaller<RC::APtr<const EEGData>>;
 
@@ -17,14 +16,14 @@ namespace CML {
     public:
     ClassificationData(RC::Ptr<Handler> hndl, size_t sampling_rate); 
 
-    RCqt::TaskCaller<RC::APtr<const EEGData>> ClassifyData = 
-      TaskHandler(ClassificationData::ClassifyData_Handler);
-    
     RCqt::TaskCaller<const EEGCallback> SetCallback =
       TaskHandler(ClassificationData::SetCallback_Handler);
 
 
     protected:
+    RCqt::TaskCaller<RC::APtr<const EEGData>> ClassifyData = 
+      TaskHandler(ClassificationData::ClassifyData_Handler);
+
     // TODO: Decide whether to have json configurable variables for the
     //       classifier data, such as binning sizes
 

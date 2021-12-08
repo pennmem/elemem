@@ -6,7 +6,8 @@ namespace CML {
   /// Constuctor which sets the sampling rate
   /** @param sampling_rate The sampling rate of the incoming data
    */
-  ClassifierEvenOdd::ClassifierEvenOdd(ClassifierEvenOddSettings classifier_settings) {
+  ClassifierEvenOdd::ClassifierEvenOdd(RC::Ptr<Handler> hndl, ClassifierEvenOddSettings classifier_settings)
+    : Classifier(hndl){
     //callback_ID = RC::RStr("ClassifierEvenOdd_") + RC::RStr(classifier_settings);
   }
 
@@ -17,7 +18,6 @@ namespace CML {
   double ClassifierEvenOdd::Classification(RC::APtr<const RC::Data1D<double>>& data) {
     //RC_DEBOUT(RC::RStr("Classification\n\n"));
 
-    // TODO: Split the wavelet data into 2 threads for classification
     return F2I((*data)[0]) % 2;
   }
 }
