@@ -38,8 +38,6 @@ namespace CML {
     double result = Classification(data);
     hndl->event_log.Log(RC::RStr(result));
 
-    hndl->stim_worker.Stimulate();
-
     for (size_t i=0; i<data_callbacks.size(); i++) {
       data_callbacks[i].callback(result);
     }

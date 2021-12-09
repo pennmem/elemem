@@ -10,15 +10,23 @@
 namespace CML {
   class Handler;
 
+  using ClassifierCallback = RCqt::TaskCaller<const double>;
   using EEGCallback = RCqt::TaskCaller<RC::APtr<const EEGData>>;
+
+  class TaskClassifierSettings {
+    public:
+    bool sham;
+  };
 
   class ClassificationData : public RCqt::WorkerThread {
     public:
     ClassificationData(RC::Ptr<Handler> hndl, size_t sampling_rate); 
 
+    ClassifierCallback ClassifierDecision =
+      TaskHandler(ClassificationData::ClassifierDecision_Handler);
+
     RCqt::TaskCaller<const EEGCallback> SetCallback =
       TaskHandler(ClassificationData::SetCallback_Handler);
-
 
     protected:
     RCqt::TaskCaller<RC::APtr<const EEGData>> ClassifyData = 
@@ -37,10 +45,13 @@ namespace CML {
 
     void SetCallback_Handler(const EEGCallback& new_callback);
 
+    void ClassifierDecision_Handler(const double& result);
+
     RC::Ptr<Handler> hndl;
     EEGData buffer;
     size_t sampling_rate;
     RC::RStr callback_ID;
+    TaskClassifierSettings task_classifier_settings;
 
     EEGCallback callback;
 
