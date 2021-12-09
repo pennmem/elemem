@@ -9,7 +9,7 @@ namespace CML {
   class Handler;
 
   using FeatureCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
-  using ClassifierCallback = RCqt::TaskCaller<double>;
+  using ClassifierCallback = RCqt::TaskCaller<const double>;
 
   class Classifier : public RCqt::WorkerThread {
     public:

@@ -41,8 +41,18 @@ namespace CML {
     //RC_DEBOUT(deb_msg);
 
     callback(data);
-    //#include <stdlib.h>
-    //exit(0);
+  }
+
+  void ClassificationData::ClassifierDecision_Handler(const double& result) {
+    //RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
+    bool stim = result > 0.5;
+
+    hndl->event_log.Log(RC::RStr("Sham: ") + task_classifier_settings.sham);
+    hndl->event_log.Log(RC::RStr("Stim: ") + stim);
+
+    if (stim && !task_classifier_settings.sham) {
+      //hndl->stim_worker.Stimulate();
+    }
   }
   
   void ClassificationData::SetCallback_Handler(const EEGCallback& new_callback) {

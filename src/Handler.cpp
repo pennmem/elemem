@@ -130,6 +130,7 @@ namespace CML {
 
     classification_data.SetCallback(feature_generator->Process);
     feature_generator->SetCallback(classifier->Classify);
+    classifier->RegisterCallback("ClassifierDecision", classification_data.ClassifierDecision);
   }
 
   void Handler::CerebusTest_Handler() {
