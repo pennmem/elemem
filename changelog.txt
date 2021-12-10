@@ -24,5 +24,9 @@ Add unreleased user-relevant updates to Dev section at end.
  - Fixes to OPS config output putting duration in the right spot.
  - Fix OPS stim approvals to require a selection for every parameter.
 
+2021-12-10
+ - Fixes amplitude and duration units in output experiment_config.json.
+ - Version hardcoded to work with 256 channel Neuroport systems.
+
 Dev
 

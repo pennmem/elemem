@@ -239,7 +239,7 @@ namespace CML {
 
   void Handler::InitializeChannels_Handler() {
     Data1D<uint16_t> channels;
-    for (uint16_t c=0; c<128; c++) {
+    for (uint16_t c=0; c<256; c++) {
       channels += c;
     }
     eeg_acq.SetChannels(channels, settings.sampling_rate);
