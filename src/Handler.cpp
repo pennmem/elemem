@@ -44,7 +44,7 @@ namespace CML {
 
   Handler::Handler()
     : stim_worker(this),
-      classification_data(this, 1000),
+      classification_data(this, 100), // TODO: JPB: Make hardcoded value dynamic
       net_worker(this),
       exper_ops(this) {
     // For error management, everything that could error must go into
