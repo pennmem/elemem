@@ -29,8 +29,8 @@ namespace CML {
 
     try {
       RC::APtr<EEGData> data_aptr = new EEGData(sampling_rate);
-      data_aptr->data.Resize(cbNUM_ANALOG_CHANS);
       auto& data = data_aptr->data;
+      data.Resize(cbNUM_ANALOG_CHANS);
 
       auto& cereb_chandata = eeg_source->GetData();
 

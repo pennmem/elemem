@@ -6,7 +6,6 @@
 #include "RC/RStr.h"
 #include "RCqt/Worker.h"
 
-
 namespace CML {
   class Handler;
 
@@ -20,7 +19,10 @@ namespace CML {
 
   class ClassificationData : public RCqt::WorkerThread {
     public:
-    ClassificationData(RC::Ptr<Handler> hndl, size_t sampling_rate); 
+    ClassificationData(RC::Ptr<Handler> hndl, int sampling_rate); 
+
+    RCqt::TaskCaller<const RC::RStr> ProcessTaskClassifierEvent =
+      TaskHandler(ClassificationData::ProcessTaskClassifierEvent_Handler);
 
     ClassifierCallback ClassifierDecision =
       TaskHandler(ClassificationData::ClassifierDecision_Handler);
@@ -43,19 +45,29 @@ namespace CML {
     //void StopClassifier_Handler() override;
     void ClassifyData_Handler(RC::APtr<const EEGData>& data);
 
+    void ProcessTaskClassifierEvent_Handler(const RC::RStr& event);
+    void ClassifierDecision_Handler(const double& result);
+    
     void SetCallback_Handler(const EEGCallback& new_callback);
 
-    void ClassifierDecision_Handler(const double& result);
+    RC::APtr<EEGData> GetCircularBufferData();
+    void UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& data);
+    void UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& data, size_t start);
+    void UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& data, size_t start, size_t amnt);
+    void StartClassification();
 
     RC::Ptr<Handler> hndl;
-    EEGData buffer;
-    size_t sampling_rate;
     RC::RStr callback_ID;
+
+    EEGData circular_data;
+    size_t circular_data_start = 0;
+
     TaskClassifierSettings task_classifier_settings;
 
-    EEGCallback callback;
+    bool stim_event_waiting = false;
+    size_t num_eeg_events_before_stim = 0;
 
-    u32 dataSinceLastClassification;
+    EEGCallback callback;
   };
 }
 

@@ -26,7 +26,6 @@ namespace CML {
     mt->prepare_run();
   }
 
-
   void MorletTransformer::Process_Handler(RC::APtr<const EEGData>& data) {
     //RC_DEBOUT(RC::RStr("MorletTransformer_Handler\n\n"));
     if ( ! callback.IsSet() ) {
