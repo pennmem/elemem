@@ -37,13 +37,6 @@ namespace CML {
     
     auto& new_datar = new_data;
     auto& circ_datar = circular_data.data;
-
-    auto inc_circ_start = [&](size_t amnt){
-      circular_data_start += amnt;
-      if (circular_data_start == circ_datar.size())
-        circular_data_start = 0;
-    };
-
     RC_ForIndex(i, circ_datar) { // Iterate over channels
       auto& circ_events = circ_datar[i];
       auto& new_events = new_datar[i];
@@ -51,12 +44,14 @@ namespace CML {
       // Copy the data up to the end of the Data1D (or all the data, if possible)
       size_t frst_amnt = std::min(circ_remaining_events, amnt);
       circ_events.CopyAt(circular_data_start, new_events, start, frst_amnt);
-      inc_circ_start(frst_amnt);
+      circular_data_start += frst_amnt;
+      if (circular_data_start == circ_events.size())
+        circular_data_start = 0;
       // Copy the remaining data at the beginning of the Data1D
       int scnd_amnt = (int)amnt - (int)frst_amnt;
       if (scnd_amnt > 0) {
         circ_events.CopyAt(0, new_events, start+frst_amnt, scnd_amnt);
-        inc_circ_start(scnd_amnt);
+        circular_data_start += scnd_amnt;
       }
     }
 
