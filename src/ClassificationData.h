@@ -52,9 +52,9 @@ namespace CML {
 
     RC::APtr<EEGData> GetCircularBufferData();
     void PrintCircularBuffer();
-    void UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& data);
-    void UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& data, size_t start);
-    void UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& data, size_t start, size_t amnt);
+    void UpdateCircularBuffer(RC::APtr<const EEGData>& new_data);
+    void UpdateCircularBuffer(RC::APtr<const EEGData>& new_data, size_t start);
+    void UpdateCircularBuffer(RC::APtr<const EEGData>& new_data, size_t start, size_t amnt);
     RC::APtr<EEGData> BinData(RC::APtr<const EEGData> in_data, size_t new_sampling_rate);
 
     void StartClassification();
