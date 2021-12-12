@@ -54,13 +54,18 @@ namespace CML {
         circular_data_start += scnd_amnt;
       }
     }
+    
+    PrintCircularBuffer();
+  }
 
-    //RC::RStr deb_msg = RC::RStr("Data\n");
-    //for (size_t c=0; c<new_datar.size(); c++) {
-    //  deb_msg += "Channel " + RC::RStr(c) + ": " + RC::RStr::Join(new_datar[c], ", ") + "\n";
-    //} 
-    //deb_msg += "\n\n";
-    //RC_DEBOUT(deb_msg);
+  void ClassificationData::PrintCircularBuffer() {
+    auto data = GetCircularBufferData();
+    auto& datar = data->data;    
+    RC::RStr deb_msg = RC::RStr("Data\nStart: ") + circular_data_start;
+    RC_ForIndex(c, datar)
+      deb_msg += "Channel " + RC::RStr(c) + ": " + RC::RStr::Join(datar[c], ", ") + "\n"; 
+    deb_msg += "\n\n";
+    RC_DEBOUT(deb_msg);
   }
 
   RC::APtr<EEGData> ClassificationData::GetCircularBufferData() {

@@ -51,6 +51,7 @@ namespace CML {
     void SetCallback_Handler(const EEGCallback& new_callback);
 
     RC::APtr<EEGData> GetCircularBufferData();
+    void PrintCircularBuffer();
     void UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& data);
     void UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& data, size_t start);
     void UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& data, size_t start, size_t amnt);
