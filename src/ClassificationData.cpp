@@ -6,9 +6,9 @@
 #include <unordered_map>
 
 namespace CML {
+  // TODO: JPB: Remove sampling_rate
   ClassificationData::ClassificationData(RC::Ptr<Handler> hndl, int sampling_rate)
-      : hndl(hndl), circular_data(sampling_rate) {
-    circular_data.sampling_rate = sampling_rate;
+      : hndl(hndl), circular_data(0) {
     callback_ID = RC::RStr("ClassificationData_") + sampling_rate;
     hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
 
@@ -25,29 +25,36 @@ namespace CML {
     //RC_DEBOUT(deb_msg);
   }
 
-  void ClassificationData::UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& new_data) {
+  void ClassificationData::UpdateCircularBuffer(RC::APtr<const EEGData>& new_data) {
     size_t start = 0;
-    size_t amnt = new_data.size();
+    size_t amnt = new_data->data.size();
     UpdateCircularBuffer(new_data, start, amnt);
   }
 
-  void ClassificationData::UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& new_data, size_t start) {
-    size_t amnt = new_data.size() - start;
+  void ClassificationData::UpdateCircularBuffer(RC::APtr<const EEGData>& new_data, size_t start) {
+    size_t amnt = new_data->data.size() - start;
     UpdateCircularBuffer(new_data, start, amnt);
   }
 
-  void ClassificationData::UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& new_data, size_t start, size_t amnt) {
-    if (start > new_data.size() - 1)
+  void ClassificationData::UpdateCircularBuffer(RC::APtr<const EEGData>& new_data, size_t start, size_t amnt) {
+    auto& new_datar = new_data->data;
+    auto& circ_datar = circular_data.data;
+
+    // TODO: JPB: Decide if this is how I should set the sampling_rate and data size (or should I pass all the info in)
+    if (circular_data.sampling_rate == 0) { // Setup the circular EEGData to match the incoming EEGData
+      circular_data.sampling_rate = new_data->sampling_rate;
+      circ_datar.Resize(new_datar.size());
+    }
+
+    if (start > new_datar.size() - 1)
       Throw_RC_Type(Bounds, "The \"start\" value is larger than the number of items that new_data contains");
-    if (start + amnt > new_data.size())
+    if (start + amnt > new_datar.size())
       Throw_RC_Type(Bounds, "The end value is larger than the number of items that new_data contains");
-    if (new_data.size() > circular_data.data.size()) // TODO: JPB: Log error message and write only the last buffer length of data
+    if (new_datar.size() > circ_datar.size()) // TODO: JPB: Log error message and write only the last buffer length of data
       Throw_RC_Type(Bounds, "Trying to write more values into the circular_data than the circular_data contains");
 
     if (amnt ==  0) { return; } // Not writing any data, so skip
     
-    auto& new_datar = new_data;
-    auto& circ_datar = circular_data.data;
     RC_ForIndex(i, circ_datar) { // Iterate over channels
       auto& circ_events = circ_datar[i];
       auto& new_events = new_datar[i];
@@ -153,15 +160,15 @@ namespace CML {
     if (stim_event_waiting) {
       size_t num_eeg_events_before_stim = this->num_eeg_events_before_stim;
       if (num_eeg_events_before_stim <= datar.size()) {
-        UpdateCircularBuffer(datar, 0, num_eeg_events_before_stim);
+        UpdateCircularBuffer(data, 0, num_eeg_events_before_stim);
         StartClassification();
-        UpdateCircularBuffer(datar, num_eeg_events_before_stim);
+        UpdateCircularBuffer(data, num_eeg_events_before_stim);
       } else { // num_eeg_events_before_stim > datar.size()
-        UpdateCircularBuffer(datar);
+        UpdateCircularBuffer(data);
         num_eeg_events_before_stim -= datar.size();
       }
     } else {
-      UpdateCircularBuffer(datar);
+      UpdateCircularBuffer(data);
     }
   }
 
