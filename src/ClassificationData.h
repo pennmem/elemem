@@ -55,6 +55,8 @@ namespace CML {
     void UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& data);
     void UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& data, size_t start);
     void UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& data, size_t start, size_t amnt);
+    RC::APtr<EEGData> BinData(RC::APtr<const EEGData> in_data, size_t new_sampling_rate);
+
     void StartClassification();
 
     RC::Ptr<Handler> hndl;

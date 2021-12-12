@@ -8,9 +8,21 @@
 namespace CML {
   ClassificationData::ClassificationData(RC::Ptr<Handler> hndl, int sampling_rate)
       : hndl(hndl), circular_data(sampling_rate) {
-      circular_data.sampling_rate = sampling_rate;
-      callback_ID = RC::RStr("ClassificationData_") + sampling_rate;
-      hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
+    circular_data.sampling_rate = sampling_rate;
+    callback_ID = RC::RStr("ClassificationData_") + sampling_rate;
+    hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
+
+    // Test Code
+    //RC::APtr<EEGData> data = new EEGData(10);
+    //data->data.Resize(1);
+    //data->data[0].Append({0,1,2,3,4,5,6,7,8,9,10});
+    //RC::APtr<const EEGData> binned_data = BinData(data.ExtractConst(), 3).ExtractConst();
+    //auto& datar = binned_data->data;
+    //RC::RStr deb_msg = RC::RStr("Data\nStart: ") + circular_data_start + "\n";
+    //RC_ForIndex(c, datar)
+    //  deb_msg += "Channel " + RC::RStr(c) + ": " + RC::RStr::Join(datar[c], ", ") + "\n"; 
+    //deb_msg += "\n\n";
+    //RC_DEBOUT(deb_msg);
   }
 
   void ClassificationData::UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& new_data) {
@@ -25,7 +37,6 @@ namespace CML {
   }
 
   void ClassificationData::UpdateCircularBuffer(const RC::Data1D<RC::Data1D<int16_t>>& new_data, size_t start, size_t amnt) {
-    // TODO: JPB: Make amnt a size_t and have default be 0 or something
     if (start > new_data.size() - 1)
       Throw_RC_Type(Bounds, "The \"start\" value is larger than the number of items that new_data contains");
     if (start + amnt > new_data.size())
@@ -33,7 +44,7 @@ namespace CML {
     if (new_data.size() > circular_data.data.size()) // TODO: JPB: Log error message and write only the last buffer length of data
       Throw_RC_Type(Bounds, "Trying to write more values into the circular_data than the circular_data contains");
 
-    if (amnt ==  0) { return; } // Not writing any data
+    if (amnt ==  0) { return; } // Not writing any data, so skip
     
     auto& new_datar = new_data;
     auto& circ_datar = circular_data.data;
@@ -55,13 +66,13 @@ namespace CML {
       }
     }
     
-    PrintCircularBuffer();
+    //PrintCircularBuffer();
   }
 
   void ClassificationData::PrintCircularBuffer() {
     auto data = GetCircularBufferData();
     auto& datar = data->data;    
-    RC::RStr deb_msg = RC::RStr("Data\nStart: ") + circular_data_start;
+    RC::RStr deb_msg = RC::RStr("Data\nStart: ") + circular_data_start + "\n";
     RC_ForIndex(c, datar)
       deb_msg += "Channel " + RC::RStr(c) + ": " + RC::RStr::Join(datar[c], ", ") + "\n"; 
     deb_msg += "\n\n";
@@ -84,13 +95,55 @@ namespace CML {
     return out_data;
   }
 
+  RC::APtr<EEGData> ClassificationData::BinData(RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
+    // TODO: JPB: Add ability to handle sampling ratios that aren't true multiples
+    RC::APtr<EEGData> out_data = new EEGData(new_sampling_rate);
+    size_t sampling_ratio = in_data->sampling_rate / new_sampling_rate;
+    auto& in_datar = in_data->data;
+    auto& out_datar = out_data->data;
+    out_datar.Resize(in_datar.size());
+    
+    auto accum_event = [](u32 sum, size_t val) { return std::move(sum) + val; };
+    RC_ForIndex(i, out_datar) { // Iterate over channels
+      auto& in_events = in_datar[i];
+      auto& out_events = out_datar[i];
+      size_t out_events_size = in_events.size() / sampling_ratio + 1;
+      out_events.Resize(out_events_size);
+      RC_ForIndex(j, out_events) {
+        if (j < out_events_size - 1) { 
+          size_t start = j * sampling_ratio;
+          size_t end = (j+1) * sampling_ratio - 1;
+          size_t items = sampling_ratio;
+          out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1, 0, accum_event) / items;
+        } else { // Last block could have leftover samples
+          size_t start = j * sampling_ratio;
+          size_t end = in_events.size() - 1;
+          size_t items = std::distance(&in_events[start], &in_events[end]+1);
+          RC_DEBOUT(items);
+          out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1, 0, accum_event) / items;
+        }
+      }
+    }
+    
+    return out_data;
+  }
+
   void ClassificationData::StartClassification() {
     stim_event_waiting = false;
     num_eeg_events_before_stim = 0;
     // TODO: JPB: if (!(eventLoop has too many waiting data points)) // skip classification to catch up
     RC::APtr<const EEGData> data = GetCircularBufferData().ExtractConst();
-    // TODO: JPB: Bin circular buffer data
-    callback(data);
+    // TODO: JPB: Get the new_sampling_rate from the config file
+    RC::APtr<const EEGData> binned_data = BinData(data, 100).ExtractConst();
+
+    auto& datar = binned_data->data;
+    RC::RStr deb_msg = RC::RStr("Data\nStart: ") + circular_data_start;
+    RC_ForIndex(c, datar)
+      deb_msg += "Channel " + RC::RStr(c) + ": " + RC::RStr::Join(datar[c], ", ") + "\n"; 
+    deb_msg += "\n\n";
+    RC_DEBOUT(deb_msg);
+
+    callback(binned_data);
   }
 
   void ClassificationData::ClassifyData_Handler(RC::APtr<const EEGData>& data) {
