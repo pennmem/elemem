@@ -49,6 +49,8 @@ namespace CML {
     size_t sampling_rate;
     RC::Data1D<RC::Data1D<int16_t>> data;
   };
+
+  void PrintEEGData(const EEGData& data);
 }
 
 #endif // EEGDATA_H

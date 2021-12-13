@@ -1,4 +1,6 @@
 #include "Classifier.h"
+#include "RC/RStr.h"
+#include "Handler.h"
 
 namespace CML {
   /// Handler that registers a callback on the classifier results
@@ -34,6 +36,7 @@ namespace CML {
     }
 
     double result = Classification(data);
+    hndl->event_log.Log(RC::RStr(result));
 
     for (size_t i=0; i<data_callbacks.size(); i++) {
       data_callbacks[i].callback(result);

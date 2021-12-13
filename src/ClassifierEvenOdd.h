@@ -10,11 +10,12 @@ namespace CML {
 
   class ClassifierEvenOdd : public Classifier {
     public:
-    ClassifierEvenOdd(ClassifierEvenOddSettings classifierSettings); 
+    ClassifierEvenOdd(RC::Ptr<Handler> hndl, ClassifierEvenOddSettings classifierSettings);
     
 
     protected:
     double Classification(RC::APtr<const RC::Data1D<double>>& data);
+
   };
 }
 

@@ -6,13 +6,14 @@
 #include "RCqt/Worker.h"
 
 namespace CML {
+  using EEGCallback = RCqt::TaskCaller<RC::APtr<const EEGData>>;
   using FeatureCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
 
   class FeatureGenerator : public RCqt::WorkerThread {
     public:
     virtual ~FeatureGenerator() {}
 
-    RCqt::TaskCaller<RC::APtr<const EEGData>> Process =
+    EEGCallback Process =
       TaskHandler(FeatureGenerator::Process_Handler);
       
     RCqt::TaskCaller<const FeatureCallback> SetCallback =

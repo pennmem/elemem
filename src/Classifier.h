@@ -6,11 +6,14 @@
 #include "RCqt/Worker.h"
 
 namespace CML {
+  class Handler;
+
   using FeatureCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
-  using ClassifierCallback = RCqt::TaskCaller<double>;
+  using ClassifierCallback = RCqt::TaskCaller<const double>;
 
   class Classifier : public RCqt::WorkerThread {
     public:
+    Classifier(RC::Ptr<Handler> hndl) : hndl(hndl) {}
     virtual ~Classifier() {}
 
     FeatureCallback Classify =
@@ -33,6 +36,8 @@ namespace CML {
       ClassifierCallback callback;
     };
     RC::Data1D<TaggedCallback> data_callbacks;
+
+    RC::Ptr<Handler> hndl;
   };
 }
 
