@@ -4,7 +4,7 @@
 #include "RC/Data1D.h"
 
 namespace CML {
-  /// The is a simple class that acts as a container for EEG data.
+  /// This is a simple class that acts as a container for EEG data.
   /** This class is an array of arrays containing EEG data and its sampling
    *  rate. The data is arranged with the outer array as the EEG channels and the
    *  inner arrays as the EEG values over time (for that channel).
