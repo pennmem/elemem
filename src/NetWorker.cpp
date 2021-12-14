@@ -164,17 +164,20 @@ namespace CML {
       else if (type == "CLSTIM") {
         uint64_t classifyms;
         inp.Get(classifyms, "data", "classifyms");
-        Throw_RC_Error("CLSTIM not implemented in this version"); // TODO
+        ClassificationType cl_type = ClassificationType::STIM;
+        hndl->task_classifier_manager->ProcessClassifierEvent(cl_type, classifyms);
       }
       else if (type == "CLSHAM") {
         uint64_t classifyms;
         inp.Get(classifyms, "data", "classifyms");
-        Throw_RC_Error("CLSHAM not implemented in this version"); // TODO
+        ClassificationType cl_type = ClassificationType::SHAM;
+        hndl->task_classifier_manager->ProcessClassifierEvent(cl_type, classifyms);
       }
       else if (type == "CLNORMALIZE") {
         uint64_t duration;
         inp.Get(duration, "data", "duration");
-        Throw_RC_Error("CLNORMALIZE not implemented in this version"); // TODO
+        ClassificationType cl_type = ClassificationType::NORMALIZE;
+        hndl->task_classifier_manager->ProcessClassifierEvent(cl_type, duration);
       }
       else if (type == "STIMSELECT") {
         RC::RStr stimtag;
