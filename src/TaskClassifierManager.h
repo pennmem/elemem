@@ -2,6 +2,7 @@
 #define CLASSIFICATIONDATA_H
 
 #include "EEGData.h"
+#include "ClassifierSettings.h"
 #include "RC/Ptr.h"
 #include "RC/RStr.h"
 #include "RCqt/Worker.h"
@@ -9,22 +10,8 @@
 namespace CML {
   class Handler;
 
-  using ClassifierCallback = RCqt::TaskCaller<const double>;
-  using EEGCallback = RCqt::TaskCaller<RC::APtr<const EEGData>>;
-
-  enum class ClassificationType{
-    STIM,
-    SHAM,
-    NORMALIZE
-  };
-
-  class TaskClassifierSettings {
-    public:
-    ClassificationType cl_type;
-    size_t sampling_rate;
-    size_t duration_ms;
-    size_t binned_sampling_rate;
-  };
+  using ClassifierCallback = RCqt::TaskCaller<const double, const TaskClassifierSettings>;
+  using TaskClassifierCallback = RCqt::TaskCaller<RC::APtr<const EEGData>, const TaskClassifierSettings>;
 
   // TODO: JPB: Make this a base class
   class TaskClassifierManager : public RCqt::WorkerThread {
@@ -37,7 +24,7 @@ namespace CML {
     ClassifierCallback ClassifierDecision =
       TaskHandler(TaskClassifierManager::ClassifierDecision_Handler);
 
-    RCqt::TaskCaller<const EEGCallback> SetCallback =
+    RCqt::TaskCaller<const TaskClassifierCallback> SetCallback =
       TaskHandler(TaskClassifierManager::SetCallback_Handler);
 
     protected:
@@ -56,9 +43,9 @@ namespace CML {
     void ClassifyData_Handler(RC::APtr<const EEGData>& data);
 
     void ProcessClassifierEvent_Handler(const ClassificationType& cl_type, const uint64_t& duration_ms);
-    void ClassifierDecision_Handler(const double& result);
+    void ClassifierDecision_Handler(const double& result, const TaskClassifierSettings& task_classifier_settings);
     
-    void SetCallback_Handler(const EEGCallback& new_callback);
+    void SetCallback_Handler(const TaskClassifierCallback& new_callback);
 
     RC::APtr<EEGData> GetCircularBufferData();
     void PrintCircularBuffer();
@@ -76,12 +63,11 @@ namespace CML {
     size_t circular_data_start = 0;
 
     TaskClassifierSettings task_classifier_settings;
-    size_t sampling_rate;
 
     bool stim_event_waiting = false;
     size_t num_eeg_events_before_stim = 0;
 
-    EEGCallback callback;
+    TaskClassifierCallback callback;
   };
 }
 

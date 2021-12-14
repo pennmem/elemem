@@ -26,7 +26,7 @@ namespace CML {
     mt->prepare_run();
   }
 
-  void MorletTransformer::Process_Handler(RC::APtr<const EEGData>& data) {
+  void MorletTransformer::Process_Handler(RC::APtr<const EEGData>& data, const TaskClassifierSettings& task_classifier_settings) {
     //RC_DEBOUT(RC::RStr("MorletTransformer_Handler\n\n"));
     if ( ! callback.IsSet() ) {
       return;
@@ -36,7 +36,7 @@ namespace CML {
     pow_arr.Resize(1);
     pow_arr[0] = 1;
     auto temp = RC::MakeAPtr<const RC::Data1D<double>>(pow_arr);
-    callback(temp);
+    callback(temp, task_classifier_settings);
     return;
 
     auto& datar = data->data;
@@ -66,7 +66,7 @@ namespace CML {
     mt->compute_wavelets_threads();
 
     auto pow_arr_ptr = RC::MakeAPtr<const RC::Data1D<double>>(pow_arr);
-    callback(pow_arr_ptr);
+    callback(pow_arr_ptr, task_classifier_settings);
   }
 }
 

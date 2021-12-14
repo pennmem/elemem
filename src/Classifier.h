@@ -2,14 +2,15 @@
 #define CLASSIFIER_H
 
 #include "EEGData.h"
+#include "ClassifierSettings.h"
 #include "RC/APtr.h"
 #include "RCqt/Worker.h"
 
 namespace CML {
   class Handler;
 
-  using FeatureCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
-  using ClassifierCallback = RCqt::TaskCaller<const double>;
+  using FeatureCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>, const TaskClassifierSettings>;
+  using ClassifierCallback = RCqt::TaskCaller<const double, const TaskClassifierSettings>;
 
   class Classifier : public RCqt::WorkerThread {
     public:
@@ -25,7 +26,7 @@ namespace CML {
 
     protected:
     virtual double Classification(RC::APtr<const RC::Data1D<double>>&) = 0; 
-    void Classifier_Handler(RC::APtr<const RC::Data1D<double>>&);
+    void Classifier_Handler(RC::APtr<const RC::Data1D<double>>&, const TaskClassifierSettings&);
 
     void RegisterCallback_Handler(const RC::RStr& tag,
                                   const ClassifierCallback& callback);

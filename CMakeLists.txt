@@ -103,6 +103,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/ChannelSelector.cpp
   src/CImage.h
   src/CImage.cpp
+  src/ClassifierSettings.h
   src/Classifier.h
   src/Classifier.cpp
   src/ClassifierEvenOdd.h
