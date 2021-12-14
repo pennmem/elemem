@@ -2,7 +2,7 @@
 #define FEATUREGENERATOR_H
 
 #include "EEGData.h"
-#include "ClassifierSettings.h"
+#include "TaskClassifierSettings.h"
 #include "RC/APtr.h"
 #include "RCqt/Worker.h"
 
