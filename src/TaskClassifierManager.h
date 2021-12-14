@@ -2,7 +2,7 @@
 #define CLASSIFICATIONDATA_H
 
 #include "EEGData.h"
-#include "ClassifierSettings.h"
+#include "TaskClassifierSettings.h"
 #include "RC/Ptr.h"
 #include "RC/RStr.h"
 #include "RCqt/Worker.h"

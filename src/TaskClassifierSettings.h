@@ -1,5 +1,5 @@
-#ifndef CLASSIFIERSETTINGS_H
-#define CLASSIFIERSETTINGS_H
+#ifndef TASKCLASSIFIERSETTINGS_H
+#define TASKCLASSIFIERSETTINGS_H
 
 namespace CML {
   /// This is a simple enum class that lists the classification types.
@@ -19,5 +19,5 @@ namespace CML {
   };
 }
 
-#endif // CLASSIFIERSETTINGS_H
+#endif // TASKCLASSIFIERSETTINGS_H
 
