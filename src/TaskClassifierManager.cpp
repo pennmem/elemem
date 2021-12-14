@@ -7,18 +7,13 @@
 
 namespace CML {
   TaskClassifierManager::TaskClassifierManager(RC::Ptr<Handler> hndl, size_t sampling_rate)
-      : hndl(hndl), circular_data(0), sampling_rate(sampling_rate) {
+      : hndl(hndl), circular_data(0) {
     callback_ID = RC::RStr("TaskClassifierManager_") + sampling_rate;
     task_classifier_settings.sampling_rate = sampling_rate;
-    hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
+    // TODO: JPB: Set binned sampling rate from config
+    task_classifier_settings.binned_sampling_rate = sampling_rate / 2;
 
-    // TODO: JPB: If I remove this, remove sampling_rate from constructor params
-    //circular_data.sampling_rate = new_data->sampling_rate;
-    //auto& circ_datar = circular_data.data;
-    //circ_datar.Resize(128); // TODO: JPB: Make this value configured
-    //RC_ForIndex(i, circ_datar) { // Iterate over channels
-    //  circ_datar[i].Resize(100); // TODO: JPB: Make this value configured
-    //}
+    hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
 
     // Test Code for binning
     //RC::APtr<EEGData> data = new EEGData(10);
@@ -43,12 +38,13 @@ namespace CML {
     auto& new_datar = new_data->data;
     auto& circ_datar = circular_data.data;
 
-    // TODO: JPB: Decide if this is how I should set the sampling_rate and data size (or should I pass all the info in)
+    // TODO: JPB: Decide if this is how I should set the sampling_rate and data size in UpdateCircularBuffer 
+    //            (or should I pass all the info in the constructor)
     if (circular_data.sampling_rate == 0) { // Setup the circular EEGData to match the incoming EEGData
       circular_data.sampling_rate = new_data->sampling_rate;
       circ_datar.Resize(new_datar.size());
       RC_ForIndex(i, circ_datar) { // Iterate over channels
-        circ_datar[i].Resize(100); // TODO: JPB: Make this value configured
+        circ_datar[i].Resize(100); // TODO: JPB: Make the circular buffer size configurable
       }
     }
 
@@ -84,8 +80,6 @@ namespace CML {
         circular_data_start += scnd_amnt;
       }
     }
-    
-    //PrintCircularBuffer();
   }
 
   void TaskClassifierManager::PrintCircularBuffer() {
@@ -151,11 +145,9 @@ namespace CML {
 
     // TODO: JPB: if (!(eventLoop has too many waiting data points)) // skip classification to catch up
     RC::APtr<const EEGData> data = GetCircularBufferData().ExtractConst();
+    RC::APtr<const EEGData> binned_data = BinData(data, task_classifier_settings.binned_sampling_rate).ExtractConst();
 
-    // TODO: JPB: Get the new_sampling_rate from the config file
-    RC::APtr<const EEGData> binned_data = BinData(data, 100).ExtractConst();
-
-    callback(binned_data);
+    callback(binned_data, task_classifier_settings);
   }
 
   void TaskClassifierManager::ClassifyData_Handler(RC::APtr<const EEGData>& data) {
@@ -180,16 +172,16 @@ namespace CML {
   void TaskClassifierManager::ProcessClassifierEvent_Handler(const ClassificationType& cl_type, const uint64_t& duration_ms) {
     if (!stim_event_waiting) {
       stim_event_waiting = true;
-      num_eeg_events_before_stim = duration_ms / 1000 * sampling_rate;
+      num_eeg_events_before_stim = duration_ms / 1000 * task_classifier_settings.sampling_rate;
       task_classifier_settings.cl_type = cl_type;
       task_classifier_settings.duration_ms = duration_ms;
     } else {
-      // TODO: JPB: Allow classifier to start gather EEGData on top of the other one
+      // TODO: JPB: Allow classifier to start gather EEGData at the same time as another gathering
       hndl->event_log.Log("Skipping stim event, another stim event is already waiting (collecting EEGData)");
     }
   }
 
-  void TaskClassifierManager::ClassifierDecision_Handler(const double& result) {
+  void TaskClassifierManager::ClassifierDecision_Handler(const double& result, const TaskClassifierSettings& task_classifier_settings) {
     //RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
     bool stim = result > 0.5;
     bool sham = task_classifier_settings.cl_type == ClassificationType::SHAM;
@@ -203,7 +195,7 @@ namespace CML {
     }
   }
   
-  void TaskClassifierManager::SetCallback_Handler(const EEGCallback& new_callback) {
+  void TaskClassifierManager::SetCallback_Handler(const TaskClassifierCallback& new_callback) {
     callback = new_callback;
   }
 }

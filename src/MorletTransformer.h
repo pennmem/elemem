@@ -27,7 +27,7 @@ namespace CML {
 
 
     protected:
-    void Process_Handler(RC::APtr<const EEGData>& data);
+    void Process_Handler(RC::APtr<const EEGData>& data, const TaskClassifierSettings& task_classifier_settings);
 
     MorletSettings mor_set;
     RC::APtr<MorletWaveletTransformMP> mt;

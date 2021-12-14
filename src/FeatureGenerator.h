@@ -2,18 +2,19 @@
 #define FEATUREGENERATOR_H
 
 #include "EEGData.h"
+#include "ClassifierSettings.h"
 #include "RC/APtr.h"
 #include "RCqt/Worker.h"
 
 namespace CML {
-  using EEGCallback = RCqt::TaskCaller<RC::APtr<const EEGData>>;
-  using FeatureCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>>;
+  using TaskClassifierCallback = RCqt::TaskCaller<RC::APtr<const EEGData>, const TaskClassifierSettings>;
+  using FeatureCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>, const TaskClassifierSettings>;
 
   class FeatureGenerator : public RCqt::WorkerThread {
     public:
     virtual ~FeatureGenerator() {}
 
-    EEGCallback Process =
+    TaskClassifierCallback Process =
       TaskHandler(FeatureGenerator::Process_Handler);
       
     RCqt::TaskCaller<const FeatureCallback> SetCallback =
@@ -21,7 +22,7 @@ namespace CML {
 
 
     protected:
-    virtual void Process_Handler(RC::APtr<const EEGData>&) = 0;
+    virtual void Process_Handler(RC::APtr<const EEGData>&, const TaskClassifierSettings&) = 0;
     void SetCallback_Handler(const FeatureCallback &new_callback);
 
     FeatureCallback callback;

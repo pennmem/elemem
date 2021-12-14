@@ -5,7 +5,7 @@
 
 namespace CML {
   class ClassifierEvenOddSettings {
-    int sampling_rate = 0;
+    int temp_variable = 0;
   };
 
   class ClassifierEvenOdd : public Classifier {
