@@ -44,7 +44,7 @@ namespace CML {
 
   Handler::Handler()
     : stim_worker(this),
-      classification_data(this, 100), // TODO: JPB: Make hardcoded value dynamic
+      task_classifier_manager(this, 100), // TODO: JPB: Make hardcoded value dynamic
       net_worker(this),
       exper_ops(this) {
     // For error management, everything that could error must go into
@@ -128,9 +128,9 @@ namespace CML {
     ClassifierEvenOddSettings classifier_settings;
     classifier = new ClassifierEvenOdd(this, classifier_settings);
 
-    classification_data.SetCallback(feature_generator->Process);
+    task_classifier_manager.SetCallback(feature_generator->Process);
     feature_generator->SetCallback(classifier->Classify);
-    classifier->RegisterCallback("ClassifierDecision", classification_data.ClassifierDecision);
+    classifier->RegisterCallback("ClassifierDecision", task_classifier_manager.ClassifierDecision);
   }
 
   void Handler::CerebusTest_Handler() {
