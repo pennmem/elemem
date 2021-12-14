@@ -225,7 +225,8 @@ namespace CML {
       }
     }
 
-    template<class T, class JSONT, class Key, class... Keys>
+    template<class T, class JSONT, class Key, class... Keys,
+      std::enable_if_t<!std::is_integral<Key>::value, bool> = true>
     void GetRecurse(T& data, RC::RStr err_msg, JSONT& cur_node,
         Key key, __attribute__((unused)) Keys... keys) const {
       err_msg += RC::RStr(key) + ":";
@@ -234,6 +235,20 @@ namespace CML {
         Throw_RC_Type(File, (err_msg + "\nError found").c_str());
       }
       GetRecurse(data, err_msg, *itr, keys...);
+    }
+
+    template<class T, class JSONT, class Key, class... Keys,
+      std::enable_if_t<std::is_integral<Key>::value, bool> = true>
+    void GetRecurse(T& data, RC::RStr err_msg, JSONT& cur_node,
+        Key key, __attribute__((unused)) Keys... keys) const {
+      err_msg += RC::RStr(key) + ":";
+      try {
+        auto res = cur_node.at(key);
+        GetRecurse(data, err_msg, res, keys...);
+      }
+      catch (nlohmann::json::exception &e) {
+        Throw_RC_Type(File, (err_msg + "\nError found").c_str());
+      }
     }
 
     template<class T, class JSONI, class... Keys>
@@ -361,7 +376,7 @@ namespace CML {
       }
       file_lines = lines;
       RemoveComments(lines);
-      
+
       data.Clear();
       if (lines.size() == 0) {
         return;
