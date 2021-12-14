@@ -6,7 +6,7 @@
 #include "APITests.h"
 #include "EEGAcq.h"
 #include "EEGFileSave.h"
-#include "ClassificationData.h"
+#include "TaskClassifierManager.h"
 #include "MorletTransformer.h"
 #include "ClassifierEvenOdd.h"
 #include "EventLog.h"
@@ -103,7 +103,7 @@ namespace CML {
     StimWorker stim_worker;
     EEGAcq eeg_acq;
     RC::APtr<EEGFileSave> eeg_save;
-    ClassificationData classification_data;
+    RC::APtr<TaskClassifierManager> task_classifier_manager;
     RC::APtr<FeatureGenerator> feature_generator;
     RC::APtr<Classifier> classifier;
     NetWorker net_worker;
