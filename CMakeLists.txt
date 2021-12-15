@@ -127,6 +127,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/ExperOPS.h
   src/ExperOPS.cpp
   src/ExpEvent.h
+  src/FeatureFilters.h
+  src/FeatureFilters.cpp
   src/FeatureGenerator.h
   src/FeatureGenerator.cpp
   src/GuiParts.h

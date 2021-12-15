@@ -11,8 +11,6 @@ namespace CML {
           "for classification.");
     }
 
-    //Temp = MakeCaller(this, &MorletTransformer::DoNothing);
-    //Temp = RC::MakeCaller(this, this->DoNothingTask);
     return; //JPB: TODO: Remove (this causes an exception)
     mt = new MorletWaveletTransformMP(mor_set.cpus);
 
