@@ -9,7 +9,7 @@
 #include "RC/APtr.h"
 
 #include "MorletWaveletTransformMP.h"
-// TODO: JPB: Move include to cpp file and use
+// TODO: JPB: (refactor) Move include to cpp file and use
 //class MorletWaveletTransformMP;
 
 namespace CML {

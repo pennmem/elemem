@@ -9,7 +9,7 @@
 #include "RC/APtr.h"
 
 //#include "ButterworthTransformMP.h"
-// TODO: JPB: Move include to cpp file and use
+// TODO: JPB: (refactor) Move include to cpp file and use
 //class ButterworthTransformMP;
 
 namespace CML {

@@ -12,7 +12,9 @@ namespace CML {
           "for classification.");
     }   
 
-    return; // TODO: JPB: Remove this early return to enable Setup() (this causes an exception)
+    // TODO: JPB: (need) Remove this early return to enable Setup() (this causes an exception)
+    return;
+
     mt = new MorletWaveletTransformMP(mor_set.cpus);
 
     mt->set_output_type(OutputType::POWER);
@@ -26,7 +28,7 @@ namespace CML {
   }
 
   RC::APtr<const EEGData> MorletTransformer::Filter(RC::APtr<const EEGData>& data) {
-    // TODO: JPB: Remove this early return to enable Filter()
+    // TODO: JPB: (need) Remove this early return to enable Filter()
     return data;
 
     auto& datar = data->data;
@@ -41,7 +43,7 @@ namespace CML {
     mt->set_wavelet_phase_array(phase_arr.Raw(), chanlen, datalen);
     mt->set_wavelet_complex_array(complex_arr.Raw(), chanlen, datalen);
 
-    // TODO: JPB: Move this bipolar pair caculation to FeatureFilters::BipolarRef()
+    // TODO: JPB: (need) Move this bipolar pair caculation to FeatureFilters::BipolarRef()
     // Calculate bipolar pair data as flat 1D array.
     RC::Data1D<double> flatdata(flat_size);
     for (size_t ci=0; ci < chanlen; ci++) {
@@ -56,7 +58,7 @@ namespace CML {
     mt->set_signal_array(flatdata.Raw(), chanlen, datalen);
     mt->compute_wavelets_threads();
 
-    // TODO: JPB: Convert Data1D back to EEGData and return that
+    // TODO: JPB: (need) Convert Data1D back to EEGData and return that
     //return RC::MakeAPtr<const RC::Data1D<double>>(pow_arr);
   }
 }

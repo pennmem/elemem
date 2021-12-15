@@ -13,7 +13,7 @@ namespace CML {
   using ClassifierCallback = RCqt::TaskCaller<const double, const TaskClassifierSettings>;
   using TaskClassifierCallback = RCqt::TaskCaller<RC::APtr<const EEGData>, const TaskClassifierSettings>;
 
-  // TODO: JPB: Make this a base class (only make )
+  // TODO: JPB: (refactor) Make this a base class
   class TaskClassifierManager : public RCqt::WorkerThread {
     public:
     TaskClassifierManager(RC::Ptr<Handler> hndl, size_t sampling_rate); 
@@ -38,7 +38,7 @@ namespace CML {
     
     void SetCallback_Handler(const TaskClassifierCallback& new_callback);
 
-    // TODO: JPB: Refactor this out into it's own CiruclarBuffer class or Binning class or something?
+    // TODO: JPB: (refactor) Make this into it's own CiruclarBuffer class or Binning class or something?
     RC::APtr<EEGData> GetCircularBufferData();
     void PrintCircularBuffer();
     void UpdateCircularBuffer(RC::APtr<const EEGData>& new_data);
