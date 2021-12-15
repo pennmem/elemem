@@ -92,6 +92,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/About.cpp
   src/APITests.h
   src/APITests.cpp
+  src/ButterworthTransformer.h
+  src/ButterworthTransformer.cpp
   src/CereStim.h
   src/CereStim.cpp
   ${CEREBUS_FILES}
@@ -129,8 +131,6 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/ExpEvent.h
   src/FeatureFilters.h
   src/FeatureFilters.cpp
-  src/FeatureGenerator.h
-  src/FeatureGenerator.cpp
   src/GuiParts.h
   src/GuiParts.cpp
   src/Handler.h
