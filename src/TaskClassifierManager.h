@@ -13,7 +13,7 @@ namespace CML {
   using ClassifierCallback = RCqt::TaskCaller<const double, const TaskClassifierSettings>;
   using TaskClassifierCallback = RCqt::TaskCaller<RC::APtr<const EEGData>, const TaskClassifierSettings>;
 
-  // TODO: JPB: Make this a base class
+  // TODO: JPB: Make this a base class (only make )
   class TaskClassifierManager : public RCqt::WorkerThread {
     public:
     TaskClassifierManager(RC::Ptr<Handler> hndl, size_t sampling_rate); 
@@ -31,15 +31,6 @@ namespace CML {
     RCqt::TaskCaller<RC::APtr<const EEGData>> ClassifyData = 
       TaskHandler(TaskClassifierManager::ClassifyData_Handler);
 
-    // TODO: Decide whether to have json configurable variables for the
-    //       classifier data, such as binning sizes
-
-    //void StartClassifier_Handler(const RC::RStr& filename,
-    //                             const FullConf& conf) override;
-    // Thread ordering constraint:
-    // Must call Stop after Start, before this Destructor, and before
-    // hndl->eeg_acq is deleted.
-    //void StopClassifier_Handler() override;
     void ClassifyData_Handler(RC::APtr<const EEGData>& data);
 
     void ProcessClassifierEvent_Handler(const ClassificationType& cl_type, const uint64_t& duration_ms);
@@ -47,6 +38,7 @@ namespace CML {
     
     void SetCallback_Handler(const TaskClassifierCallback& new_callback);
 
+    // TODO: JPB: Refactor this out into it's own CiruclarBuffer class or Binning class or something?
     RC::APtr<EEGData> GetCircularBufferData();
     void PrintCircularBuffer();
     void UpdateCircularBuffer(RC::APtr<const EEGData>& new_data);
