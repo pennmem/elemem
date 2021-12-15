@@ -2,7 +2,7 @@
 
 
 namespace CML {
-  FeatureFilters::FeatureFilters(MorletSettings morlet_settings, ButterworthSettings butterworth_settings) {
+  FeatureFilters::FeatureFilters(ButterworthSettings butterworth_settings, MorletSettings morlet_settings) {
     butterworth_transformer.Setup(butterworth_settings);
     morlet_transformer.Setup(morlet_settings);
   }
