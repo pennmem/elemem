@@ -133,6 +133,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/ExpEvent.h
   src/FeatureFilters.h
   src/FeatureFilters.cpp
+  src/FeatureWeights.h
   src/GuiParts.h
   src/GuiParts.cpp
   src/Handler.h
@@ -176,6 +177,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/TaskClassifierSettings.h
   src/Utils.h
   src/Utils.cpp
+  src/WeightManager.h
+  src/WeightManager.cpp
 
   src/RC/APtr.h
   src/RC/Bitfield2D.h
