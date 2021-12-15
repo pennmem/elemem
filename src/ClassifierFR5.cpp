@@ -18,7 +18,7 @@ namespace CML {
   double ClassifierFR5::Classification(RC::APtr<const RC::Data1D<double>>& data) {
     //RC_DEBOUT(RC::RStr("Classification\n\n"));
 
-    // TODO: JPB: Impl Classification for FR5
+    // TODO: JPB: (need) Impl Classification for FR5
     return F2I((*data)[0]) % 2;
   }
 }

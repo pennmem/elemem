@@ -118,10 +118,10 @@ namespace CML {
 
     NewEEGSave();
 
-    // TODO: JPB: Remove hardcoded task_classifier_manager parameters
+    // TODO: JPB: (need) Remove hardcoded task_classifier_manager parameters
     task_classifier_manager = new TaskClassifierManager(this, 100);
 
-    // TODO: JPB: Remove hardcoded butterworth_settings and morlet_settings
+    // TODO: JPB: (need) Remove hardcoded butterworth_settings and morlet_settings
     ButterworthSettings but_set;
     MorletSettings mor_set;
     mor_set.channels = RC::Data1D<BipolarPair>{BipolarPair()};

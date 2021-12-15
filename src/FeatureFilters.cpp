@@ -8,20 +8,20 @@ namespace CML {
   }
 
   RC::APtr<const EEGData> FeatureFilters::BipolarReference(RC::APtr<const EEGData>& data) {
-    // TODO: JPB: Impl BipolarReference
+    // TODO: JPB: (need) Impl BipolarReference
     return data;
   }
 
   RC::APtr<const EEGData> FeatureFilters::MirrorEnds(RC::APtr<const EEGData>& data, size_t duration_ms) {
-    // TODO: JPB: Impl MirrorEnds
+    // TODO: JPB: (need) Impl MirrorEnds
     return data;
   }
   RC::APtr<const EEGData> FeatureFilters::Log10Transform(RC::APtr<const EEGData>& data) {
-    // TODO: JPB: Impl Log10Transform
+    // TODO: JPB: (need) Impl Log10Transform
     return data;
   }
   RC::APtr<const EEGData> FeatureFilters::AvgOverTime(RC::APtr<const EEGData>& data) {
-    // TODO: JPB: Impl AvgOverTime
+    // TODO: JPB: (need) Impl AvgOverTime
     return data;
   }
 

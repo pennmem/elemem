@@ -10,7 +10,7 @@ namespace CML {
       : hndl(hndl), circular_data(0) {
     callback_ID = RC::RStr("TaskClassifierManager_") + sampling_rate;
     task_classifier_settings.sampling_rate = sampling_rate;
-    // TODO: JPB: Set binned sampling rate from config
+    // TODO: JPB: (need) Set binned sampling rate from config
     task_classifier_settings.binned_sampling_rate = sampling_rate / 2;
 
     hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
@@ -38,13 +38,15 @@ namespace CML {
     auto& new_datar = new_data->data;
     auto& circ_datar = circular_data.data;
 
-    // TODO: JPB: Decide if this is how I should set the sampling_rate and data size in UpdateCircularBuffer 
-    //            (or should I pass all the info in the constructor)
-    if (circular_data.sampling_rate == 0) { // Setup the circular EEGData to match the incoming EEGData
+    // TODO: JPB: (refactor) Decide if this is how I should set the sampling_rate and data size in UpdateCircularBuffer 
+    //                       (or should I pass all the info in the constructor)
+    // Setup the circular EEGData to match the incoming EEGData
+    if (circular_data.sampling_rate == 0) {
       circular_data.sampling_rate = new_data->sampling_rate;
       circ_datar.Resize(new_datar.size());
       RC_ForIndex(i, circ_datar) { // Iterate over channels
-        circ_datar[i].Resize(100); // TODO: JPB: Make the circular buffer size configurable
+        // TODO: JPB: (need) Make the circular buffer size configurable
+        circ_datar[i].Resize(100);
       }
     }
 
@@ -54,7 +56,8 @@ namespace CML {
       Throw_RC_Type(Bounds, "The \"start\" value is larger than the number of items that new_data contains");
     if (start + amnt > new_datar[0].size())
       Throw_RC_Type(Bounds, "The end value is larger than the number of items that new_data contains");
-    if (new_datar[0].size() > circ_datar[0].size()) // TODO: JPB: Log error message and write only the last buffer length of data
+    // TODO: JPB: (feature) Log error message and write only the last buffer length of data
+    if (new_datar[0].size() > circ_datar[0].size())
       Throw_RC_Type(Bounds, "Trying to write more values into the circular_data than the circular_data contains");
 
     if (amnt ==  0) { return; } // Not writing any data, so skip
@@ -105,7 +108,7 @@ namespace CML {
   }
 
   RC::APtr<EEGData> TaskClassifierManager::BinData(RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
-    // TODO: JPB: Add ability to handle sampling ratios that aren't true multiples
+    // TODO: JPB: (feature) Add ability to handle sampling ratios that aren't true multiples
     RC::APtr<EEGData> out_data = new EEGData(new_sampling_rate);
     size_t sampling_ratio = in_data->sampling_rate / new_sampling_rate;
     auto& in_datar = in_data->data;
@@ -143,7 +146,8 @@ namespace CML {
     stim_event_waiting = false;
     num_eeg_events_before_stim = 0;
 
-    // TODO: JPB: if (!(eventLoop has too many waiting data points)) // skip classification to catch up
+    // TODO: JPB: (feature) Skip classification it is too slow
+    //                      if (!(eventLoop has too many waiting data points)) // skip classification to catch up
     RC::APtr<const EEGData> data = GetCircularBufferData().ExtractConst();
     RC::APtr<const EEGData> binned_data = BinData(data, task_classifier_settings.binned_sampling_rate).ExtractConst();
 
@@ -176,7 +180,7 @@ namespace CML {
       task_classifier_settings.cl_type = cl_type;
       task_classifier_settings.duration_ms = duration_ms;
     } else {
-      // TODO: JPB: Allow classifier to start gather EEGData at the same time as another gathering
+      // TODO: JPB: (feature) Allow classifier to start gather EEGData at the same time as another gathering
       hndl->event_log.Log("Skipping stim event, another stim event is already waiting (collecting EEGData)");
     }
   }
@@ -190,7 +194,7 @@ namespace CML {
     hndl->event_log.Log(RC::RStr("Stim: ") + stim);
 
     if (stim && !sham) {
-      // TODO: JPB: Temporarily remove call to stimulate
+      // TODO: JPB: (need) Temporarily remove call to stimulate
       //hndl->stim_worker.Stimulate();
     }
   }

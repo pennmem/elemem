@@ -370,7 +370,7 @@ namespace RCqt {
     /// Call the referenced function.
     virtual bool IsSet() { return handler.IsSet(); }
     
-    // TODO: JPB: Fix Use and Bind
+    // TODO: JPB: (feature) Fix Use and Bind
     ///// Call the referenced function with the parameters given as RC::Tuple
     ///// tup.
     //template<class TupleType>
