@@ -126,7 +126,7 @@ namespace CML {
     MorletSettings mor_set;
     mor_set.channels = RC::Data1D<BipolarPair>{BipolarPair()};
     mor_set.frequencies = RC::Data1D<double>{1};
-    feature_filters = new FeatureFilters(mor_set, but_set);
+    feature_filters = new FeatureFilters(but_set, mor_set);
 
     ClassifierEvenOddSettings classifier_settings;
     classifier = new ClassifierEvenOdd(this, classifier_settings);

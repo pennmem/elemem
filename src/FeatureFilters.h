@@ -16,7 +16,7 @@ namespace CML {
 
   class FeatureFilters : public RCqt::WorkerThread {
     public:
-    FeatureFilters(MorletSettings morlet_settings, ButterworthSettings butterworth_settings);
+    FeatureFilters(ButterworthSettings butterworth_settings, MorletSettings morlet_settings);
 
     TaskClassifierCallback Process =
       TaskHandler(FeatureFilters::Process_Handler);
