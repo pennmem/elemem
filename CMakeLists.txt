@@ -109,6 +109,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Classifier.cpp
   src/ClassifierEvenOdd.h
   src/ClassifierEvenOdd.cpp
+  src/ClassifierFR5.h
+  src/ClassifierFR5.cpp
   src/ConfigFile.h
   src/ConfigFile.cpp
   src/EDFSave.h

@@ -8,7 +8,7 @@
 #include "EEGFileSave.h"
 #include "TaskClassifierManager.h"
 #include "FeatureFilters.h"
-#include "ClassifierEvenOdd.h"
+#include "Classifier.h"
 #include "EventLog.h"
 #include "ExperOPS.h"
 #include "NetWorker.h"
