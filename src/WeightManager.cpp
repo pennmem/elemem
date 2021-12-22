@@ -9,7 +9,7 @@ namespace CML {
     RC::Data1D<double> coef1d;
     RC::Data1D<RC::RStr> chanstr;
 
-    jf.Get(weights_mut->intercept, "intercept");
+    jf.Get(weights_mut->intercept, "intercept_", 0);
     jf.Get(coef1d, "coef_", 0);
     jf.Get(weights_mut->freqs, "coords", "frequency");
     jf.Get(chanstr, "coords", "channel");
@@ -19,10 +19,10 @@ namespace CML {
 
     // Look up bipolar pairs in montage and assign them in weights_mut.
     for (size_t i=0; i<weights_mut->chans.size(); i++) {
-      auto pairs = chanstr[i].Split('_');
+      auto pairs = chanstr[i].SplitAny("_-");
       if (pairs.size() != 2) {
         Throw_RC_Error(("Bipolar pairs must contain monopolar channel labels "
-            "split by an underscore, and \"" + chanstr[i] +
+            "split by an underscore (or dash), and \"" + chanstr[i] +
             "\" does not.").c_str());
       }
 
@@ -66,15 +66,16 @@ namespace CML {
 
     // Convert coef1d to 2D coefficients;
     auto& coefr = weights_mut->coef;
+    size_t chancnt = chansr.size();
     size_t freqcnt = weights_mut->freqs.size();
-    coefr.Resize(chansr.size(), freqcnt);
+    coefr.Resize(chancnt, freqcnt);
     if (coef1d.size() != coefr.size1() * coefr.size2()) {
       Throw_RC_Type(File, ("1D features matrix in " + classif_json + " has "
             "incorrect length for the number of frequencies and "
             "channels.").c_str());
     }
     for (size_t i=0; i<coef1d.size(); i++) {
-      coefr[i/freqcnt][i%freqcnt] = coef1d[i];
+      coefr[i/chancnt][i%chancnt] = coef1d[i];
     }
 
     weights = weights_mut.ExtractConst();
