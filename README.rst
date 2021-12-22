@@ -1,44 +1,49 @@
 #############
 Elemem
 #############
-This is the application used to control stimulation for System 4
+Elemem, short for "elevate memory", is the software for System 4, the Computational Memory Lab's fourth generation system for EEG acquisition and brain stimulation.  This software is used for cognitive electrophysiology experiments, alone or with behavioral task experiments, to study the fundamentals of human memory and to explore ways to improve human memory.
 
 .. contents:: **Table of Contents**
     :depth: 2
 
-*************
-Setup Instructions
-*************
-#. Clone the repository
-#. Install `QtCreator 5.12.11 <https://www.qt.io/offline-installers>`_
-#. Open the project in QtCreator by selecting the *CMakeLists.txt* file
-#. Select *Build > Run CMake* from the top dropdown menu
-#. Open the *General Messages* tab on the bottom and copy the path to the build directory
-    * "Build files have been written to: <path_to_build_directory>"
-#. Open a terminal and go to the build directory
-    * .. code:: bash
-   
-         $ cd <path_to_build_directory>
-#. Compile the code
-    * .. code:: bash
+******************
+Build Instructions
+******************
+#. Clone the repository.
+#. IDE build option:
+    #. Install `QtCreator 5.12.11 <https://www.qt.io/offline-installers>`.
+    #. Open the project in QtCreator by selecting the *CMakeLists.txt* file.
+    #. Select *Build > Run CMake* from the top dropdown menu.
+    #. Select *Build > Compile Elemem* from the top dropdown menu.
+#. Command line build option:
+    .. code:: bash
 
-         $ make
+        cd <the_repository_directory>
+        mkdir build
+        cd build
+        cmake ..
+        make
 #. Change directory to the *dist* folder of the Elemem repo directory
-    * I recommend doing this in a new terminal
-    * .. code:: bash
+    .. code:: bash
 
-         $ cd <path_to_elemem_directory>/dist
+        $ cd <path_to_elemem_directory>/dist
 #. Run the Elemem code
-    * .. code:: bash
+    .. code:: bash
 
-         $ ./Elemem
+        $ ./Elemem
 
-*************
+**********************
 How To Use The Program
-*************
+**********************
 #. Load the configuration file from *File > Open Config* in the top dropdown menu
 #. Approve the needed parameters
 #. Click *Start Experiment*
+
+*********
+Platforms
+*********
+#. Windows is currently the primary platform for full experiment runs, as this is the only platform with upstream driver support for the CereStim stimulator.
+#. Linux and MacOS work for EEG Acquisition, and for development and testing using the EEG Simulator mode, EEG Replay mode, and the stimulation simulator.
 
 *************
 FAQ
@@ -51,7 +56,12 @@ FAQ
     * Because it came with Cerelink. We didnt write that.
 
 *************
-More Information
+License
 *************
+Elemem is (c) 2019 by the Computational Memory Lab at the University of Pennsylvania, and licensed as open source under the GPLv3, with the full details in LICENSE.txt.  Multiple included libraries are under their own copyright and compatible license as designated by the license files in their directories or at the tops of individual files.
+
+****************
+More Information
+****************
 Please see the docs folder
 
