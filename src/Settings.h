@@ -6,6 +6,7 @@
 #include "RC/RStr.h"
 #include "ChannelConf.h"
 #include "OPSSpecs.h"
+#include "WeightManager.h"
 
 namespace CML {
   class JSONFile;
@@ -62,6 +63,7 @@ namespace CML {
     RC::Data1D<bool> stimgrid_freq_on;
     RC::Data1D<bool> stimgrid_dur_on;
 
+    RC::APtr<WeightManager> weight_manager;
     OPSSpecs ops_specs;
 
     size_t stimloctest_chanind;
