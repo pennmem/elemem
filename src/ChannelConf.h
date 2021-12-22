@@ -1,6 +1,8 @@
 #ifndef CHANNELCONF_H
 #define CHANNELCONF_H
 
+#include <iostream>
+
 namespace CML {
   class CSStimChannel {
     public:
@@ -19,6 +21,12 @@ namespace CML {
     uint8_t pos = 0;
     uint8_t neg = 0;
   };
+
+  inline std::ostream& operator<< (std::ostream &out, const BipolarPair& bp) {
+    out << "(" << (unsigned int)(bp.pos) << ", "
+               << (unsigned int)(bp.neg) << ")";
+    return out;
+  }
 }
 
 #endif // CHANNELCONF_G
