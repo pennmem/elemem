@@ -94,7 +94,7 @@ namespace CML {
   void NetWorker::Respond(JSONFile& resp) {
     RStr line = resp.Line();
     hndl->event_log.Log(line);
-    
+
     if (con->write(line.c_str(), qint64(line.size())) != qint64(line.size())) {
       Close_Handler();
     }
@@ -164,20 +164,20 @@ namespace CML {
       else if (type == "CLSTIM") {
         uint64_t classifyms;
         inp.Get(classifyms, "data", "classifyms");
-        ClassificationType cl_type = ClassificationType::STIM;
-        hndl->task_classifier_manager->ProcessClassifierEvent(cl_type, classifyms);
+        hndl->task_classifier_manager->ProcessClassifierEvent(
+            ClassificationType::STIM, classifyms, id);
       }
       else if (type == "CLSHAM") {
         uint64_t classifyms;
         inp.Get(classifyms, "data", "classifyms");
-        ClassificationType cl_type = ClassificationType::SHAM;
-        hndl->task_classifier_manager->ProcessClassifierEvent(cl_type, classifyms);
+        hndl->task_classifier_manager->ProcessClassifierEvent(
+            ClassificationType::SHAM, classifyms, id);
       }
       else if (type == "CLNORMALIZE") {
         uint64_t duration;
         inp.Get(duration, "data", "duration");
-        ClassificationType cl_type = ClassificationType::NORMALIZE;
-        hndl->task_classifier_manager->ProcessClassifierEvent(cl_type, duration);
+        hndl->task_classifier_manager->ProcessClassifierEvent(
+            ClassificationType::NORMALIZE, duration, id);
       }
       else if (type == "STIMSELECT") {
         RC::RStr stimtag;

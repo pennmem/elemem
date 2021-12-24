@@ -21,7 +21,7 @@ namespace CML {
     size_t sampling_rate = 1000;
     uint32_t cpus = 2;
     bool complete = true;
-  };  
+  };
 
   class MorletTransformer {
     public:
@@ -38,7 +38,7 @@ namespace CML {
     RC::Data1D<double> pow_arr;
     RC::Data1D<double> phase_arr;
     RC::Data1D<std::complex<double>> complex_arr;
-  }; 
+  };
 }
 
 #endif // MORLETTRANSFORMER_H

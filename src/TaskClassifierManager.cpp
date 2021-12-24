@@ -1,17 +1,17 @@
-#include "TaskClassifierManager.h"
 #include "RC/Macros.h"
-#include "Handler.h"
-#include "EEGAcq.h"
 #include "Classifier.h"
+#include "EEGAcq.h"
+#include "Handler.h"
+#include "JSONLines.h"
+#include "TaskClassifierManager.h"
 #include <unordered_map>
 
 namespace CML {
-  TaskClassifierManager::TaskClassifierManager(RC::Ptr<Handler> hndl, size_t sampling_rate)
-      : hndl(hndl), circular_data(0) {
-    callback_ID = RC::RStr("TaskClassifierManager_") + sampling_rate;
-    task_classifier_settings.sampling_rate = sampling_rate;
-    // TODO: JPB: (need) Set binned sampling rate from config
-    task_classifier_settings.binned_sampling_rate = sampling_rate / 2;
+  TaskClassifierManager::TaskClassifierManager(RC::Ptr<Handler> hndl,
+      size_t sampling_rate, size_t bin_frequency)
+      : hndl(hndl), circular_data(0), sampling_rate(sampling_rate) {
+    callback_ID = RC::RStr("TaskClassifierManager_") + bin_frequency;
+    task_classifier_settings.binned_sampling_rate = bin_frequency;
 
     hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
 
@@ -61,7 +61,7 @@ namespace CML {
       Throw_RC_Type(Bounds, "Trying to write more values into the circular_data than the circular_data contains");
 
     if (amnt ==  0) { return; } // Not writing any data, so skip
-    
+
     RC_ForIndex(i, circ_datar) { // Iterate over channels
       auto& circ_events = circ_datar[i];
       auto& new_events = new_datar[i];
@@ -138,7 +138,7 @@ namespace CML {
         }
       }
     }
-    
+
     return out_data;
   }
 
@@ -146,8 +146,6 @@ namespace CML {
     stim_event_waiting = false;
     num_eeg_events_before_stim = 0;
 
-    // TODO: JPB: (feature) Skip classification it is too slow
-    //                      if (!(eventLoop has too many waiting data points)) // skip classification to catch up
     RC::APtr<const EEGData> data = GetCircularBufferData().ExtractConst();
     RC::APtr<const EEGData> binned_data = BinData(data, task_classifier_settings.binned_sampling_rate).ExtractConst();
 
@@ -166,6 +164,7 @@ namespace CML {
         UpdateCircularBuffer(data, num_eeg_events_before_stim);
       } else { // num_eeg_events_before_stim > datar.size()
         UpdateCircularBuffer(data);
+        // TODO (Error?) modifying local copy to be discarded?
         num_eeg_events_before_stim -= datar.size();
       }
     } else {
@@ -173,32 +172,48 @@ namespace CML {
     }
   }
 
-  void TaskClassifierManager::ProcessClassifierEvent_Handler(const ClassificationType& cl_type, const uint64_t& duration_ms) {
+  void TaskClassifierManager::ProcessClassifierEvent_Handler(
+        const ClassificationType& cl_type, const uint64_t& duration_ms,
+        const uint64_t& classif_id) {
     if (!stim_event_waiting) {
       stim_event_waiting = true;
-      num_eeg_events_before_stim = duration_ms / 1000 * task_classifier_settings.sampling_rate;
+      num_eeg_events_before_stim = duration_ms * sampling_rate / 1000;
       task_classifier_settings.cl_type = cl_type;
       task_classifier_settings.duration_ms = duration_ms;
+      task_classifier_settings.classif_id = classif_id;
     } else {
-      // TODO: JPB: (feature) Allow classifier to start gather EEGData at the same time as another gathering
+      // TODO: JPB: (feature) Allow classifier to start gather EEGData at the same time as another gathering?  Requires id queue.
       hndl->event_log.Log("Skipping stim event, another stim event is already waiting (collecting EEGData)");
     }
   }
 
-  void TaskClassifierManager::ClassifierDecision_Handler(const double& result, const TaskClassifierSettings& task_classifier_settings) {
+  void TaskClassifierManager::ClassifierDecision_Handler(const double& result,
+      const TaskClassifierSettings& task_classifier_settings) {
     //RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
-    bool stim = result > 0.5;
-    bool sham = task_classifier_settings.cl_type == ClassificationType::SHAM;
+    bool stim = result < 0.5;
+    bool stim_type =
+      (task_classifier_settings.cl_type == ClassificationType::STIM);
 
-    hndl->event_log.Log(RC::RStr("Sham: ") + (sham ? "True" : "False"));
-    hndl->event_log.Log(RC::RStr("Stim: ") + stim);
+    JSONFile data;
+    data.Set(result, "result");
+    data.Set(stim, "decision");
 
-    if (stim && !sham) {
+    RC::RStr type;
+    switch (task_classifier_settings.cl_type) {
+      case ClassificationType::STIM: type = "STIM_DECISON"; break;
+      case ClassificationType::SHAM: type = "SHAM_DECISON"; break;
+      default: Throw_RC_Error("Invalid classification type received.");
+    }
+
+    auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
+    hndl->event_log.Log(resp.Line());
+
+    if (stim_type && stim) {
       // TODO: JPB: (need) Temporarily remove call to stimulate
       //hndl->stim_worker.Stimulate();
     }
   }
-  
+
   void TaskClassifierManager::SetCallback_Handler(const TaskClassifierCallback& new_callback) {
     callback = new_callback;
   }
