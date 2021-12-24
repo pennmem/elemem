@@ -117,23 +117,6 @@ namespace CML {
     PopupManager::GetManager()->SetLogFile(error_log_file);
 
     NewEEGSave();
-
-    // TODO: JPB: (need) Remove hardcoded task_classifier_manager parameters
-    task_classifier_manager = new TaskClassifierManager(this, 100);
-
-    // TODO: JPB: (need) Remove hardcoded butterworth_settings and morlet_settings
-    ButterworthSettings but_set;
-    MorletSettings mor_set;
-    mor_set.channels = RC::Data1D<BipolarPair>{BipolarPair()};
-    mor_set.frequencies = RC::Data1D<double>{1};
-    feature_filters = new FeatureFilters(but_set, mor_set);
-
-    ClassifierFR5Settings classifier_settings;
-    classifier = new ClassifierFR5(this, classifier_settings);
-
-    task_classifier_manager->SetCallback(feature_filters->Process);
-    feature_filters->SetCallback(classifier->Classify);
-    classifier->RegisterCallback("ClassifierDecision", task_classifier_manager->ClassifierDecision);
   }
 
   void Handler::CerebusTest_Handler() {
@@ -318,8 +301,8 @@ namespace CML {
     eeg_acq.InitializeChannels(settings.sampling_rate);
   }
 
-  // TODO - SelectStim_Handler goes through settings.stimconf and extracts
-  // values that are both approved and matching given stimtag.
+  // SelectStim_Handler goes through settings.stimconf and extracts values
+  // that are both approved and matching the given stimtag.
   void Handler::SelectStim_Handler(const RC::RStr& stimtag) {
     if (stim_mode == StimMode::NONE) {
       Throw_RC_Error("Attempted to select a stim tag outside of a "
@@ -347,17 +330,6 @@ namespace CML {
     if (settings.exp_config.IsNull() || settings.elec_config.IsNull()) {
       ErrorWin("You must load a valid experiment configuration file before "
                "starting an experiment session.", "Unconfigured");
-      return;
-    }
-
-    RStr stim_mode_str;
-    settings.exp_config->Get(stim_mode_str, "experiment", "stim_mode");
-    stim_mode_str.ToLower();
-    stim_mode = ToStimMode(stim_mode_str);
-
-    if (stim_mode != StimMode::OPEN && stim_mode != StimMode::NONE) {
-      ErrorWin("Configuration file experiment:stim_mode must be \"open\" or "
-          "\"none\" for this version of Elemem.  Cannot start experiment.");
       return;
     }
 
@@ -567,6 +539,21 @@ namespace CML {
       if (settings.grid_exper) {
         settings.LoadStimParamGrid();
       }
+
+      RStr stim_mode_str;
+      settings.exp_config->Get(stim_mode_str, "experiment", "stim_mode");
+      stim_mode_str.ToLower();
+      stim_mode = ToStimMode(stim_mode_str);
+
+      if (stim_mode == StimMode::CLOSED) {
+        RStr classif_json;
+        settings.exp_config->Get(classif_json, "experiment", "classifier",
+            "classifier_file");
+        settings.weight_manager = MakeAPtr<WeightManager>(
+            File::FullPath(base_dir, classif_json), settings.elec_config);
+
+        SetupClassifier();
+      }
     }
     catch (ErrorMsg&) {
       // Something was wrong with this file.  Cannot proceed.
@@ -649,6 +636,7 @@ namespace CML {
 #endif
   }
 
+
   void Handler::SaveDefaultEEG() {
     if (settings.exp_config.IsNull()) {
       return;
@@ -666,6 +654,7 @@ namespace CML {
     event_log.StartFile(event_file);
     eeg_save->StartFile(eeg_file, GetConfig_Handler());
   }
+
 
   RC::Data1D<CSStimProfile> Handler::CreateGridProfiles() {
     Data1D<CSStimProfile> grid_profiles;
@@ -699,6 +688,38 @@ namespace CML {
 
     return grid_profiles;
   }
+
+
+  void Handler::SetupClassifier() {
+    size_t binning_freq;
+    settings.exp_config->Get(binning_freq, "experiment", "classifier",
+        "binning_frequency_Hz");
+    task_classifier_manager = new TaskClassifierManager(this,
+        settings.sampling_rate, binning_freq);
+
+    MorletSettings mor_set;
+    mor_set.channels = settings.weight_manager->weights->chans;
+    mor_set.frequencies = settings.weight_manager->weights->freqs;
+    mor_set.sampling_rate = binning_freq;
+    settings.exp_config->Get(mor_set.cycle_count, "experiment", "classifier",
+        "morlet_cycles");
+    settings.sys_config->Get(mor_set.cpus, "closed_loop_thread_level");
+
+    ButterworthSettings but_set;
+    but_set.channels = settings.weight_manager->weights->chans;
+    but_set.sampling_rate = binning_freq;
+    settings.sys_config->Get(but_set.cpus, "closed_loop_thread_level");
+
+    feature_filters = new FeatureFilters(but_set, mor_set);
+
+    ClassifierFR5Settings classifier_settings;
+    classifier = new ClassifierFR5(this, classifier_settings);
+
+    task_classifier_manager->SetCallback(feature_filters->Process);
+    feature_filters->SetCallback(classifier->Classify);
+    classifier->RegisterCallback("ClassifierDecision", task_classifier_manager->ClassifierDecision);
+  }
+
 
   void Handler::CloseExperimentComponents() {
     net_worker.Close();
