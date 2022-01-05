@@ -84,8 +84,8 @@ namespace CML {
       eeg_source = new CerebusSim();
     }
     else if (eeg_system == "EDFReplay") {
-      RC::RStr edfreplay_file;
-      settings.sys_config->Get(edfreplay_file, "replay_file");
+      RC::RStr edfreplay_file =
+        settings.sys_config->GetPath("replay_file");
       eeg_source = new EDFReplay(edfreplay_file);
     }
     else {
@@ -95,14 +95,7 @@ namespace CML {
   }
 
   void Handler::Initialize_Handler() {
-    RStr data_dir;
-    settings.sys_config->Get(data_dir, "data_dir");
-#ifdef WIN32
-    data_dir.Subst("/", File::divider);
-#else
-    data_dir.Subst("\\\\", File::divider);
-#endif
-    data_dir.Subst("\\$DESKTOP", GetDesktop());
+    RStr data_dir = settings.sys_config->GetPath("data_dir");
 
     elemem_dir = data_dir;
     non_session_dir = File::FullPath(elemem_dir, "NonSessionData");
@@ -546,8 +539,8 @@ namespace CML {
       stim_mode = ToStimMode(stim_mode_str);
 
       if (stim_mode == StimMode::CLOSED) {
-        RStr classif_json;
-        settings.exp_config->Get(classif_json, "experiment", "classifier",
+        RStr classif_json =
+          settings.exp_config->GetPath("experiment", "classifier",
             "classifier_file");
         settings.weight_manager = MakeAPtr<WeightManager>(
             File::FullPath(base_dir, classif_json), settings.elec_config);

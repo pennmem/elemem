@@ -58,14 +58,9 @@ namespace CML {
   }
 
   RC::Data1D<EEGChan> Settings::LoadElecConfig(RC::RStr dir) {
-    std::string elecfilename_str;
-    exp_config->Get(elecfilename_str, "electrode_config_file");
-    RStr elecfilename;
-    if (File::Basename(elecfilename_str) == elecfilename_str) {
-      elecfilename = File::FullPath(dir, elecfilename_str);
-    }
-    else {
-      elecfilename = elecfilename_str;
+    RStr elecfilename =  exp_config->GetPath("electrode_config_file");
+    if (File::Basename(elecfilename) == elecfilename) {
+      elecfilename = File::FullPath(dir, elecfilename);
     }
 
     APtr<CSVFile> elecs = new CSVFile();

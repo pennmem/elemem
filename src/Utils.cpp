@@ -3,6 +3,10 @@
 #include <QStandardPaths>
 
 namespace CML {
+  RC::RStr GetHomeDir() {
+      return QDir::homePath();
+  }
+
   RC::RStr GetDesktop() {
     auto dirlist = QStandardPaths::standardLocations(
           QStandardPaths::DesktopLocation);
