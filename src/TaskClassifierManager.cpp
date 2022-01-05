@@ -157,17 +157,17 @@ namespace CML {
     auto& datar = data->data;
 
     if (stim_event_waiting) {
-      size_t num_eeg_events_before_stim = this->num_eeg_events_before_stim;
       if (num_eeg_events_before_stim <= datar.size()) {
         UpdateCircularBuffer(data, 0, num_eeg_events_before_stim);
         StartClassification();
         UpdateCircularBuffer(data, num_eeg_events_before_stim);
       } else { // num_eeg_events_before_stim > datar.size()
         UpdateCircularBuffer(data);
-        // TODO (Error?) modifying local copy to be discarded?
         num_eeg_events_before_stim -= datar.size();
       }
     } else {
+      // TODO: JPB: (feature) This can likely be removed to reduce overhead
+      //            If there is no stim event waiting, then don't update data
       UpdateCircularBuffer(data);
     }
   }
