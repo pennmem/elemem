@@ -2,6 +2,7 @@
 #define CONFIGFILE_H
 
 #include "nlohmann/json.hpp"
+#include "Utils.h"
 #include "ValIter.h"
 #include "RC/RC.h"
 #include <type_traits>
@@ -102,6 +103,22 @@ namespace CML {
       for (size_t i=0; i<v.size(); i++) {
         data[i] = v[i];
       }
+    }
+
+    // Handle Linux and Windows path dividers portably on both systems, and
+    // substitute the supported $HOME and $DESKTOP special config variables.
+    template<class... Keys>
+    RC::RStr GetPath(Keys... keys) const {
+      RC::RStr path;
+      Get(path, keys...);
+#ifdef WIN32
+      path.Subst("/", RC::File::divider);
+#else
+      path.Subst("\\\\", RC::File::divider);
+#endif
+      path.Subst("\\$HOME", GetHomeDir());
+      path.Subst("\\$DESKTOP", GetDesktop());
+      return path;
     }
 
     // Returns true if succeeded

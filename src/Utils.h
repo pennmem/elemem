@@ -4,6 +4,7 @@
 #include "RC/RStr.h"
 
 namespace CML {
+  RC::RStr GetHomeDir();
   RC::RStr GetDesktop();
 }
 
