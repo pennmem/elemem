@@ -113,6 +113,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/ClassifierFR5.cpp
   src/ConfigFile.h
   src/ConfigFile.cpp
+  src/EDFReplay.h
+  src/EDFReplay.cpp
   src/EDFSave.h
   src/EDFSave.cpp
   src/EEGAcq.h
@@ -123,8 +125,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/EEGDisplay.cpp
   src/EEGFileSave.h
   src/EEGFileSave.cpp
-  src/EDFReplay.h
-  src/EDFReplay.cpp
+  src/EEGPowers.h
+  src/EEGPowers.cpp
   src/EEGSource.h
   src/EventLog.h
   src/EventLog.cpp

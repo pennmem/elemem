@@ -7,20 +7,38 @@ namespace CML {
     morlet_transformer.Setup(morlet_settings);
   }
 
-  RC::APtr<const EEGData> FeatureFilters::BipolarReference(RC::APtr<const EEGData>& data) {
-    // TODO: JPB: (need) Impl BipolarReference
-    return data;
+  RC::APtr<const EEGData> FeatureFilters::BipolarReference(RC::APtr<const EEGData>& in_data) {
+    // TODO: JPB: (need) Test BipolarReference
+    RC::APtr<EEGData> out_data = new EEGData(in_data->sampling_rate);
+    auto& in_datar = in_data->data;
+    size_t datalen = in_datar[0].size();
+    size_t chanlen = mor_set.channels.size();
+    out_datar.Resize(chanlen);
+
+    RC_ForIndex(i, out_datar) { // Iterate over channels
+      auto& out_events = out_datar[i];
+      out_events.Resize(datalen);
+      uint8_t pos = mor_set.channels[i].pos;
+      uint8_t neg = mor_set.channels[i].neg;
+      RC_ForIndex(j, out_events) {
+        out_events[j] = in_datar[pos][j] - in_datar[neg][j];
+      }
+    }
+
+    return out_data;
   }
 
-  RC::APtr<const EEGData> FeatureFilters::MirrorEnds(RC::APtr<const EEGData>& data, size_t duration_ms) {
+  RC::APtr<const EEGData> FeatureFilters::MirrorEnds(RC::APtr<const EEGData>& in_data, size_t mirrored_duration_ms) {
     // TODO: JPB: (need) Impl MirrorEnds
     return data;
   }
-  RC::APtr<const EEGData> FeatureFilters::Log10Transform(RC::APtr<const EEGData>& data) {
+
+  RC::APtr<const EEGPowers> FeatureFilters::Log10Transform(RC::APtr<const EEGPowers>& in_data) {
     // TODO: JPB: (need) Impl Log10Transform
     return data;
   }
-  RC::APtr<const EEGData> FeatureFilters::AvgOverTime(RC::APtr<const EEGData>& data) {
+
+  RC::APtr<const EEGPowers> FeatureFilters::AvgOverTime(RC::APtr<const EEGPowers>& in_data) {
     // TODO: JPB: (need) Impl AvgOverTime
     return data;
   }
