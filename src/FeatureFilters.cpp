@@ -37,7 +37,7 @@ namespace CML {
     RC::APtr<EEGData> out_data = new EEGData(in_data->sampling_rate);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
-    size_t chanlen = in_datar.size
+    size_t chanlen = in_datar.size();
     size_t num_mirrored_samples = mirrored_duration_ms * in_data->sampling_rate / 1000;
     out_datar.Resize(chanlen);
 
@@ -64,7 +64,7 @@ namespace CML {
     RC::APtr<EEGPowers> out_data = new EEGPowers(in_data->sampling_rate);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
-    size_t chanlen = in_datar.size
+    size_t chanlen = in_datar.size();
     out_datar.Resize(chanlen);
 
     RC_ForIndex(i, in_datar) { // Iterate over channels
@@ -81,8 +81,26 @@ namespace CML {
   }
 
   RC::APtr<const EEGPowers> FeatureFilters::AvgOverTime(RC::APtr<const EEGPowers>& in_data) {
-    // TODO: JPB: (need) Impl AvgOverTime
-    return data;
+    // TODO: JPB: (need) Test AvgOverTime
+    // TODO: JPB: (need) Decide whether this should just output a Data1D<double>
+    RC::APtr<EEGPowers> out_data = new EEGPowers(in_data->sampling_rate);
+    auto& in_datar = in_data->data;
+    auto& out_datar = out_data->data;
+    size_t chanlen = in_datar.size();
+    out_datar.Resize(chanlen);
+
+    auto accum_event = [](u32 sum, size_t val) { return std::move(sum) + val; };
+    RC_ForIndex(i, in_datar) { // Iterate over channels
+      auto& in_events = in_datar[i];
+      auto& out_events = out_datar[i];
+      out_events.Resize(1);
+      RC_ForIndex(i, in_events) {
+        out_events[i] = std::accumulate(in_events, in_events + in_events.size(),
+                          0, accum_event) / in_events.size();
+      }
+    }
+
+    return out_data;
   }
 
   void FeatureFilters::Process_Handler(RC::APtr<const EEGData>& data, const TaskClassifierSettings& task_classifier_settings) {
