@@ -128,13 +128,15 @@ namespace CML {
           size_t start = j * sampling_ratio;
           size_t end = (j+1) * sampling_ratio - 1;
           size_t items = sampling_ratio;
-          out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1, 0, accum_event) / items;
+          out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1, 
+                            0, accum_event) / items;
         } else { // Last block could have leftover samples
           size_t start = j * sampling_ratio;
           size_t end = in_events.size() - 1;
           size_t items = std::distance(&in_events[start], &in_events[end]+1);
           RC_DEBOUT(items);
-          out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1, 0, accum_event) / items;
+          out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1, 
+                            0, accum_event) / items;
         }
       }
     }
