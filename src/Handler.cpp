@@ -703,7 +703,7 @@ namespace CML {
     but_set.sampling_rate = binning_freq;
     settings.sys_config->Get(but_set.cpus, "closed_loop_thread_level");
 
-    feature_filters = new FeatureFilters(but_set, mor_set);
+    feature_filters = new FeatureFilters(but_set, mor_set, mor_set.channels);
 
     ClassifierFR5Settings classifier_settings;
     classifier = new ClassifierFR5(this, classifier_settings);

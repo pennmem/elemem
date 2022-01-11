@@ -17,7 +17,7 @@ namespace CML {
 
   class FeatureFilters : public RCqt::WorkerThread {
     public:
-    FeatureFilters(ButterworthSettings butterworth_settings, MorletSettings morlet_settings);
+    FeatureFilters(ButterworthSettings butterworth_settings, MorletSettings morlet_settings, RC::Data1D<BipolarPair> bipolar_reference_channels);
 
     TaskClassifierCallback Process =
       TaskHandler(FeatureFilters::Process_Handler);
@@ -37,6 +37,7 @@ namespace CML {
     
     MorletTransformer morlet_transformer;
     ButterworthTransformer butterworth_transformer;
+    RC::Data1D<BipolarPair> bipolar_reference_channels;
 
     FeatureCallback callback;
   };

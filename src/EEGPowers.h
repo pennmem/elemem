@@ -1,7 +1,7 @@
 #ifndef EEGPOWERS_H
 #define EEGPOWERS_H
 
-#include "RC/Data1D.h"
+#include "RC/Data3D.h"
 
 namespace CML {
   /// This is a simple class that acts as a container for EEG Powers.
@@ -41,6 +41,8 @@ namespace CML {
   class EEGPowers {
     public:
     EEGPowers(size_t sampling_rate) : sampling_rate(sampling_rate) {}
+    EEGPowers(size_t sampling_rate, size_t d_size1, size_t d_size2, size_t d_size3) 
+      : sampling_rate(sampling_rate), data(d_size1, d_size2, d_size3) {}
     size_t sampling_rate;
     RC::Data3D<double> data;
   };
