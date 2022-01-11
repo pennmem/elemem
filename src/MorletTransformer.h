@@ -5,6 +5,7 @@
 #include <complex>
 #include "ChannelConf.h"
 #include "EEGData.h"
+#include "EEGPowers.h"
 #include "RC/Data1D.h"
 #include "RC/APtr.h"
 

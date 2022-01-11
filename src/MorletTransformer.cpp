@@ -30,7 +30,7 @@ namespace CML {
   RC::APtr<const EEGPowers> MorletTransformer::Filter(RC::APtr<const EEGData>& data) {
     // TODO: JPB: (need) Remove this early return to enable Filter()
     RC::APtr<EEGPowers> temp = new EEGPowers(data->sampling_rate);
-    return temp;
+    return temp.ExtractConst();
 
     auto& datar = data->data;
     size_t freqlen = mor_set.frequencies.size();
@@ -47,7 +47,7 @@ namespace CML {
     mt->set_wavelet_complex_array(complex_arr.Raw(), chanlen, eventlen);
 
     // Flatten Data (and convert to double)
-    RC::Data1D<double> flat_data(flat_size);
+    RC::Data1D<double> flat_data(in_flat_size);
     RC_ForIndex(i, datar) { // Iterate over channels
       size_t flat_pos = i * eventlen; 
       flat_data.CopyAt(flat_pos, datar[i]);
@@ -66,7 +66,7 @@ namespace CML {
       }
     }
 
-    return powers;
+    return powers.ExtractConst();
   }
 }
 
