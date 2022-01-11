@@ -5,13 +5,14 @@
 
 namespace CML {
   /// This is a simple class that acts as a container for EEG Powers.
-  /** This class is an array of arrays containing EEG powers and its sampling
-   *  rate. The data is arranged with the outer array as the EEG channels and the
-   *  inner arrays as the EEG powers over time (for that channel).
+  /** This class is an array of arrays of arrays containing EEG powers and its sampling
+   *  rate. The data is arranged with the outer array as the frequencies, the middle 
+   *  arrays as the EEG channels and the inner arrays as the EEG powers over time.
    *
-   *  Ex: An EEG acquisition with 2 channels that had collected 3 samples for
-   *  each channel would look like this:
-   *  \n[ [ i16, i16, i16 ], [ i16, i16, i16 ] ]
+   *  Ex: An EEG acquisition with 2 frequencies and 3 channels that had collected 
+   *  4 samples/events for each combination of those would look like this:
+   *    [ [ [ i16, i16, i16, i16 ], [ i16, i16, i16, i16 ], [ i16, i16, i16, i16 ] ], 
+   *      [ [ i16, i16, i16, i16 ], [ i16, i16, i16, i16 ], [ i16, i16, i16, i16 ] ] ]
    *
    *  Common sampling rates (freqs):
    *  - 1kHz = no micros
@@ -27,7 +28,7 @@ namespace CML {
    *
    *  // Setup EEGPowers for example
    *  // TODO: JPB: (need) FIX THIS
-   *  EEGPowers eegPowers(10, 10);
+   *  EEGPowers eegPowers(2, 3, 4);
    *  eegPowers.data.Resize(2);
    *  eegPowers.data[0] = RC::Data1D<short> {5,10,1};
    *  eegPowers.data[1] = RC::Data1D<short> {6,11,2};
@@ -41,7 +42,7 @@ namespace CML {
     public:
     EEGPowers(size_t sampling_rate) : sampling_rate(sampling_rate) {}
     size_t sampling_rate;
-    RC::Data2D<double> data;
+    RC::Data3D<double> data;
   };
 
   void PrintEEGPowers(const EEGPowers& powers);

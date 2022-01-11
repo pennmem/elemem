@@ -19,8 +19,8 @@ namespace CML {
     RC_ForIndex(i, out_datar) { // Iterate over channels
       auto& in_events = in_datar[i];
       auto& out_events = out_datar[i];
-      size_t datalen = in_events.size();
-      out_events.Resize(datalen);
+      size_t eventlen = in_events.size();
+      out_events.Resize(eventlen);
       uint8_t pos = mor_set.channels[i].pos;
       uint8_t neg = mor_set.channels[i].neg;
 
@@ -44,16 +44,16 @@ namespace CML {
     RC_ForIndex(i, in_datar) { // Iterate over channels
       auto& in_events = in_datar[i];
       auto& out_events = out_datar[i];
-      size_t in_datalen = in_events.size();
-      size_t out_datalen = in_datalen + num_mirrored_samples * 2;
-      out_events.Resize(out_datalen);
+      size_t in_eventlen = in_events.size();
+      size_t out_eventlen = in_eventlen + num_mirrored_samples * 2;
+      out_events.Resize(out_eventlen);
 
       RC_ForRange(i, 0, num_mirrored_samples) {
         out_events[i] = in_events[num_mirrored_samples-1-i];
       }
       out_events.CopyAt(num_mirrored_samples, in_events);
-      out_events.CopyAt(num_mirrored_samples + in_datalen, in_events, 
-                        in_datalen - num_mirrored_samples, num_mirrored_samples);
+      out_events.CopyAt(num_mirrored_samples + in_eventlen, in_events, 
+                        in_eventlen - num_mirrored_samples, num_mirrored_samples);
     }
 
     return out_data;
@@ -70,8 +70,8 @@ namespace CML {
     RC_ForIndex(i, in_datar) { // Iterate over channels
       auto& in_events = in_datar[i];
       auto& out_events = out_datar[i];
-      size_t datalen = in_events.size();
-      out_events.Resize(datalen);
+      size_t eventlen = in_events.size();
+      out_events.Resize(eventlen);
       RC_ForIndex(i, in_events) {
         out_events[i] = log10(in_events[i]);
       }
