@@ -37,10 +37,8 @@ namespace RC {
       d_size2 = new_d_size2;
       d_size3 = new_d_size3;
 
-      int i;
-
       data = Data1D< Data2D<T> >(d_size3);
-      for (i=0; i<d_size3; i++) {
+      for (size_t i=0; i<d_size3; i++) {
         data[i] = Data2D<T>(d_size1, d_size2);
       }
     }
