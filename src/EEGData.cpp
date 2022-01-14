@@ -8,7 +8,7 @@ namespace CML {
     deb_msg += "data: \n";
     RC_ForIndex(c, datar)
       deb_msg += "channel " + RC::RStr(c) + ": " + RC::RStr::Join(datar[c], ", ") + "\n";
-    deb_msg += "\n\n";
+    deb_msg += "\n––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––\n";
     RC_DEBOUT(deb_msg);
   }
 }
