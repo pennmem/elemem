@@ -10,7 +10,7 @@
 #include "Cerebus.h"
 #endif
 #include "CerebusSim.h"
-#include "ClassifierFR5.h"
+#include "ClassifierLogReg.h"
 #include "EDFReplay.h"
 #include "JSONLines.h"
 #include "About.h"
@@ -711,8 +711,8 @@ namespace CML {
 
     feature_filters = new FeatureFilters(but_set, mor_set, mor_set.channels);
 
-    ClassifierFR5Settings classifier_settings;
-    classifier = new ClassifierFR5(this, classifier_settings);
+    ClassifierLogRegSettings classifier_settings;
+    classifier = new ClassifierLogReg(this, classifier_settings);
 
     task_classifier_manager->SetCallback(feature_filters->Process);
     feature_filters->SetCallback(classifier->Classify);
