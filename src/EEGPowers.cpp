@@ -5,11 +5,20 @@ namespace CML {
   // TODO: JPB: (need) Fix PrintEEGPowers to print Data3D
   void PrintEEGPowers(const EEGPowers& powers) {
     auto& datar = powers.data;
-    //RC::RStr deb_msg = RC::RStr("sampling_rate: ") + powers.sampling_rate + "\n";
-    //deb_msg += "data:\n";
-    //RC_ForIndex(c, datar)
-    //  deb_msg += "channel " + RC::RStr(c) + ": " + RC::RStr::Join(datar[c], ", ") + "\n";
-    //deb_msg += "\n\n";
-    //RC_DEBOUT(deb_msg);
+    size_t freqlen = datar.size3();
+    size_t chanlen = datar.size2();
+    //size_t eventlen = in_datar.size1();
+
+    RC::RStr deb_msg = RC::RStr("sampling_rate: ") + powers.sampling_rate + "\n";
+    deb_msg += "data:\n\n";
+    RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
+      deb_msg += "frequency " + RC::RStr(i) + "\n";
+      RC_ForRange(j, 0, chanlen) { // Iterate over channels
+        deb_msg += "channel " + RC::RStr(j) + ": " + RC::RStr::Join(datar[i][j], ", ") + "\n";
+      }
+      deb_msg += "\n";
+    }
+    deb_msg += "––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––\n";
+    RC_DEBOUT(deb_msg);
   }
 }

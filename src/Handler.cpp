@@ -22,6 +22,8 @@
 #include <QObject>
 #include <type_traits>
 
+#include "Testing.h"
+
 using namespace std;
 using namespace RC;
 
@@ -117,6 +119,10 @@ namespace CML {
     PopupManager::GetManager()->SetLogFile(error_log_file);
 
     NewEEGSave();
+
+    RC::RStr temp = "TESTING";
+    RC_DEBOUT(temp);
+    TestFeatureFilters();
   }
 
   void Handler::CerebusTest_Handler() {
@@ -697,6 +703,11 @@ namespace CML {
     task_classifier_manager = new TaskClassifierManager(this,
         settings.sampling_rate, binning_freq);
 
+    ButterworthSettings but_set;
+    but_set.channels = settings.weight_manager->weights->chans;
+    but_set.sampling_rate = binning_freq;
+    settings.sys_config->Get(but_set.cpus, "closed_loop_thread_level");
+
     MorletSettings mor_set;
     mor_set.channels = settings.weight_manager->weights->chans;
     mor_set.frequencies = settings.weight_manager->weights->freqs;
@@ -704,11 +715,6 @@ namespace CML {
     settings.exp_config->Get(mor_set.cycle_count, "experiment", "classifier",
         "morlet_cycles");
     settings.sys_config->Get(mor_set.cpus, "closed_loop_thread_level");
-
-    ButterworthSettings but_set;
-    but_set.channels = settings.weight_manager->weights->chans;
-    but_set.sampling_rate = binning_freq;
-    settings.sys_config->Get(but_set.cpus, "closed_loop_thread_level");
 
     feature_filters = new FeatureFilters(but_set, mor_set, mor_set.channels);
 
@@ -718,6 +724,9 @@ namespace CML {
     task_classifier_manager->SetCallback(feature_filters->Process);
     feature_filters->SetCallback(classifier->Classify);
     classifier->RegisterCallback("ClassifierDecision", task_classifier_manager->ClassifierDecision);
+   
+    //RC_DEBOUT(RC::RStr("TESTING\n"));
+    //task_classifier_manager->ProcessClassifierEvent(ClassificationType::STIM, 1000, 0);
   }
 
 
