@@ -15,10 +15,10 @@ namespace CML {
   /** @param data The input data to the classifier
    *  @return The classifier result
    */
-  double ClassifierFR5::Classification(RC::APtr<const RC::Data1D<double>>& data) {
+  double ClassifierFR5::Classification(RC::APtr<const EEGPowers>& data) {
     //RC_DEBOUT(RC::RStr("Classification\n\n"));
 
     // TODO: JPB: (need) Impl Classification for FR5
-    return F2I((*data)[0]) % 2;
+    return 0;
   }
 }

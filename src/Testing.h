@@ -61,7 +61,6 @@ namespace CML {
     RC::APtr<const EEGData> in_data = CreateTestingEEGData();
   
     RC::Data1D<BipolarPair> bipolar_reference_channels = {BipolarPair{0,1}, BipolarPair{1,0}, BipolarPair{0,2}, BipolarPair{2,1}}; 
-    //RC::Data1D<BipolarPair> bipolar_reference_channels = {BipolarPair{0,1}, BipolarPair{1,0}, BipolarPair{0,2}, BipolarPair{2,1}}; 
     RStr deb_msg = "";
     RC_ForEach(pair, bipolar_reference_channels) {
       deb_msg += ("(" + RStr(pair.pos) + ", " + RStr(pair.neg) + "), ");
