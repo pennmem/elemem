@@ -150,9 +150,7 @@ namespace CML {
     auto log_data = Log10Transform(morlet_data);
     auto avg_data = AvgOverTime(log_data);
 
-    RC::Data1D<double> temp1{0};
-    auto temp2 = RC::MakeAPtr<const RC::Data1D<double>>(temp1);
-    callback(temp2, task_classifier_settings);
+    callback(avg_data, task_classifier_settings);
   }
 
   /// Handler that sets the callback on the feature generator results
