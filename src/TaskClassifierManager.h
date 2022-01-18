@@ -2,6 +2,7 @@
 #define CLASSIFICATIONDATA_H
 
 #include "EEGData.h"
+#include "EEGCircularData.h"
 #include "TaskClassifierSettings.h"
 #include "RC/Ptr.h"
 #include "RC/RStr.h"
@@ -41,21 +42,12 @@ namespace CML {
 
     void SetCallback_Handler(const TaskClassifierCallback& new_callback);
 
-    // TODO: JPB: (refactor) Make this into it's own CiruclarBuffer class or Binning class or something?
-    RC::APtr<EEGData> GetCircularBufferData();
-    void PrintCircularBuffer();
-    void UpdateCircularBuffer(RC::APtr<const EEGData>& new_data);
-    void UpdateCircularBuffer(RC::APtr<const EEGData>& new_data, size_t start);
-    void UpdateCircularBuffer(RC::APtr<const EEGData>& new_data, size_t start, size_t amnt);
-    RC::APtr<EEGData> BinData(RC::APtr<const EEGData> in_data, size_t new_sampling_rate);
-
     void StartClassification();
 
     RC::Ptr<Handler> hndl;
     RC::RStr callback_ID;
 
-    EEGData circular_data;
-    size_t circular_data_start = 0;
+    EEGCircularData circular_data;
 
     size_t sampling_rate = 1000;
     TaskClassifierSettings task_classifier_settings;

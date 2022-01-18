@@ -3,6 +3,7 @@
 
 #include "FeatureFilters.h"
 #include "ChannelConf.h"
+#include "TaskClassifierManager.h"
 
 namespace CML {
 
@@ -75,7 +76,8 @@ namespace CML {
   }
   
   void TestMirrorEnds() {
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(1000);
+    size_t sampling_rate = 1000;
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate);
     
     RC::APtr<const EEGData> out_data = FeatureFilters::MirrorEnds(in_data, 2);
 
@@ -101,11 +103,33 @@ namespace CML {
     PrintEEGPowers(*out_powers);
   }
 
+  void TestMorletTransformer() {
+    size_t sampling_rate = 1000;
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate);
+    
+    MorletSettings mor_set;
+    mor_set.channels = RC::Data1D<BipolarPair> {BipolarPair{0,1}, BipolarPair{1,0}, BipolarPair{0,2}, BipolarPair{2,1}}; 
+    mor_set.frequencies = RC::Data1D<double> {1000, 500};
+    mor_set.sampling_rate = sampling_rate;
+
+    MorletTransformer morlet_transformer;
+    morlet_transformer.Setup(mor_set);
+    RC::APtr<const EEGPowers> out_powers = morlet_transformer.Filter(in_data);
+
+    PrintEEGData(*in_data);
+    PrintEEGPowers(*out_powers);
+  }
+
+  class TaskClassifierManagerTester : TaskClassifierManager {
+    public:
+  }; 
+
   void TestFeatureFilters() {
     //TestLog10Transform();
     //TestAvgOverTime();
     //TestMirrorEnds();
-    TestBipolarReference();
+    //TestBipolarReference();
+    //TestMorletTransformer();
   }
 }
 
