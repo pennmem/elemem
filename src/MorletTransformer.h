@@ -19,6 +19,7 @@ namespace CML {
     size_t cycle_count = 3;
     RC::Data1D<double> frequencies;
     RC::Data1D<BipolarPair> channels;
+    size_t num_events = 0;
     size_t sampling_rate = 1000;
     uint32_t cpus = 2;
     bool complete = true;
