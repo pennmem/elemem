@@ -4,13 +4,16 @@
 #include "FeatureFilters.h"
 #include "ChannelConf.h"
 #include "TaskClassifierManager.h"
+#include "EEGCircularData.h"
 
 namespace CML {
 
   RC::APtr<const EEGData> CreateTestingEEGData();
   RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate); 
+  RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate, size_t eventlen, size_t chanlen);
   RC::APtr<const EEGPowers> CreateTestingEEGPowers();
   RC::APtr<const EEGPowers> CreateTestingEEGPowers(size_t sampling_rate);
+  RC::APtr<const EEGPowers> CreateTestingEEGPowers(size_t sampling_rate, size_t eventlen, size_t chanlen, size_t freqlen);
 
 
   RC::APtr<const EEGData> CreateTestingEEGData() {
@@ -18,9 +21,10 @@ namespace CML {
   }
 
   RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate) {
-      size_t chanlen = 3;
-      size_t eventlen = 4;
-  
+    return CreateTestingEEGData(sampling_rate, 4, 3);
+  }
+
+  RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate, size_t eventlen, size_t chanlen) {
       RC::APtr<EEGData> data = new EEGData(sampling_rate);
       auto& datar = data->data;
   
@@ -28,7 +32,7 @@ namespace CML {
       RC_ForIndex(i, datar) {
         datar[i].Resize(eventlen);
         RC_ForIndex(j, datar[i]) {
-          datar[i][j] = i*chanlen + j;
+          datar[i][j] = i*eventlen + j;
         }
       }
   
@@ -40,10 +44,10 @@ namespace CML {
   }
 
   RC::APtr<const EEGPowers> CreateTestingEEGPowers(size_t sampling_rate) {
-      size_t freqlen = 2;
-      size_t chanlen = 3;
-      size_t eventlen = 4;
-  
+    return CreateTestingEEGPowers(sampling_rate, 4, 3, 2);
+  }
+
+  RC::APtr<const EEGPowers> CreateTestingEEGPowers(size_t sampling_rate, size_t eventlen, size_t chanlen, size_t freqlen) {
       RC::APtr<EEGPowers> powers = new EEGPowers(sampling_rate, eventlen, chanlen, freqlen);
       auto& datar = powers->data;
   
@@ -105,11 +109,15 @@ namespace CML {
 
   void TestMorletTransformer() {
     size_t sampling_rate = 1000;
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate);
+    size_t num_events = 10;
+    RC::Data1D<BipolarPair> channels = {BipolarPair{0,1}, BipolarPair{1,0}, BipolarPair{0,2}};
+    RC::Data1D<double> freqs = {1000, 500};
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, num_events, channels.size());
     
     MorletSettings mor_set;
-    mor_set.channels = RC::Data1D<BipolarPair> {BipolarPair{0,1}, BipolarPair{1,0}, BipolarPair{0,2}, BipolarPair{2,1}}; 
-    mor_set.frequencies = RC::Data1D<double> {1000, 500};
+    mor_set.num_events = num_events;
+    mor_set.channels = channels;
+    mor_set.frequencies = freqs;
     mor_set.sampling_rate = sampling_rate;
 
     MorletTransformer morlet_transformer;
@@ -124,12 +132,28 @@ namespace CML {
     public:
   }; 
 
+  void TestEEGCircularData() {
+    size_t sampling_rate = 1000;
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate);
+
+    EEGCircularData circular_data(sampling_rate);
+    circular_data.Append(in_data);
+
+    
+
+    RC::APtr<const EEGData> out_data = FeatureFilters::MirrorEnds(in_data, 2);
+
+    PrintEEGData(*in_data);
+    PrintEEGData(*out_data);
+  }
+
   void TestFeatureFilters() {
     //TestLog10Transform();
     //TestAvgOverTime();
     //TestMirrorEnds();
     //TestBipolarReference();
-    //TestMorletTransformer();
+    TestMorletTransformer();
+    //TestEEGCircularData();
   }
 }
 

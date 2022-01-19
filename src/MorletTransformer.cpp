@@ -1,5 +1,6 @@
 #include "MorletTransformer.h"
 #include "MorletWaveletTransformMP.h"
+#include "RC/RStr.h"
 
 namespace CML {
   MorletTransformer::MorletTransformer() = default;
@@ -10,10 +11,10 @@ namespace CML {
     if (mor_set.channels.size() < 1 || mor_set.frequencies.size() < 1) {
       Throw_RC_Error("Must configure at least one channel and one frequency "
           "for classification.");
-    }   
-
-    // TODO: JPB: (need) Remove this early return to enable Setup() (this causes an exception)
-    return;
+    } else if (mor_set.num_events < 1) {
+      Throw_RC_Error("Must set the number of events per channel to be "
+          "at least 1");
+    }
 
     mt = new MorletWaveletTransformMP(mor_set.cpus);
 
@@ -24,34 +25,30 @@ namespace CML {
         mor_set.frequencies.Raw(), mor_set.frequencies.size(),
         mor_set.complete);
 
+    // TODO: JPB: (refactor) Change ptsa to include num_events in initialize_signal_props
+    mt->set_signal_array(nullptr, mor_set.channels.size(), mor_set.num_events);
+
     mt->prepare_run();
   }
 
   RC::APtr<const EEGPowers> MorletTransformer::Filter(RC::APtr<const EEGData>& data) {
     auto& datar = data->data;
 
-    // TODO: JPB: (need) Remove this early return to enable Filter()
-    RC::APtr<EEGPowers> temp = new EEGPowers(data->sampling_rate, datar[0].size(), datar.size(), 1);
-    RC_ForIndex(i, datar) {
-      RC_ForIndex(j, datar[i]) {
-        temp->data[0][i][j] = datar[i][j];
-      }
-    }
-    PrintEEGPowers(*temp);
-    return temp.ExtractConst();
-
     size_t freqlen = mor_set.frequencies.size();
     size_t chanlen = mor_set.channels.size();
-    size_t eventlen = datar[0].size();
+    size_t eventlen = mor_set.num_events;
 
-    // The out data dimensions from outer to inner are: frequency, channel, time/event
+    // The in data dimensions from outer to inner are: channel->time/event
+    // The out data dimensions from outer to inner are: frequency->channel->time/event
     size_t in_flat_size = chanlen * eventlen;
     size_t out_flat_size = freqlen * chanlen * eventlen;
     pow_arr.Resize(out_flat_size);
     phase_arr.Resize(out_flat_size);
-    complex_arr.Resize(out_flat_size);
+    complex_arr.Resize(out_flat_size); // TODO: (feature) This can likely be removed to reduce overhead
 
-    mt->set_wavelet_complex_array(complex_arr.Raw(), chanlen, eventlen);
+    mt->set_wavelet_pow_array(pow_arr.Raw(), chanlen, eventlen);
+    mt->set_wavelet_phase_array(phase_arr.Raw(), chanlen, eventlen);
+    mt->set_wavelet_complex_array(complex_arr.Raw(), chanlen, eventlen); // TODO: (feature) This can likely be removed to reduce overhead
 
     // Flatten Data (and convert to double)
     RC::Data1D<double> flat_data(in_flat_size);
@@ -64,11 +61,14 @@ namespace CML {
     mt->compute_wavelets_threads();
 
     // UnflattenData
+    // The implicit pow_arr dimensions from outer to inner are: channel->frequency->time/event
+    // This is just a part of the MorletWaveletTransformMP API in PTSA...
+    // It is converted back to the standard frequency->channel->time/event when unflattened 
     RC::APtr<EEGPowers> powers = new EEGPowers(data->sampling_rate, eventlen, chanlen, freqlen);
-    RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
-      RC_ForRange(j, 0, chanlen) { // Iterate over channels
-        size_t flat_pos = (i * chanlen * eventlen) + (j * eventlen); 
-        powers->data[i][j].CopyFrom(pow_arr, flat_pos, chanlen);
+    RC_ForRange(i, 0, chanlen) { // Iterate over channels
+      RC_ForRange(j, 0, freqlen) { // Iterate over frequencies
+        size_t flat_pos = (i * freqlen * eventlen) + (j * eventlen); 
+        powers->data[j][i].CopyFrom(pow_arr, flat_pos, eventlen);
       }
     }
 

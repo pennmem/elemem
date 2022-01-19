@@ -709,6 +709,7 @@ namespace CML {
     settings.sys_config->Get(but_set.cpus, "closed_loop_thread_level");
 
     MorletSettings mor_set;
+    mor_set.num_events = 10; // TODO: JPB: (need) Load num_events from configs
     mor_set.channels = settings.weight_manager->weights->chans;
     mor_set.frequencies = settings.weight_manager->weights->freqs;
     mor_set.sampling_rate = binning_freq;
