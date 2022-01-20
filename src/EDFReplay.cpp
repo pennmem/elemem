@@ -24,9 +24,8 @@ namespace CML {
 
   void EDFReplay::Open(bool clear_buffer) {
     static bool first_run = true;
-    if (!first_run) {
-      Close();
-    }
+
+    Close();
 
     int res = edfopen_file_readonly(filename.c_str(), &edf_hdr,
         EDFLIB_DO_NOT_READ_ANNOTATIONS);
