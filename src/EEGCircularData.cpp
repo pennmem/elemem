@@ -12,19 +12,22 @@ namespace CML {
         auto& circ_events = circ_datar[i];
         auto& out_events = out_datar[i];
         out_events.Resize(circ_events.size());
-        size_t amnt = circ_events.size() - circular_data_start;
-        out_events.CopyAt(0, circ_events, circular_data_start, amnt);
-        out_events.CopyAt(amnt, circ_events, 0, circular_data_start);
+        size_t amnt = circ_events.size() - circular_data_end;
+        out_events.CopyAt(0, circ_events, circular_data_end, amnt);
+        out_events.CopyAt(amnt, circ_events, 0, circular_data_end);
       }   
       return out_data;
     }
 
     void EEGCircularData::PrintData() {
+      RC_DEBOUT(RC::RStr("circular_data_start: ") + circular_data_start + "\n");
+      RC_DEBOUT(RC::RStr("circular_data_end: ") + circular_data_end + "\n");
       PrintEEGData(*GetData());
     }
 
     void EEGCircularData::PrintRawData() {
       RC_DEBOUT(RC::RStr("circular_data_start: ") + circular_data_start + "\n");
+      RC_DEBOUT(RC::RStr("circular_data_end: ") + circular_data_end + "\n");
       PrintEEGData(circular_data);
     }
 
@@ -43,6 +46,9 @@ namespace CML {
     auto& new_datar = new_data->data;
     auto& circ_datar = circular_data.data;
 
+    // TODO: JPB: (need) Make the circular buffer size configurable
+    size_t circ_data_len = 10;
+
     // TODO: JPB: (refactor) Decide if this is how I should set the sampling_rate and data size in Append 
     //                       (or should I pass all the info in the constructor)
     // Setup the circular EEGData to match the incoming EEGData
@@ -50,8 +56,8 @@ namespace CML {
       circular_data.sampling_rate = new_data->sampling_rate;
       circ_datar.Resize(new_datar.size());
       RC_ForIndex(i, circ_datar) { // Iterate over channels
-        // TODO: JPB: (need) Make the circular buffer size configurable
-        circ_datar[i].Resize(100);
+        circ_datar[i].Resize(circ_data_len);
+        circ_datar[i].Zero();
       }
     }
 
@@ -67,27 +73,29 @@ namespace CML {
 
     if (amnt ==  0) { return; } // Not writing any data, so skip
 
+    size_t circ_remaining_events = circ_data_len - circular_data_end;
+    size_t frst_amnt = std::min(circ_remaining_events, amnt);
+    size_t scnd_amnt = std::max(0, (int)amnt - (int)frst_amnt);
+    
     RC_ForIndex(i, circ_datar) { // Iterate over channels
       auto& circ_events = circ_datar[i];
       auto& new_events = new_datar[i];
-      size_t circ_remaining_events = circ_events.size() - circular_data_start;
 
       if (new_events.IsEmpty()) { continue; }
 
       // Copy the data up to the end of the Data1D (or all the data, if possible)
-      size_t frst_amnt = std::min(circ_remaining_events, amnt);
-      circ_events.CopyAt(circular_data_start, new_events, start, frst_amnt);
-      circular_data_start += frst_amnt;
-      if (circular_data_start == circ_events.size())
-        circular_data_start = 0;
+      circ_events.CopyAt(circular_data_end, new_events, start, frst_amnt);
 
       // Copy the remaining data at the beginning of the Data1D
-      int scnd_amnt = (int)amnt - (int)frst_amnt;
-      if (scnd_amnt > 0) {
+      if (scnd_amnt)
         circ_events.CopyAt(0, new_events, start+frst_amnt, scnd_amnt);
-        circular_data_start += scnd_amnt;
-      }
     }
+    
+    if (!has_wrapped && (circular_data_end + amnt >= circ_datar[0].size())) // TODO: JPB: (need) Which channel?
+      has_wrapped = true;
+    if (has_wrapped)
+      circular_data_start = (circular_data_start + amnt) % circ_datar[0].size();
+    circular_data_end = (circular_data_end + amnt) % circ_datar[0].size(); // TODO: JPB: (need) Which channel?
   }
 
   RC::APtr<EEGData> EEGCircularData::BinData(RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {

@@ -134,17 +134,20 @@ namespace CML {
 
   void TestEEGCircularData() {
     size_t sampling_rate = 1000;
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate);
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 4, 3);
+    // TODO: JPB: Test different sized arrays
+    PrintEEGData(*in_data);
 
     EEGCircularData circular_data(sampling_rate);
     circular_data.Append(in_data);
-
-    
-
-    RC::APtr<const EEGData> out_data = FeatureFilters::MirrorEnds(in_data, 2);
-
-    PrintEEGData(*in_data);
-    PrintEEGData(*out_data);
+    circular_data.PrintData();
+    circular_data.PrintRawData();
+    circular_data.Append(in_data);
+    circular_data.PrintData();
+    circular_data.PrintRawData();
+    circular_data.Append(in_data);
+    circular_data.PrintData();
+    circular_data.PrintRawData();
   }
 
   void TestFeatureFilters() {
@@ -152,8 +155,8 @@ namespace CML {
     //TestAvgOverTime();
     //TestMirrorEnds();
     //TestBipolarReference();
-    TestMorletTransformer();
-    //TestEEGCircularData();
+    //TestMorletTransformer();
+    TestEEGCircularData();
   }
 }
 

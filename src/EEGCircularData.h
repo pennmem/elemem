@@ -12,6 +12,9 @@ namespace CML {
 
     EEGData circular_data;
     size_t circular_data_start = 0;
+    size_t circular_data_end = 0;
+    bool has_wrapped = false;
+
     size_t sampling_rate = 1000;
     
     RC::APtr<EEGData> GetData();
