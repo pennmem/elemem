@@ -18,7 +18,7 @@ namespace CML {
   class TaskClassifierManager : public RCqt::WorkerThread {
     public:
     TaskClassifierManager(RC::Ptr<Handler> hndl, size_t sampling_rate,
-        size_t bin_frequency);
+      size_t circular_buffer_len, size_t bin_frequency);
 
     RCqt::TaskCaller<const ClassificationType, const uint64_t, const uint64_t>
       ProcessClassifierEvent =

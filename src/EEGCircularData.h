@@ -8,16 +8,18 @@
 namespace CML {
   class EEGCircularData {
     public:
-    EEGCircularData(size_t sampling_rate) : circular_data(0), sampling_rate(sampling_rate) {}
+    EEGCircularData(size_t sampling_rate, size_t circular_data_len) : circular_data(0), sampling_rate(sampling_rate), circular_data_len(circular_data_len){}
 
     EEGData circular_data;
     size_t circular_data_start = 0;
     size_t circular_data_end = 0;
     bool has_wrapped = false;
 
-    size_t sampling_rate = 1000;
+    size_t sampling_rate = 0;
+    size_t circular_data_len = 0;
     
     RC::APtr<EEGData> GetData();
+    RC::APtr<EEGData> GetData(size_t amnt);
     void PrintData();
     void PrintRawData();
 

@@ -7,8 +7,8 @@
 
 namespace CML {
   TaskClassifierManager::TaskClassifierManager(RC::Ptr<Handler> hndl,
-      size_t sampling_rate, size_t bin_frequency)
-      : hndl(hndl), circular_data(sampling_rate), sampling_rate(sampling_rate) {
+      size_t sampling_rate, size_t circular_buffer_len, size_t bin_frequency)
+      : hndl(hndl), circular_data(sampling_rate, circular_buffer_len), sampling_rate(sampling_rate) {
     callback_ID = RC::RStr("TaskClassifierManager_") + bin_frequency;
     task_classifier_settings.binned_sampling_rate = bin_frequency;
 

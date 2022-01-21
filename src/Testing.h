@@ -138,7 +138,7 @@ namespace CML {
     // TODO: JPB: Test different sized arrays
     PrintEEGData(*in_data);
 
-    EEGCircularData circular_data(sampling_rate);
+    EEGCircularData circular_data(sampling_rate, 10);
     circular_data.Append(in_data);
     circular_data.PrintData();
     circular_data.PrintRawData();
