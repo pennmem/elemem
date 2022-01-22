@@ -719,7 +719,7 @@ namespace CML {
     task_classifier_manager->SetCallback(feature_filters->Process);
     feature_filters->SetCallback(classifier->Classify);
     classifier->RegisterCallback("ClassifierDecision", task_classifier_manager->ClassifierDecision);
-   
+
     //RC_DEBOUT(RC::RStr("TESTING\n"));
     //task_classifier_manager->ProcessClassifierEvent(ClassificationType::STIM, 1000, 0);
   }
