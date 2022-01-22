@@ -18,6 +18,7 @@ Build Instructions
 #. Command line build option:
     .. code:: bash
 
+        export CMAKE_PREFIX_PATH=/usr/local/Cellar/qt\@5/<version> # If on Mac
         cd <the_repository_directory>
         mkdir build
         cd build

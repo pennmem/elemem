@@ -15,9 +15,10 @@ namespace CML {
   /** @param data The input data to the classifier
    *  @return The classifier result
    */
-  double ClassifierEvenOdd::Classification(RC::APtr<const RC::Data1D<double>>& data) {
+  double ClassifierEvenOdd::Classification(RC::APtr<const EEGPowers>& data) {
     //RC_DEBOUT(RC::RStr("Classification\n\n"));
 
-    return F2I((*data)[0]) % 2;
+    auto& datar = data->data;
+    return F2I(datar[0][0][0]) % 2;
   }
 }

@@ -5,6 +5,7 @@
 #include <complex>
 #include "ChannelConf.h"
 #include "EEGData.h"
+#include "EEGPowers.h"
 #include "RC/Data1D.h"
 #include "RC/APtr.h"
 
@@ -18,6 +19,7 @@ namespace CML {
     size_t cycle_count = 3;
     RC::Data1D<double> frequencies;
     RC::Data1D<BipolarPair> channels;
+    size_t num_events = 0;
     size_t sampling_rate = 1000;
     uint32_t cpus = 2;
     bool complete = true;
@@ -28,7 +30,7 @@ namespace CML {
     MorletTransformer();
 
     void Setup(const MorletSettings& morlet_settings);
-    RC::APtr<const EEGData> Filter(RC::APtr<const EEGData>&);
+    RC::APtr<const EEGPowers> Filter(RC::APtr<const EEGData>&);
 
     protected:
     MorletSettings mor_set;

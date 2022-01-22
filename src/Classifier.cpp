@@ -29,7 +29,7 @@ namespace CML {
   /// Handler that starts the classification and reports the result with a callback
   /** @param data The input data to the classifier
    */
-  void Classifier::Classifier_Handler(RC::APtr<const RC::Data1D<double>>& data, const TaskClassifierSettings& task_classifier_settings) {
+  void Classifier::Classifier_Handler(RC::APtr<const EEGPowers>& data, const TaskClassifierSettings& task_classifier_settings) {
     //RC_DEBOUT(RC::RStr("Classifier_Handler\n\n"));
     if ( data_callbacks.IsEmpty() ) {
       return;

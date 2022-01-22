@@ -9,7 +9,7 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 # Compilation settings
 
 set(IS_RELEASE true)
-option(CEREBUS_HW "Use the Cerebus/Neuroport interface" ON) # cmake CEREBUS_HW=OFF .
+option(CEREBUS_HW "Use the Cerebus/Neuroport interface" OFF) # cmake CEREBUS_HW=OFF .
 option(CERESTIM_STUB # cmake CERESTIM_STUB .
   "Use the CereStim simulator (default ON for non-Windows)" OFF)
 option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake HDF5_EXPORT .
@@ -109,22 +109,26 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Classifier.cpp
   src/ClassifierEvenOdd.h
   src/ClassifierEvenOdd.cpp
-  src/ClassifierFR5.h
-  src/ClassifierFR5.cpp
+  src/ClassifierLogReg.h
+  src/ClassifierLogReg.cpp
   src/ConfigFile.h
   src/ConfigFile.cpp
+  src/EDFReplay.h
+  src/EDFReplay.cpp
   src/EDFSave.h
   src/EDFSave.cpp
   src/EEGAcq.h
   src/EEGAcq.cpp
+  src/EEGCircularData.h
+  src/EEGCircularData.cpp
   src/EEGData.h
   src/EEGData.cpp
   src/EEGDisplay.h
   src/EEGDisplay.cpp
   src/EEGFileSave.h
   src/EEGFileSave.cpp
-  src/EDFReplay.h
-  src/EDFReplay.cpp
+  src/EEGPowers.h
+  src/EEGPowers.cpp
   src/EEGSource.h
   src/EventLog.h
   src/EventLog.cpp
@@ -179,6 +183,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Utils.cpp
   src/WeightManager.h
   src/WeightManager.cpp
+
+  src/Testing.h
 
   src/RC/APtr.h
   src/RC/Bitfield2D.h

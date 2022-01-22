@@ -3,6 +3,7 @@
 
 #include <complex>
 #include "EEGData.h"
+#include "EEGPowers.h"
 #include "TaskClassifierSettings.h"
 #include "MorletTransformer.h"
 #include "ButterworthTransformer.h"
@@ -12,11 +13,11 @@
 
 namespace CML {
   using TaskClassifierCallback = RCqt::TaskCaller<RC::APtr<const EEGData>, const TaskClassifierSettings>;
-  using FeatureCallback = RCqt::TaskCaller<RC::APtr<const RC::Data1D<double>>, const TaskClassifierSettings>;
+  using FeatureCallback = RCqt::TaskCaller<RC::APtr<const EEGPowers>, const TaskClassifierSettings>;
 
   class FeatureFilters : public RCqt::WorkerThread {
     public:
-    FeatureFilters(ButterworthSettings butterworth_settings, MorletSettings morlet_settings);
+    FeatureFilters(ButterworthSettings butterworth_settings, MorletSettings morlet_settings, RC::Data1D<BipolarPair> bipolar_reference_channels);
 
     TaskClassifierCallback Process =
       TaskHandler(FeatureFilters::Process_Handler);
@@ -24,10 +25,10 @@ namespace CML {
     RCqt::TaskCaller<const FeatureCallback> SetCallback =
       TaskHandler(FeatureFilters::SetCallback_Handler);
 
-    RC::APtr<const EEGData> BipolarReference(RC::APtr<const EEGData>& data);
-    RC::APtr<const EEGData> MirrorEnds(RC::APtr<const EEGData>& data, size_t duration_ms);
-    RC::APtr<const EEGData> Log10Transform(RC::APtr<const EEGData>& data);
-    RC::APtr<const EEGData> AvgOverTime(RC::APtr<const EEGData>& data);
+    static RC::APtr<const EEGData> BipolarReference(RC::APtr<const EEGData>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels);
+    static RC::APtr<const EEGData> MirrorEnds(RC::APtr<const EEGData>& in_data, size_t duration_ms);
+    static RC::APtr<const EEGPowers> Log10Transform(RC::APtr<const EEGPowers>& in_data);
+    static RC::APtr<const EEGPowers> AvgOverTime(RC::APtr<const EEGPowers>& in_data);
 
 
     protected:
@@ -36,6 +37,7 @@ namespace CML {
     
     MorletTransformer morlet_transformer;
     ButterworthTransformer butterworth_transformer;
+    RC::Data1D<BipolarPair> bipolar_reference_channels;
 
     FeatureCallback callback;
   };
