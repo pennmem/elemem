@@ -120,6 +120,7 @@ namespace RC {
   RC_STREAM_RAWWRAP(APtr);
 
 
+  /// Create a new APtr<T> constructed with the given arguments.
   template<class T, class... Args>
   APtr<T> MakeAPtr(Args&&... args) {
     return APtr<T>(new T(std::forward<Args>(args)...));

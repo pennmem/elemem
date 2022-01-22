@@ -121,7 +121,7 @@ namespace RC {
       cptrs.Crop();
     }
 
-    
+
     /** @return True if there are no elements / at least one size is 0.
      */
     inline bool IsEmpty() const {
@@ -270,7 +270,7 @@ namespace RC {
       }
       d_size2 = resize_size2;
       d_size1 = resize_size1;
-      
+
       cptrs.Resize(0);  // Invalidates
     }
 

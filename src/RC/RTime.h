@@ -593,6 +593,14 @@ namespace RC {
     /// Returns the total hours after midnight.
     inline u32 AsHours() const { return sec / 3600; }
 
+    /// Returns a formatted string representation.
+    inline RStr ToString(bool AmPm=false) const {
+      return RStr(AmPm ? (Hr()+11)%12+1 : Hr()).PadLeft(2, '0') + ":" +
+             RStr(Min()).PadLeft(2, '0') + ":" +
+             RStr(Sec()).PadLeft(2, '0') +
+             (AmPm ? (Hr() < 12 ? "am" : "pm") : "");
+    }
+
     /// Initializes from a number of seconds after midnight.
     inline void FromSeconds(u32 newsec) { sec = newsec; Wrap(); }
     /// Initializes from a number of minutes after midnight.

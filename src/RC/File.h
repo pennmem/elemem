@@ -781,7 +781,7 @@ namespace RC {
       arr.Reserve(4096);
       char ch;
       bool retval = false;
-      
+
       while (RawGet(ch)) {
         retval = true;
         if (ch == '\0') {
@@ -944,7 +944,7 @@ namespace RC {
       BaseOpen(fp, do_close);
       helper->is_writable = true;
     }
-  
+
     /// Wraps the FILE* fp for writing.  It will close it when finished
     /// unless fp is stdout or stderr.
     inline void Open(FILE *fp) {
@@ -1395,7 +1395,7 @@ namespace RC {
       if (entries < 0) {
         Throw_RC_Type(File, err_msg);
       }
-      
+
       for (int i=0; i<entries; i++) {
         RStr entry = RStr(namelist[i]->d_name);
         if (entry != "." && entry != "..") {
