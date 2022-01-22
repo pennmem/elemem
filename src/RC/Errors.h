@@ -36,8 +36,8 @@ namespace RC {
   /// The maximum size of the char array returned by ErrorMsg::what() and
   /// ErrorMsg::GetError(), including the null.
   const size_t ErrorMsg_text_size = 4095;
-  const size_t ErrorMsg_text_bufsize = 4096;
   /// @cond UNDOC
+  const size_t ErrorMsg_text_bufsize = 4096;
   const size_t ErrorMsg_what_bufsize = 4096+1024;
   /// @endcond
   /// The maximum size of the char array returned by ErrorMsg::GetType(),

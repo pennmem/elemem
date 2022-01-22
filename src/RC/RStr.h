@@ -998,6 +998,7 @@ namespace RC {
       ParseInt(x, style, precision); \
     }
 
+    /// Internal.
 #define RC_RSTR_Int_Input(TYPE) \
     /** \brief Formats x as a string in the given style, and with at least \
         precision 0-padded digits. */ \
@@ -1013,10 +1014,11 @@ namespace RC {
     RC_RSTR_Int_Input(i32)
     RC_RSTR_Int_Input(u64)
     RC_RSTR_Int_Input(i64)
-#ifdef __APPLE__
+#ifdef MACOS
     RC_RSTR_Int_Input(size_t)
 #endif
 
+    /// Internal.
 #define RC_RSTR_Float_Input(TYPE) \
     /** \brief Formats x as a string in the given style, and with it rounded
         to precision digits.

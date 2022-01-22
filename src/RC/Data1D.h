@@ -49,6 +49,17 @@ namespace RC {
   class Data1D {
     protected:
     /// @cond PROTECTED
+
+    RevPtr< Data1D<T> > rev_ptr;
+
+    size_t d_alloc;
+    T *alloc_data;
+
+    size_t offset;
+    size_t d_size;
+    T *data;
+    bool do_delete;
+
     inline void DelArray() {
       if ((alloc_data != NULL) && (do_delete)) {
         delete[] (alloc_data);
@@ -566,14 +577,12 @@ namespace RC {
     /// Returns a new array with all the elements of this array converted
     /// to another type by converter.
     template<class Conv>
-    inline auto CastWith(Conv converter) -> Data1D<decltype(converter(T{}))> {
-      /// @cond DOXYBUG
-      Data1D<decltype(converter(T{}))> retval(d_size);
+    inline auto CastWith(Conv converter) -> Data1D<decltype(converter(*data))> {
+      Data1D<decltype(converter(*data))> retval(d_size);
       for (size_t i=0; i<d_size; i++) {
         retval[i] = converter(data[i]);
       }
       return retval;
-      /// @endcond
     }
 #endif // CPP11
 
@@ -1093,20 +1102,6 @@ namespace RC {
 
     /// The largest possible value of size_t.
     static const size_t npos = size_t(-1);
-
-    protected:
-    /// @cond PROTECTED
-
-    RevPtr< Data1D<T> > rev_ptr;
-
-    size_t d_alloc;
-    T *alloc_data;
-
-    size_t offset;
-    size_t d_size;
-    T *data;
-    bool do_delete;
-    /// @endcond
   };
 
 
