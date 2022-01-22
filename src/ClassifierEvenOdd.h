@@ -10,8 +10,10 @@ namespace CML {
 
   class ClassifierEvenOdd : public Classifier {
     public:
-    ClassifierEvenOdd(RC::Ptr<Handler> hndl, ClassifierEvenOddSettings classifierSettings);
-    
+    ClassifierEvenOdd(RC::Ptr<Handler> hndl,
+        ClassifierEvenOddSettings classifierSettings,
+        RC::APtr<const FeatureWeights> weights);
+
 
     protected:
     double Classification(RC::APtr<const EEGPowers>& data);

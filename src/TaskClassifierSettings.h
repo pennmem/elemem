@@ -5,7 +5,7 @@
 
 namespace CML {
   /// This is a simple enum class that lists the classification types.
-  enum class ClassificationType{
+  enum class ClassificationType {
     STIM,
     SHAM,
     NORMALIZE

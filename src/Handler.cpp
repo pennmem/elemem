@@ -713,7 +713,8 @@ namespace CML {
     feature_filters = new FeatureFilters(but_set, mor_set, mor_set.channels);
 
     ClassifierLogRegSettings classifier_settings;
-    classifier = new ClassifierLogReg(this, classifier_settings);
+    classifier = new ClassifierLogReg(this, classifier_settings,
+        settings.weight_manager->weights);
 
     task_classifier_manager->SetCallback(feature_filters->Process);
     feature_filters->SetCallback(classifier->Classify);

@@ -41,7 +41,7 @@ namespace CML {
   class EEGPowers {
     public:
     EEGPowers(size_t sampling_rate) : sampling_rate(sampling_rate) {}
-    EEGPowers(size_t sampling_rate, size_t d_size1, size_t d_size2, size_t d_size3) 
+    EEGPowers(size_t sampling_rate, size_t d_size1, size_t d_size2, size_t d_size3)
       : sampling_rate(sampling_rate), data(d_size1, d_size2, d_size3) {}
     size_t sampling_rate;
     RC::Data3D<double> data;

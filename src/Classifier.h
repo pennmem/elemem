@@ -4,6 +4,7 @@
 #include "EEGData.h"
 #include "EEGPowers.h"
 #include "TaskClassifierSettings.h"
+#include "FeatureWeights.h"
 #include "RC/APtr.h"
 #include "RCqt/Worker.h"
 
@@ -15,7 +16,7 @@ namespace CML {
 
   class Classifier : public RCqt::WorkerThread {
     public:
-    Classifier(RC::Ptr<Handler> hndl) : hndl(hndl) {}
+    Classifier(RC::Ptr<Handler> hndl, RC::APtr<const FeatureWeights> weights);
     virtual ~Classifier() {}
 
     FeatureCallback Classify =
@@ -40,6 +41,7 @@ namespace CML {
     RC::Data1D<TaggedCallback> data_callbacks;
 
     RC::Ptr<Handler> hndl;
+    RC::APtr<const FeatureWeights> weights;
   };
 }
 

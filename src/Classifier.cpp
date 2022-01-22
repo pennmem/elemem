@@ -3,6 +3,11 @@
 #include "Handler.h"
 
 namespace CML {
+  Classifier::Classifier(RC::Ptr<Handler> hndl,
+      RC::APtr<const FeatureWeights> weights)
+    : hndl(hndl), weights(weights) {
+  }
+
   /// Handler that registers a callback on the classifier results
   /** @param A (preferably unique) tag/name for the callback
    *  @param The callback on the classifier results
