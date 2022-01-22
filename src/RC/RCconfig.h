@@ -27,8 +27,14 @@
 #endif
 #endif
 
+#ifndef MACOS
+#if defined(__APPLE__) && defined(__MACH__)
+#define MACOS
+#endif
+#endif
+
 #ifndef unix
-#if defined(__unix__) || defined(__unix) || defined(linux)
+#if defined(__unix__) || defined(__unix) || defined(linux) || defined(MACOS)
 #define unix
 #endif
 #endif
