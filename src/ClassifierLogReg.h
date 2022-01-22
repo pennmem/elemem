@@ -10,8 +10,10 @@ namespace CML {
 
   class ClassifierLogReg : public Classifier {
     public:
-    ClassifierLogReg(RC::Ptr<Handler> hndl, ClassifierLogRegSettings classifierSettings);
-    
+    ClassifierLogReg(RC::Ptr<Handler> hndl,
+        ClassifierLogRegSettings classifierSettings,
+        RC::APtr<const FeatureWeights> weights);
+
 
     protected:
     double Classification(RC::APtr<const EEGPowers>& data);
