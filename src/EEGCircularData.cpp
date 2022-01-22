@@ -114,13 +114,17 @@ namespace CML {
     auto& out_datar = out_data->data;
     out_datar.Resize(in_datar.size());
 
+    if (new_sampling_rate == 0)
+      Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
+
     auto accum_event = [](u32 sum, size_t val) { return std::move(sum) + val; };
     RC_ForIndex(i, out_datar) { // Iterate over channels
       auto& in_events = in_datar[i];
       auto& out_events = out_datar[i];
 
       if (in_events.IsEmpty()) { continue; }
-      size_t out_events_size = in_events.size() / sampling_ratio + 1;
+	  // This is integer division that returns the ceiling
+      size_t out_events_size = in_events.size() / sampling_ratio + (in_events.size() % sampling_ratio != 0);
       out_events.Resize(out_events_size);
       RC_ForIndex(j, out_events) {
         if (j < out_events_size - 1) {
@@ -133,7 +137,6 @@ namespace CML {
           size_t start = j * sampling_ratio;
           size_t end = in_events.size() - 1;
           size_t items = std::distance(&in_events[start], &in_events[end]+1);
-          RC_DEBOUT(items);
           out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
                             0, accum_event) / items;
         }
