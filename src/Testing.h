@@ -196,7 +196,7 @@ namespace CML {
 
   void TestNormalizePowers() {
     size_t sampling_rate = 1000;
-    size_t eventlen = 10;
+    size_t eventlen = 1;
 	size_t chanlen = 2;
 	size_t freqlen = 2;
     RC::APtr<const EEGPowers> in_powers1 = CreateTestingEEGPowers(sampling_rate, eventlen, chanlen, freqlen, 0);

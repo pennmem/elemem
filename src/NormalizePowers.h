@@ -8,13 +8,20 @@
 #include "RCqt/Worker.h"
 
 namespace CML {
+  class NormalizePowersSettings {
+    public: 
+    size_t num_freqs = 0;
+    size_t num_chans = 0;
+    size_t num_events = 0;
+  }; 
+
+  // TODO: JPB: (feature) Make NormalizePowers an RCWorker?
   class NormalizePowers {
     public:
     NormalizePowers(size_t eventlen, size_t chanlen, size_t freqlen);
 	~NormalizePowers();
 	NormalizePowers(const NormalizePowers& other) = delete;
 	NormalizePowers& operator=(const NormalizePowers& other) = delete;
-
 
     void Reset();
     void Update(RC::APtr<const EEGPowers>& new_data);

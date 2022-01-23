@@ -7,9 +7,11 @@
 #include "TaskClassifierSettings.h"
 #include "MorletTransformer.h"
 #include "ButterworthTransformer.h"
+#include "NormalizePowers.h"
 #include "RC/APtr.h"
 #include "RCqt/Worker.h"
 #include "ChannelConf.h"
+
 
 namespace CML {
   using TaskClassifierCallback = RCqt::TaskCaller<RC::APtr<const EEGData>, const TaskClassifierSettings>;
@@ -17,7 +19,9 @@ namespace CML {
 
   class FeatureFilters : public RCqt::WorkerThread {
     public:
-    FeatureFilters(ButterworthSettings butterworth_settings, MorletSettings morlet_settings, RC::Data1D<BipolarPair> bipolar_reference_channels);
+    FeatureFilters(RC::Data1D<BipolarPair> bipolar_reference_channels,
+	  ButterworthSettings butterworth_settings, MorletSettings morlet_settings,
+      NormalizePowersSettings np_set);
 
     TaskClassifierCallback Process =
       TaskHandler(FeatureFilters::Process_Handler);
@@ -38,6 +42,7 @@ namespace CML {
     MorletTransformer morlet_transformer;
     ButterworthTransformer butterworth_transformer;
     RC::Data1D<BipolarPair> bipolar_reference_channels;
+	NormalizePowers normalize_powers;
 
     FeatureCallback callback;
   };
