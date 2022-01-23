@@ -6,15 +6,18 @@
 #include "TaskClassifierManager.h"
 #include "EEGCircularData.h"
 #include "RollingStats.h"
+#include "NormalizePowers.h"
 
 namespace CML {
 
   RC::APtr<const EEGData> CreateTestingEEGData();
   RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate); 
   RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate, size_t eventlen, size_t chanlen);
+  RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate, size_t eventlen, size_t chanlen, int16_t offset);
   RC::APtr<const EEGPowers> CreateTestingEEGPowers();
   RC::APtr<const EEGPowers> CreateTestingEEGPowers(size_t sampling_rate);
   RC::APtr<const EEGPowers> CreateTestingEEGPowers(size_t sampling_rate, size_t eventlen, size_t chanlen, size_t freqlen);
+  RC::APtr<const EEGPowers> CreateTestingEEGPowers(size_t sampling_rate, size_t eventlen, size_t chanlen, size_t freqlen, int16_t offset);
 
 
   RC::APtr<const EEGData> CreateTestingEEGData() {
@@ -26,6 +29,10 @@ namespace CML {
   }
 
   RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate, size_t eventlen, size_t chanlen) {
+    return CreateTestingEEGData(sampling_rate, eventlen, chanlen, 0); 
+  }
+  
+  RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate, size_t eventlen, size_t chanlen, int16_t offset) {
       RC::APtr<EEGData> data = new EEGData(sampling_rate);
       auto& datar = data->data;
   
@@ -33,7 +40,7 @@ namespace CML {
       RC_ForIndex(i, datar) {
         datar[i].Resize(eventlen);
         RC_ForIndex(j, datar[i]) {
-          datar[i][j] = i*eventlen + j;
+          datar[i][j] = i*eventlen + j + offset;
         }
       }
   
@@ -49,13 +56,17 @@ namespace CML {
   }
 
   RC::APtr<const EEGPowers> CreateTestingEEGPowers(size_t sampling_rate, size_t eventlen, size_t chanlen, size_t freqlen) {
+    return CreateTestingEEGPowers(sampling_rate, eventlen, chanlen, freqlen, 0);
+  }
+
+  RC::APtr<const EEGPowers> CreateTestingEEGPowers(size_t sampling_rate, size_t eventlen, size_t chanlen, size_t freqlen, int16_t offset) {
       RC::APtr<EEGPowers> powers = new EEGPowers(sampling_rate, eventlen, chanlen, freqlen);
       auto& datar = powers->data;
   
       RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
         RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
           RC_ForRange(k, 0, eventlen) { // Iterate over eventlen
-            datar[i][j][k] = i*chanlen*eventlen + j*eventlen + k;
+            datar[i][j][k] = i*chanlen*eventlen + j*eventlen + k + offset;
           }
         }
       }
@@ -162,23 +173,47 @@ namespace CML {
 
   void TestRollingStats() {
     size_t sampling_rate = 1000;
-	size_t num_events = 10;
-    RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers(sampling_rate, num_events, 5, 1);
+    size_t eventlen = 10;
+	size_t chanlen = 5;
+	size_t freqlen = 1;
+    RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers(sampling_rate, eventlen, chanlen, freqlen);
     PrintEEGPowers(*in_powers);
 
-	RollingStats rolling_stats(num_events);
-	rolling_stats.Update(in_powers->data[0][0]);
-	rolling_stats.PrintStats();
-	rolling_stats.Update(in_powers->data[0][2]);
-	rolling_stats.PrintStats();
-	
-	auto out_data = rolling_stats.ZScore(in_powers->data[0][4]);
-	RC_DEBOUT(RC::RStr::Join(out_data, ", ") + "\n");
+    RollingStats rolling_stats(eventlen);
+    rolling_stats.Update(in_powers->data[0][0]);
+    rolling_stats.PrintStats();
+    rolling_stats.Update(in_powers->data[0][2]);
+    rolling_stats.PrintStats();
 
-	// means should be 10 through 19
-	// std_devs should be 10
-	// sample_std_devs should be 14.1421...
-	// zscores should be 2.1213...
+    auto out_data = rolling_stats.ZScore(in_powers->data[0][4]);
+    RC_DEBOUT(RC::RStr::Join(out_data, ", ") + "\n");
+
+    // means should be 10 through 19
+    // std_devs should be 10
+    // sample_std_devs should be 14.1421...
+    // zscores should be 2.1213...
+  }
+
+  void TestNormalizePowers() {
+    size_t sampling_rate = 1000;
+    size_t eventlen = 10;
+	size_t chanlen = 2;
+	size_t freqlen = 2;
+    RC::APtr<const EEGPowers> in_powers1 = CreateTestingEEGPowers(sampling_rate, eventlen, chanlen, freqlen, 0);
+    PrintEEGPowers(*in_powers1);
+    RC::APtr<const EEGPowers> in_powers2 = CreateTestingEEGPowers(sampling_rate, eventlen, chanlen, freqlen, 20);
+    PrintEEGPowers(*in_powers2);
+    RC::APtr<const EEGPowers> in_powers3 = CreateTestingEEGPowers(sampling_rate, eventlen, chanlen, freqlen, 40);
+    PrintEEGPowers(*in_powers3);
+
+    NormalizePowers normalize_powers(eventlen, chanlen, freqlen);
+	normalize_powers.Update(in_powers1);
+	normalize_powers.PrintStats();
+	normalize_powers.Update(in_powers2);
+	normalize_powers.PrintStats();
+
+    RC::APtr<EEGPowers> out_powers = normalize_powers.ZScore(in_powers3);
+	PrintEEGPowers(*out_powers);
   }
 
   void TestFeatureFilters() {
@@ -189,7 +224,8 @@ namespace CML {
     //TestMorletTransformer();
     //TestEEGCircularData();
     //TestEEGBinning();
-	TestRollingStats();
+	//TestRollingStats();
+    TestNormalizePowers();
   }
 }
 
