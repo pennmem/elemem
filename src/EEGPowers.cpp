@@ -2,7 +2,6 @@
 #include "RC/RStr.h"
 
 namespace CML {
-  // TODO: JPB: (need) Fix PrintEEGPowers to print Data3D
   void PrintEEGPowers(const EEGPowers& powers) {
     auto& datar = powers.data;
     size_t freqlen = datar.size3();

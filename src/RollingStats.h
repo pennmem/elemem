@@ -24,6 +24,7 @@ namespace CML {
     void Update(const RC::Data1D<double>& new_values);
     RC::Data1D<double> ZScore(const RC::Data1D<double>& data);
     StatsData GetStats();
+	void PrintStats();
 
 
     protected:

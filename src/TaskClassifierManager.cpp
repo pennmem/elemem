@@ -7,19 +7,12 @@
 
 namespace CML {
   TaskClassifierManager::TaskClassifierManager(RC::Ptr<Handler> hndl,
-      size_t sampling_rate, size_t bin_frequency)
-      : hndl(hndl), circular_data(sampling_rate), sampling_rate(sampling_rate) {
+      size_t sampling_rate, size_t circular_buffer_len, size_t bin_frequency)
+      : hndl(hndl), circular_data(sampling_rate, circular_buffer_len), sampling_rate(sampling_rate) {
     callback_ID = RC::RStr("TaskClassifierManager_") + bin_frequency;
     task_classifier_settings.binned_sampling_rate = bin_frequency;
 
     hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
-
-    // Test Code for binning
-    //RC::APtr<EEGData> data = new EEGData(10);
-    //data->data.Resize(1);
-    //data->data[0].Append({0,1,2,3,4,5,6,7,8,9,10});
-    //RC::APtr<const EEGData> binned_data = BinData(data.ExtractConst(), 3).ExtractConst();
-    //PrintEEGData(*binned_data);
   }
 
   void TaskClassifierManager::StartClassification() {

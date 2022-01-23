@@ -5,6 +5,7 @@
 #include "ChannelConf.h"
 #include "TaskClassifierManager.h"
 #include "EEGCircularData.h"
+#include "RollingStats.h"
 
 namespace CML {
 
@@ -134,17 +135,50 @@ namespace CML {
 
   void TestEEGCircularData() {
     size_t sampling_rate = 1000;
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate);
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 4, 5);
+    PrintEEGData(*in_data);
 
-    EEGCircularData circular_data(sampling_rate);
+    EEGCircularData circular_data(sampling_rate, 10);
     circular_data.Append(in_data);
+    circular_data.PrintData();
+    //circular_data.PrintRawData();
+    circular_data.Append(in_data);
+    circular_data.PrintData();
+    //circular_data.PrintRawData();
+    circular_data.Append(in_data);
+    circular_data.PrintData();
+    //circular_data.PrintRawData();
+  }
 
-    
+  void TestEEGBinning() {
+    size_t sampling_rate = 10;
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 11, 3);
 
-    RC::APtr<const EEGData> out_data = FeatureFilters::MirrorEnds(in_data, 2);
+    RC::APtr<const EEGData> out_data = EEGCircularData::BinData(in_data, 3).ExtractConst();
 
     PrintEEGData(*in_data);
     PrintEEGData(*out_data);
+  }
+
+  void TestRollingStats() {
+    size_t sampling_rate = 1000;
+	size_t num_events = 10;
+    RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers(sampling_rate, num_events, 5, 1);
+    PrintEEGPowers(*in_powers);
+
+	RollingStats rolling_stats(num_events);
+	rolling_stats.Update(in_powers->data[0][0]);
+	rolling_stats.PrintStats();
+	rolling_stats.Update(in_powers->data[0][2]);
+	rolling_stats.PrintStats();
+	
+	auto out_data = rolling_stats.ZScore(in_powers->data[0][4]);
+	RC_DEBOUT(RC::RStr::Join(out_data, ", ") + "\n");
+
+	// means should be 10 through 19
+	// std_devs should be 10
+	// sample_std_devs should be 14.1421...
+	// zscores should be 2.1213...
   }
 
   void TestFeatureFilters() {
@@ -152,8 +186,10 @@ namespace CML {
     //TestAvgOverTime();
     //TestMirrorEnds();
     //TestBipolarReference();
-    TestMorletTransformer();
+    //TestMorletTransformer();
     //TestEEGCircularData();
+    //TestEEGBinning();
+	TestRollingStats();
   }
 }
 

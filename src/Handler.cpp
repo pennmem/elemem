@@ -694,7 +694,7 @@ namespace CML {
     settings.exp_config->Get(binning_freq, "experiment", "classifier",
         "binning_frequency_Hz");
     task_classifier_manager = new TaskClassifierManager(this,
-        settings.sampling_rate, binning_freq);
+        settings.sampling_rate, 10, binning_freq); // TODO: JPB: (need) Load num_events from configs
 
     ButterworthSettings but_set;
     but_set.channels = settings.weight_manager->weights->chans;

@@ -1,5 +1,6 @@
 #include "RollingStats.h"
 #include <cmath>
+#include "RC/RStr.h"
 
 namespace CML {
   /// Default constructor that initializes and resets the internal lists
@@ -58,5 +59,13 @@ namespace CML {
       sample_std_dev[i] = std::sqrt(m2s[i] / (count - 1));
     }
     return StatsData {means, std_dev, sample_std_dev};
+  }
+
+  void RollingStats::PrintStats() {
+	StatsData stats_data = GetStats();
+	auto rstr = "means: " + RC::RStr::Join(stats_data.means, ", ") + "\n";
+	rstr += "std_devs: " + RC::RStr::Join(stats_data.std_devs, ", ") + "\n";
+	rstr += "sample_std_devs: " + RC::RStr::Join(stats_data.sample_std_devs, ", ") + "\n";
+	RC_DEBOUT(rstr);
   }
 }
