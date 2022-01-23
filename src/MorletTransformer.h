@@ -30,7 +30,7 @@ namespace CML {
     MorletTransformer();
 
     void Setup(const MorletSettings& morlet_settings);
-    RC::APtr<const EEGPowers> Filter(RC::APtr<const EEGData>&);
+    RC::APtr<EEGPowers> Filter(RC::APtr<const EEGData>&);
 
     protected:
     MorletSettings mor_set;
