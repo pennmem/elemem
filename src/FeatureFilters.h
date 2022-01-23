@@ -29,10 +29,10 @@ namespace CML {
     RCqt::TaskCaller<const FeatureCallback> SetCallback =
       TaskHandler(FeatureFilters::SetCallback_Handler);
 
-    static RC::APtr<const EEGData> BipolarReference(RC::APtr<const EEGData>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels);
-    static RC::APtr<const EEGData> MirrorEnds(RC::APtr<const EEGData>& in_data, size_t duration_ms);
-    static RC::APtr<const EEGPowers> Log10Transform(RC::APtr<const EEGPowers>& in_data);
-    static RC::APtr<const EEGPowers> AvgOverTime(RC::APtr<const EEGPowers>& in_data);
+    static RC::APtr<EEGData> BipolarReference(RC::APtr<const EEGData>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels);
+    static RC::APtr<EEGData> MirrorEnds(RC::APtr<const EEGData>& in_data, size_t duration_ms);
+    static RC::APtr<EEGPowers> Log10Transform(RC::APtr<const EEGPowers>& in_data);
+    static RC::APtr<EEGPowers> AvgOverTime(RC::APtr<const EEGPowers>& in_data);
 
 
     protected:

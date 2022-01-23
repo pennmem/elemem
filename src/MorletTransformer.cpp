@@ -31,7 +31,7 @@ namespace CML {
     mt->prepare_run();
   }
 
-  RC::APtr<const EEGPowers> MorletTransformer::Filter(RC::APtr<const EEGData>& data) {
+  RC::APtr<EEGPowers> MorletTransformer::Filter(RC::APtr<const EEGData>& data) {
     auto& datar = data->data;
 
     size_t freqlen = mor_set.frequencies.size();
@@ -72,7 +72,7 @@ namespace CML {
       }
     }
 
-    return powers.ExtractConst();
+    return powers;
   }
 }
 

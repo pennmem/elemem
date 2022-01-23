@@ -22,8 +22,6 @@ namespace CML {
     RC::APtr<const EEGData> data = circular_data.GetData().ExtractConst();
     RC::APtr<const EEGData> binned_data = EEGCircularData::BinData(data, task_classifier_settings.binned_sampling_rate).ExtractConst();
 
-    // TODO: JPB: (need) Handle Normalization with RollingStats
-
     callback(binned_data, task_classifier_settings);
   }
 

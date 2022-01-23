@@ -13,7 +13,7 @@ namespace CML {
     morlet_transformer.Setup(morlet_settings);
   }
 
-  RC::APtr<const EEGData> FeatureFilters::BipolarReference(RC::APtr<const EEGData>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels) {
+  RC::APtr<EEGData> FeatureFilters::BipolarReference(RC::APtr<const EEGData>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels) {
     RC::APtr<EEGData> out_data = new EEGData(in_data->sampling_rate);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
@@ -49,17 +49,14 @@ namespace CML {
       }
     }
 
-    return out_data.ExtractConst();
+    return out_data;
   }
 
   // Note that when mirroring, you do not include the items bein mirror over
   // Ex: 0, 1, 2, 3 with a repeat of 2 samples becomes 2, 1, 0, 1, 2, 3, 2, 1
-  RC::APtr<const EEGData> FeatureFilters::MirrorEnds(RC::APtr<const EEGData>& in_data, size_t mirrored_duration_ms) {
+  RC::APtr<EEGData> FeatureFilters::MirrorEnds(RC::APtr<const EEGData>& in_data, size_t mirrored_duration_ms) {
     size_t num_mirrored_samples = mirrored_duration_ms * in_data->sampling_rate / 1000;
-    if (num_mirrored_samples == 0) {
-      return in_data;
-    }
-
+    
     RC::APtr<EEGData> out_data = new EEGData(in_data->sampling_rate);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
@@ -95,10 +92,10 @@ namespace CML {
       }
     }
 
-    return out_data.ExtractConst();
+    return out_data;
   }
 
-  RC::APtr<const EEGPowers> FeatureFilters::Log10Transform(RC::APtr<const EEGPowers>& in_data) {
+  RC::APtr<EEGPowers> FeatureFilters::Log10Transform(RC::APtr<const EEGPowers>& in_data) {
     auto& in_datar = in_data->data;
     size_t freqlen = in_datar.size3();
     size_t chanlen = in_datar.size2();
@@ -115,10 +112,10 @@ namespace CML {
       }   
     } 
 
-    return out_data.ExtractConst();
+    return out_data;
   }
 
-  RC::APtr<const EEGPowers> FeatureFilters::AvgOverTime(RC::APtr<const EEGPowers>& in_data) {
+  RC::APtr<EEGPowers> FeatureFilters::AvgOverTime(RC::APtr<const EEGPowers>& in_data) {
     auto& in_datar = in_data->data;
     size_t freqlen = in_datar.size3();
     size_t chanlen = in_datar.size2();
@@ -138,7 +135,7 @@ namespace CML {
       }
     }
 
-    return out_data.ExtractConst();
+    return out_data;
   }
 
   void FeatureFilters::Process_Handler(RC::APtr<const EEGData>& data, const TaskClassifierSettings& task_classifier_settings) {
@@ -146,11 +143,11 @@ namespace CML {
     if (!callback.IsSet())
       return;
 
-    auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels);
-    auto mirrored_data = MirrorEnds(bipolar_ref_data, 1000);
-    auto morlet_data = morlet_transformer.Filter(mirrored_data);
-    auto log_data = Log10Transform(morlet_data);
-    auto avg_data = AvgOverTime(log_data);
+    auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
+    auto mirrored_data = MirrorEnds(bipolar_ref_data, 1000).ExtractConst();
+    auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
+    auto log_data = Log10Transform(morlet_data).ExtractConst();
+    auto avg_data = AvgOverTime(log_data).ExtractConst();
 
     // Normalize Powers
     switch (task_classifier_settings.cl_type) {

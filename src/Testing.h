@@ -85,7 +85,7 @@ namespace CML {
     deb_msg += "\n";
     RC_DEBOUT(deb_msg);
 
-    RC::APtr<const EEGData> out_data = FeatureFilters::BipolarReference(in_data, bipolar_reference_channels);
+    RC::APtr<EEGData> out_data = FeatureFilters::BipolarReference(in_data, bipolar_reference_channels);
   
     PrintEEGData(*in_data);
     PrintEEGData(*out_data);
@@ -95,7 +95,7 @@ namespace CML {
     size_t sampling_rate = 1000;
     RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate);
     
-    RC::APtr<const EEGData> out_data = FeatureFilters::MirrorEnds(in_data, 2);
+    RC::APtr<EEGData> out_data = FeatureFilters::MirrorEnds(in_data, 2);
 
     PrintEEGData(*in_data);
     PrintEEGData(*out_data);
@@ -104,7 +104,7 @@ namespace CML {
   void TestAvgOverTime() {
     RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers();
   
-    RC::APtr<const EEGPowers> out_powers = FeatureFilters::AvgOverTime(in_powers);
+    RC::APtr<EEGPowers> out_powers = FeatureFilters::AvgOverTime(in_powers);
   
     PrintEEGPowers(*in_powers);
     PrintEEGPowers(*out_powers);
@@ -113,7 +113,7 @@ namespace CML {
   void TestLog10Transform() {
     RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers();
 
-    RC::APtr<const EEGPowers> out_powers = FeatureFilters::Log10Transform(in_powers);
+    RC::APtr<EEGPowers> out_powers = FeatureFilters::Log10Transform(in_powers);
   
     PrintEEGPowers(*in_powers);
     PrintEEGPowers(*out_powers);
@@ -134,7 +134,7 @@ namespace CML {
 
     MorletTransformer morlet_transformer;
     morlet_transformer.Setup(mor_set);
-    RC::APtr<const EEGPowers> out_powers = morlet_transformer.Filter(in_data);
+    RC::APtr<EEGPowers> out_powers = morlet_transformer.Filter(in_data);
 
     PrintEEGData(*in_data);
     PrintEEGPowers(*out_powers);
@@ -165,7 +165,7 @@ namespace CML {
     size_t sampling_rate = 10;
     RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 11, 3);
 
-    RC::APtr<const EEGData> out_data = EEGCircularData::BinData(in_data, 3).ExtractConst();
+    RC::APtr<EEGData> out_data = EEGCircularData::BinData(in_data, 3);
 
     PrintEEGData(*in_data);
     PrintEEGData(*out_data);
