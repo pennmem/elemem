@@ -710,7 +710,11 @@ namespace CML {
         "morlet_cycles");
     settings.sys_config->Get(mor_set.cpus, "closed_loop_thread_level");
 
-    feature_filters = new FeatureFilters(but_set, mor_set, mor_set.channels);
+	NormalizePowersSettings np_set;
+	np_set.num_events = 10; // TODO: JPB: (need) Load num_events from configs
+	np_set.num_chans = settings.weight_manager->weights->chans.size();
+	np_set.num_freqs = settings.weight_manager->weights->freqs.size();
+    feature_filters = new FeatureFilters(mor_set.channels, but_set, mor_set, np_set);
 
     ClassifierLogRegSettings classifier_settings;
     classifier = new ClassifierLogReg(this, classifier_settings,

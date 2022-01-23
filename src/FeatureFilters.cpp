@@ -4,8 +4,11 @@
 
 namespace CML {
   // TODO: JPB: (refactor) Make this take const refs
-  FeatureFilters::FeatureFilters(ButterworthSettings butterworth_settings, MorletSettings morlet_settings,
-      RC::Data1D<BipolarPair> bipolar_reference_channels) : bipolar_reference_channels(bipolar_reference_channels){
+  FeatureFilters::FeatureFilters(RC::Data1D<BipolarPair> bipolar_reference_channels,
+      ButterworthSettings butterworth_settings, MorletSettings morlet_settings,
+      NormalizePowersSettings np_set) 
+	  : bipolar_reference_channels(bipolar_reference_channels),
+	  normalize_powers(np_set.num_events, np_set.num_chans, np_set.num_freqs) {
     butterworth_transformer.Setup(butterworth_settings);
     morlet_transformer.Setup(morlet_settings);
   }
@@ -140,9 +143,8 @@ namespace CML {
 
   void FeatureFilters::Process_Handler(RC::APtr<const EEGData>& data, const TaskClassifierSettings& task_classifier_settings) {
     //RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
-    if ( ! callback.IsSet() ) {
+    if (!callback.IsSet())
       return;
-    }
 
     auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels);
     auto mirrored_data = MirrorEnds(bipolar_ref_data, 1000);
@@ -150,7 +152,20 @@ namespace CML {
     auto log_data = Log10Transform(morlet_data);
     auto avg_data = AvgOverTime(log_data);
 
-    callback(avg_data, task_classifier_settings);
+    // Normalize Powers
+    switch (task_classifier_settings.cl_type) {
+      case ClassificationType::NORMALIZE:
+        normalize_powers.Update(avg_data);
+        break;
+      case ClassificationType::STIM:
+      case ClassificationType::SHAM:
+      {
+		auto norm_data = normalize_powers.ZScore(avg_data).ExtractConst();
+        callback(norm_data, task_classifier_settings);
+        break;
+      }
+      default: Throw_RC_Error("Invalid classification type received.");
+    } 
   }
 
   /// Handler that sets the callback on the feature generator results

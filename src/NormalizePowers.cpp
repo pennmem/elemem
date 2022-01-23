@@ -8,8 +8,7 @@ namespace CML {
    *  @param The number of freqs
    */
   NormalizePowers::NormalizePowers(size_t eventlen, size_t chanlen, size_t freqlen) 
-    :  rolling_powers(chanlen, freqlen) {
-	// TODO: JPB: (need) Add destructor to NormalizePowers
+      : rolling_powers(chanlen, freqlen) {
 	RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
         rolling_powers[i][j] = new RollingStats(eventlen);
@@ -22,7 +21,8 @@ namespace CML {
     size_t chanlen = rolling_powers.size1();
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
-        delete rolling_powers[i][j];
+        if (rolling_powers[i][j])
+          delete rolling_powers[i][j];
       }
     }
   }
