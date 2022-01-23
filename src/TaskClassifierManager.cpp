@@ -13,13 +13,6 @@ namespace CML {
     task_classifier_settings.binned_sampling_rate = bin_frequency;
 
     hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
-
-    // Test Code for binning
-    //RC::APtr<EEGData> data = new EEGData(10);
-    //data->data.Resize(1);
-    //data->data[0].Append({0,1,2,3,4,5,6,7,8,9,10});
-    //RC::APtr<const EEGData> binned_data = BinData(data.ExtractConst(), 3).ExtractConst();
-    //PrintEEGData(*binned_data);
   }
 
   void TaskClassifierManager::StartClassification() {

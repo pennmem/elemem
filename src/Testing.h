@@ -5,6 +5,7 @@
 #include "ChannelConf.h"
 #include "TaskClassifierManager.h"
 #include "EEGCircularData.h"
+#include "RollingStats.h"
 
 namespace CML {
 
@@ -159,6 +160,27 @@ namespace CML {
     PrintEEGData(*out_data);
   }
 
+  void TestRollingStats() {
+    size_t sampling_rate = 1000;
+	size_t num_events = 10;
+    RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers(sampling_rate, num_events, 5, 1);
+    PrintEEGPowers(*in_powers);
+
+	RollingStats rolling_stats(num_events);
+	rolling_stats.Update(in_powers->data[0][0]);
+	rolling_stats.PrintStats();
+	rolling_stats.Update(in_powers->data[0][2]);
+	rolling_stats.PrintStats();
+	
+	auto out_data = rolling_stats.ZScore(in_powers->data[0][4]);
+	RC_DEBOUT(RC::RStr::Join(out_data, ", ") + "\n");
+
+	// means should be 10 through 19
+	// std_devs should be 10
+	// sample_std_devs should be 14.1421...
+	// zscores should be 2.1213...
+  }
+
   void TestFeatureFilters() {
     //TestLog10Transform();
     //TestAvgOverTime();
@@ -166,7 +188,8 @@ namespace CML {
     //TestBipolarReference();
     //TestMorletTransformer();
     //TestEEGCircularData();
-    TestEEGBinning();
+    //TestEEGBinning();
+	TestRollingStats();
   }
 }
 

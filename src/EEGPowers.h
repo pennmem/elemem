@@ -27,7 +27,7 @@ namespace CML {
    *  #include "EEGPowers.h"
    *
    *  // Setup EEGPowers for example
-   *  // TODO: JPB: (need) FIX THIS
+   *  // TODO: JPB: (need) Fix example code for EEGPowers
    *  EEGPowers eegPowers(2, 3, 4);
    *  eegPowers.data.Resize(2);
    *  eegPowers.data[0] = RC::Data1D<short> {5,10,1};
