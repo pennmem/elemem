@@ -12,9 +12,19 @@ namespace CML {
 	// TODO: JPB: (need) Add destructor to NormalizePowers
 	RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
-		rolling_powers[i][j] = new RollingStats(eventlen); 
+        rolling_powers[i][j] = new RollingStats(eventlen);
       }
     } 
+  }
+
+  NormalizePowers::~NormalizePowers() {
+    size_t freqlen = rolling_powers.size2();
+    size_t chanlen = rolling_powers.size1();
+    RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
+      RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
+        delete rolling_powers[i][j];
+      }
+    }
   }
 
   /// Reset all of the values back to 0 
@@ -59,17 +69,21 @@ namespace CML {
     return out_data;
   }
 
+  // TODO: JPB: (feature) Implement NormalizePowers::GetStats()
+  //            You can make the PrintStats better once you implement this
   /// Returns the current statistics from the collected data
   /** @return The current statistics
    */
-  //Data2D<StatsData> NormalizePowers::GetStats() {
-  //size_t freqlen = rolling_powers.size2();
-  //size_t chanlen = rolling_powers.size1();
+  //RC::Data2D<StatsData> NormalizePowers::GetStats() {
+  //  size_t freqlen = rolling_powers.size2();
+  //  size_t chanlen = rolling_powers.size1();
+  //  RC::Data2D<StatsData> out_data(chanlen, freqlen);
   //  RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
   //    RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
-  //      rolling_powers[i][j].GetStats();
+  //      out_data[i][j] = rolling_powers[i][j]->GetStats();
   //    }
   //  }
+  //  return out_data;
   //}
 
   void NormalizePowers::PrintStats() {
