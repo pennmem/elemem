@@ -11,11 +11,15 @@ namespace CML {
   class NormalizePowers {
     public:
     NormalizePowers(size_t eventlen, size_t chanlen, size_t freqlen);
+	~NormalizePowers();
+	NormalizePowers(const NormalizePowers& other) = delete;
+	NormalizePowers& operator=(const NormalizePowers& other) = delete;
+
 
     void Reset();
     void Update(RC::APtr<const EEGPowers>& new_data);
     RC::APtr<EEGPowers> ZScore(RC::APtr<const EEGPowers>& in_data);
-    //Data2D<StatsData> GetStats();
+	//RC::Data2D<StatsData> GetStats();
 	void PrintStats();
 
 
