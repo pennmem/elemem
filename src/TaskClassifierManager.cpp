@@ -62,6 +62,16 @@ namespace CML {
     }
   }
 
+  // TODO: JPB: (refactor) Move this to TaskClassifierSettings.h
+  RC::RStr ClassificationTypeToRStr(const ClassificationType& cl_type) {
+    switch (cl_type) {
+      case ClassificationType::STIM: return "STIM";
+      case ClassificationType::SHAM: return "SHAM";
+      case ClassificationType::NORMALIZE: return "NORMALIZE";
+      default: Throw_RC_Error("Invalid classification type received.");
+    }   
+  } 
+
   void TaskClassifierManager::ClassifierDecision_Handler(const double& result,
       const TaskClassifierSettings& task_classifier_settings) {
     //RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
@@ -73,12 +83,15 @@ namespace CML {
     data.Set(result, "result");
     data.Set(stim, "decision");
 
-    RC::RStr type;
-    switch (task_classifier_settings.cl_type) {
-      case ClassificationType::STIM: type = "STIM_DECISON"; break;
-      case ClassificationType::SHAM: type = "SHAM_DECISON"; break;
-      default: Throw_RC_Error("Invalid classification type received.");
-    }
+	//const RC::RStr type = [&] {
+    //  switch (task_classifier_settings.cl_type) {
+    //    case ClassificationType::STIM: return "STIM_DECISON";
+    //    case ClassificationType::SHAM: return "SHAM_DECISON";
+    //    default: Throw_RC_Error("Invalid classification type received.");
+    //  }
+	//}();
+
+	RC::RStr type = ClassificationTypeToRStr(task_classifier_settings.cl_type);
 
     auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
     hndl->event_log.Log(resp.Line());

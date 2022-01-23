@@ -154,6 +154,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/MorletTransformer.cpp
   src/NetWorker.h
   src/NetWorker.cpp
+  src/NormalizePowers.h
+  src/NormalizePowers.cpp
   src/OpenConfigDialog.h
   src/OpenConfigDialog.cpp
   src/OPSSpecs.h
