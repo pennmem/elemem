@@ -9,10 +9,10 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 # Compilation settings
 
 set(IS_RELEASE true)
-option(CEREBUS_HW "Use the Cerebus/Neuroport interface" ON) # cmake CEREBUS_HW=OFF .
-option(CERESTIM_STUB # cmake CERESTIM_STUB .
+option(CEREBUS_HW "Use the Cerebus/Neuroport interface" ON) # cmake -DCEREBUS_HW=OFF ..
+option(CERESTIM_STUB # cmake -DCERESTIM_STUB=ON ..
   "Use the CereStim simulator (default ON for non-Windows)" OFF)
-option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake HDF5_EXPORT .
+option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake -DHDF5_EXPORT=ON ..
 
 if (IS_RELEASE)
   set(CMAKE_BUILD_TYPE Release)
