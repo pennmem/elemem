@@ -113,9 +113,12 @@ namespace CML {
 
     NewEEGSave();
 
-    RC::RStr temp = "TESTING";
-    RC_DEBOUT(temp);
-    TestFeatureFilters();
+    #define TESTING 
+    #ifdef TESTING
+    RC_DEBOUT(RC::RStr("TESTING"));
+    TestAllCode();
+    #endif
+    
   }
 
   void Handler::CerebusTest_Handler() {
