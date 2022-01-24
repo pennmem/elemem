@@ -187,6 +187,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/WeightManager.cpp
 
   src/Testing.h
+  src/Testing.cpp
 
   src/RC/APtr.h
   src/RC/Bitfield2D.h
