@@ -130,7 +130,7 @@ namespace CML {
   void TestLog10Transform() {
     RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers();
 
-    RC::APtr<EEGPowers> out_powers = FeatureFilters::Log10Transform(in_powers);
+    RC::APtr<EEGPowers> out_powers = FeatureFilters::Log10Transform(in_powers, 1e-16);
   
     PrintEEGPowers(*in_powers);
     PrintEEGPowers(*out_powers);

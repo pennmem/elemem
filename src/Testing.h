@@ -29,6 +29,7 @@ namespace CML {
   void TestNormalizePowers();
 
   void TestAllCode();
+
   //class TaskClassifierManagerTester : TaskClassifierManager {
   //  public:
   //}; 
