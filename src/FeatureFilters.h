@@ -31,7 +31,7 @@ namespace CML {
 
     static RC::APtr<EEGData> BipolarReference(RC::APtr<const EEGData>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels);
     static RC::APtr<EEGData> MirrorEnds(RC::APtr<const EEGData>& in_data, size_t duration_ms);
-    static RC::APtr<EEGPowers> Log10Transform(RC::APtr<const EEGPowers>& in_data);
+    static RC::APtr<EEGPowers> Log10Transform(RC::APtr<const EEGPowers>& in_data, double epsilon);
     static RC::APtr<EEGPowers> AvgOverTime(RC::APtr<const EEGPowers>& in_data);
 
 
@@ -42,9 +42,13 @@ namespace CML {
     MorletTransformer morlet_transformer;
     ButterworthTransformer butterworth_transformer;
     RC::Data1D<BipolarPair> bipolar_reference_channels;
-	NormalizePowers normalize_powers;
+    NormalizePowers normalize_powers;
 
     FeatureCallback callback;
+
+    // Minimum power clamp (just before taking log) to avoid log singularity in case we get zero power
+    // A power could be zero due to constant signal across two electrodes that are part of bipolar pair
+    const double log_min_power_clamp = 1e-16;
   };
 }
 

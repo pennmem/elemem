@@ -13,6 +13,11 @@ namespace CML {
     morlet_transformer.Setup(morlet_settings);
   }
 
+  /// Converts an EEGData of electrode channels into EEGData of bipolar pair channels
+  /** @param EEGData of electrode channels
+    * @param List of bipolar pairs
+    * @return EEGData of bipolar pair channels
+    */
   RC::APtr<EEGData> FeatureFilters::BipolarReference(RC::APtr<const EEGData>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels) {
     RC::APtr<EEGData> out_data = new EEGData(in_data->sampling_rate);
     auto& in_datar = in_data->data;
@@ -52,8 +57,13 @@ namespace CML {
     return out_data;
   }
 
-  // Note that when mirroring, you do not include the items bein mirror over
-  // Ex: 0, 1, 2, 3 with a repeat of 2 samples becomes 2, 1, 0, 1, 2, 3, 2, 1
+  /// Mirrors both ends of the EEGData for the provided number of seconds
+  /** Note that when mirroring, you do not include the items bein mirror over
+    * Ex: 0, 1, 2, 3 with a mirroring of 2 samples becomes 2, 1, 0, 1, 2, 3, 2, 1
+    * @param The data to be mirrored
+    * @param Duration to mirror each side for
+    * @return The mirrored EEGData
+    */
   RC::APtr<EEGData> FeatureFilters::MirrorEnds(RC::APtr<const EEGData>& in_data, size_t mirrored_duration_ms) {
     size_t num_mirrored_samples = mirrored_duration_ms * in_data->sampling_rate / 1000;
     
@@ -95,7 +105,13 @@ namespace CML {
     return out_data;
   }
 
-  RC::APtr<EEGPowers> FeatureFilters::Log10Transform(RC::APtr<const EEGPowers>& in_data) {
+  /// A log (base 10) transform of all powers in EEGPowers
+  /** Note: A power could be zero due to constant signal across two electrodes that are part of bipolar pair
+    * @param The data to be log transformed
+    * @param Minimum power clamp (just before taking log) to avoid log singularity in case we get zero power
+    * @return The log transformed data
+    */
+  RC::APtr<EEGPowers> FeatureFilters::Log10Transform(RC::APtr<const EEGPowers>& in_data, double min_power_clamp) {
     auto& in_datar = in_data->data;
     size_t freqlen = in_datar.size3();
     size_t chanlen = in_datar.size2();
@@ -107,7 +123,8 @@ namespace CML {
     RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
       RC_ForRange(j, 0, chanlen) { // Iterate over channels
         RC_ForRange(k, 0, eventlen) { // Iterate over events
-          out_datar[i][j][k] = log10(in_datar[i][j][k]);
+          double power = std::max(min_power_clamp, in_datar[i][j][k]);
+          out_datar[i][j][k] = log10(power);
         }
       }   
     } 
@@ -115,6 +132,11 @@ namespace CML {
     return out_data;
   }
 
+  /// Average the EEGPowers over the time dimension (most inner dimension)
+  /** Note: The time dimension will have a length of 1 in the returned data
+    * @param The data to be averaged
+    * @return The time averaged EEGPowers
+    */
   RC::APtr<EEGPowers> FeatureFilters::AvgOverTime(RC::APtr<const EEGPowers>& in_data) {
     auto& in_datar = in_data->data;
     size_t freqlen = in_datar.size3();
@@ -146,7 +168,7 @@ namespace CML {
     auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
     auto mirrored_data = MirrorEnds(bipolar_ref_data, 1000).ExtractConst();
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
-    auto log_data = Log10Transform(morlet_data).ExtractConst();
+    auto log_data = Log10Transform(morlet_data, log_min_power_clamp).ExtractConst();
     auto avg_data = AvgOverTime(log_data).ExtractConst();
 
     // Normalize Powers
@@ -157,7 +179,7 @@ namespace CML {
       case ClassificationType::STIM:
       case ClassificationType::SHAM:
       {
-		auto norm_data = normalize_powers.ZScore(avg_data).ExtractConst();
+        auto norm_data = normalize_powers.ZScore(avg_data).ExtractConst();
         callback(norm_data, task_classifier_settings);
         break;
       }
