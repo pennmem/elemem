@@ -1065,34 +1065,34 @@ int edfread_digital_samples(int handle, int edfsignal, int n, int *buf)
 
   if(handle>=EDFLIB_MAXFILES)
   {
-    return -1;
+    return -2;
   }
 
   if(hdrlist[handle]==NULL)
   {
-    return -1;
+    return -3;
   }
 
   if(edfsignal<0)
   {
-    return -1;
+    return -4;
   }
 
   if(hdrlist[handle]->writemode)
   {
-    return -1;
+    return -5;
   }
 
   if(edfsignal>=(hdrlist[handle]->edfsignals - hdrlist[handle]->nr_annot_chns))
   {
-    return -1;
+    return -6;
   }
 
   channel = hdrlist[handle]->mapped_signals[edfsignal];
 
   if(n<0LL)
   {
-    return -1;
+    return -7;
   }
 
   if(n==0LL)
@@ -1125,7 +1125,7 @@ int edfread_digital_samples(int handle, int edfsignal, int n, int *buf)
 
     if(n<0)
     {
-      return -1;
+      return -8;
     }
   }
 
@@ -1160,7 +1160,7 @@ int edfread_digital_samples(int handle, int edfsignal, int n, int *buf)
       tmp = fgetc(file);
       if(tmp==EOF)
       {
-        return -1;
+        return -9;
       }
       var.four[1] = tmp;
 
@@ -1187,7 +1187,7 @@ int edfread_digital_samples(int handle, int edfsignal, int n, int *buf)
       tmp = fgetc(file);
       if(tmp==EOF)
       {
-        return -1;
+        return -10;
       }
       var.four[2] = tmp;
 
