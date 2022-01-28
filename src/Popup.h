@@ -4,10 +4,14 @@
 #include "RC/RC.h"
 #include "RCqt/Worker.h"
 #include <QObject>
+#include <sstream>
 
 namespace RC {
   RC_MAKE_ERROR_TYPE(Note);
 }
+
+#define DEBLOG_OUT_HELP(v) + ", " + #v + " = " + RC::RStr([&](){std::stringstream ss; ss << v; return ss.str();}())
+#define DEBLOG_OUT(...) CML::DebugLog(RC::RStr(__FILE__) + ":" + RC::RStr(__LINE__) RC_ARGS_EACH(DEBLOG_OUT_HELP,__VA_ARGS__));
 
 namespace CML {
   void PopupWin(const RC::RStr& message, const RC::RStr& title="");
