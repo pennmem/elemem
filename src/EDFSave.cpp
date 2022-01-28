@@ -1,6 +1,7 @@
 // TODO add license to About
 #include "edflib/edflib.h"
 #include "EDFSave.h"
+#include "EDFSynch.h"
 #include "EEGAcq.h"
 #include "Handler.h"
 #include "ConfigFile.h"
@@ -32,7 +33,7 @@ namespace CML {
     }
 
     StopSaving_Handler();
-    edf_hdl = edfopen_file_writeonly(filename.c_str(),
+    edf_hdl = EDFSynch::OpenWrite(filename.c_str(),
         EDFLIB_FILETYPE_EDFPLUS, int(channels.size()));
 
     if (edf_hdl < 0) {
@@ -90,7 +91,7 @@ namespace CML {
           static_cast<long long>(amount_written * 10000 / sampling_rate),
           -1LL, "Recording ends");
 
-      edfclose_file(edf_hdl);
+      EDFSynch::Close(edf_hdl);
       edf_hdl = -1;
     }
   }

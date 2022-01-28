@@ -6,6 +6,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "EDFReplay.h"
+#include "EDFSynch.h"
 #include "Popup.h"
 #include "RC/RTime.h"
 #include "RC/Errors.h"
@@ -22,12 +23,12 @@ namespace CML {
   }
 
 
-  void EDFReplay::Open(bool clear_buffer) {
+  void EDFReplay::Open(bool prebuffer) {
     static bool first_run = true;
 
     Close();
 
-    int res = edfopen_file_readonly(filename.c_str(), &edf_hdr,
+    int res = EDFSynch::OpenRead(filename.c_str(), &edf_hdr,
         EDFLIB_DO_NOT_READ_ANNOTATIONS);
     if (res < 0) {
       Throw_RC_Type(File, (RC::RStr("Could not open edf file: ") +
@@ -36,13 +37,14 @@ namespace CML {
 
     edf_hdl = res;
 
-    if (clear_buffer) {
-      // Invariant match linked to GetData function.
-      file_bufs.Resize(edf_hdr.edfsignals);
-      channel_data.resize(file_bufs.size());
+    // Invariant match linked to GetData function.
+    file_bufs.Resize(edf_hdr.edfsignals);
+    channel_data.resize(file_bufs.size());
 
-      amnt_buffered = 0;
-      max_requested = 1024;
+    amnt_buffered = 0;
+    max_requested = 1024;
+
+    if (prebuffer) {
       Prebuffer();
 
       TimeSinceLast_samples();
@@ -57,7 +59,7 @@ namespace CML {
 
   void EDFReplay::Close() {
     if (edf_hdl >= 0) {
-      edfclose_file(edf_hdl);
+      EDFSynch::Close(edf_hdl);
     }
     edf_hdl = -1;
   }
@@ -109,11 +111,12 @@ namespace CML {
         }
 
         // Fill up the rest
-        file_bufs[s].Resize(buf_target);
+        file_bufs[s].Resize(std::max(buf_target, amnt_buffered + smpdr));
         int amnt_read = edfread_digital_samples(edf_hdl, s, smpdr,
             file_bufs[s].Raw() + amnt_buffered);
 
         if (amnt_read < 0) {
+          DEBLOG_OUT(amnt_read, s, edf_hdl, filename);
           Throw_RC_Type(File, "EDFReplay file read error");
         }
 

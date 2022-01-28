@@ -41,7 +41,7 @@ namespace CML {
 
     protected:
 
-    void Open(bool clear_buffer=true);  // Automatic at first use.
+    void Open(bool prebuffer=true);  // Automatic at first use.
     void Prebuffer();
     int16_t ClampInt(int val);
     uint64_t TimeSinceLast_samples();
