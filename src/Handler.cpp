@@ -12,6 +12,7 @@
 #include "CerebusSim.h"
 #include "ClassifierLogReg.h"
 #include "EDFReplay.h"
+#include "EDFSynch.h"
 #include "JSONLines.h"
 #include "About.h"
 #include "MainWindow.h"
@@ -97,6 +98,8 @@ namespace CML {
   }
 
   void Handler::Initialize_Handler() {
+    EDFSynch::Inst();  // edflib thread synch initialize
+
     RStr data_dir = settings.sys_config->GetPath("data_dir");
 
     elemem_dir = data_dir;

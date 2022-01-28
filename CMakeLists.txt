@@ -117,6 +117,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/EDFReplay.cpp
   src/EDFSave.h
   src/EDFSave.cpp
+  src/EDFSynch.h
+  src/EDFSynch.cpp
   src/EEGAcq.h
   src/EEGAcq.cpp
   src/EEGCircularData.h
