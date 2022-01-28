@@ -53,7 +53,7 @@ namespace CML {
     // From cbhwlib.h cbNUM_ANALOG_CHANS
     const size_t num_data_chans = 272;
 
-    uint64_t window_seconds = 6;
+    uint64_t window_seconds = 4;
     size_t data_samples;
 
     EEGData data{1000};
