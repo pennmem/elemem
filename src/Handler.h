@@ -103,7 +103,7 @@ namespace CML {
     StimWorker stim_worker;
     EEGAcq eeg_acq;
     RC::APtr<EEGFileSave> eeg_save;
-    TaskClassifierManager task_classifier_manager;
+    RC::APtr<TaskClassifierManager> task_classifier_manager;
     RC::APtr<FeatureGenerator> feature_generator;
     RC::APtr<Classifier> classifier;
     NetWorker net_worker;

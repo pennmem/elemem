@@ -6,9 +6,10 @@
 #include <unordered_map>
 
 namespace CML {
-  TaskClassifierManager::TaskClassifierManager(RC::Ptr<Handler> hndl, int sampling_rate)
-      : hndl(hndl), circular_data(0) {
+  TaskClassifierManager::TaskClassifierManager(RC::Ptr<Handler> hndl, size_t sampling_rate)
+      : hndl(hndl), circular_data(0), sampling_rate(sampling_rate) {
     callback_ID = RC::RStr("TaskClassifierManager_") + sampling_rate;
+    task_classifier_settings.sampling_rate = sampling_rate;
     hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
 
     // TODO: JPB: If I remove this, remove sampling_rate from constructor params
@@ -176,26 +177,28 @@ namespace CML {
     }
   }
 
-  void TaskClassifierManager::ProcessTaskClassifierEvent_Handler(const RC::RStr& event) {
-    if (event == "CLSTIM") {
-      if (!stim_event_waiting) {
-        stim_event_waiting = true;
-        num_eeg_events_before_stim = 10;
-      } else {
-        // TODO: JPB: Allow classifier to start gather EEGData on top of the other one
-        hndl->event_log.Log("Skipping stim event, another stim event is already waiting (collecting EEGData)");
-      }
+  void TaskClassifierManager::ProcessClassifierEvent_Handler(const ClassificationType& cl_type, const uint64_t& duration_ms) {
+    if (!stim_event_waiting) {
+      stim_event_waiting = true;
+      num_eeg_events_before_stim = duration_ms / 1000 * sampling_rate;
+      task_classifier_settings.cl_type = cl_type;
+      task_classifier_settings.duration_ms = duration_ms;
+    } else {
+      // TODO: JPB: Allow classifier to start gather EEGData on top of the other one
+      hndl->event_log.Log("Skipping stim event, another stim event is already waiting (collecting EEGData)");
     }
   }
-  
+
   void TaskClassifierManager::ClassifierDecision_Handler(const double& result) {
     //RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
     bool stim = result > 0.5;
+    bool sham = task_classifier_settings.cl_type == ClassificationType::SHAM;
 
-    hndl->event_log.Log(RC::RStr("Sham: ") + task_classifier_settings.sham);
+    hndl->event_log.Log(RC::RStr("Sham: ") + (sham ? "True" : "False"));
     hndl->event_log.Log(RC::RStr("Stim: ") + stim);
 
-    if (stim && !task_classifier_settings.sham) {
+    if (stim && !sham) {
+      // TODO: JPB: Temporarily remove call to stimulate
       //hndl->stim_worker.Stimulate();
     }
   }

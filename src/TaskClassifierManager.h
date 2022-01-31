@@ -12,17 +12,27 @@ namespace CML {
   using ClassifierCallback = RCqt::TaskCaller<const double>;
   using EEGCallback = RCqt::TaskCaller<RC::APtr<const EEGData>>;
 
-  class TaskClassifierSettings {
-    public:
-    bool sham;
+  enum class ClassificationType{
+    STIM,
+    SHAM,
+    NORMALIZE
   };
 
+  class TaskClassifierSettings {
+    public:
+    ClassificationType cl_type;
+    size_t sampling_rate;
+    size_t duration_ms;
+    size_t binned_sampling_rate;
+  };
+
+  // TODO: JPB: Make this a base class
   class TaskClassifierManager : public RCqt::WorkerThread {
     public:
-    TaskClassifierManager(RC::Ptr<Handler> hndl, int sampling_rate); 
+    TaskClassifierManager(RC::Ptr<Handler> hndl, size_t sampling_rate); 
 
-    RCqt::TaskCaller<const RC::RStr> ProcessTaskClassifierEvent =
-      TaskHandler(TaskClassifierManager::ProcessTaskClassifierEvent_Handler);
+    RCqt::TaskCaller<const ClassificationType, const uint64_t> ProcessClassifierEvent =
+      TaskHandler(TaskClassifierManager::ProcessClassifierEvent_Handler);
 
     ClassifierCallback ClassifierDecision =
       TaskHandler(TaskClassifierManager::ClassifierDecision_Handler);
@@ -45,7 +55,7 @@ namespace CML {
     //void StopClassifier_Handler() override;
     void ClassifyData_Handler(RC::APtr<const EEGData>& data);
 
-    void ProcessTaskClassifierEvent_Handler(const RC::RStr& event);
+    void ProcessClassifierEvent_Handler(const ClassificationType& cl_type, const uint64_t& duration_ms);
     void ClassifierDecision_Handler(const double& result);
     
     void SetCallback_Handler(const EEGCallback& new_callback);
@@ -66,6 +76,7 @@ namespace CML {
     size_t circular_data_start = 0;
 
     TaskClassifierSettings task_classifier_settings;
+    size_t sampling_rate;
 
     bool stim_event_waiting = false;
     size_t num_eeg_events_before_stim = 0;

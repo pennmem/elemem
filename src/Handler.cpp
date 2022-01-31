@@ -44,7 +44,6 @@ namespace CML {
 
   Handler::Handler()
     : stim_worker(this),
-      task_classifier_manager(this, 100), // TODO: JPB: Make hardcoded value dynamic
       net_worker(this),
       exper_ops(this) {
     // For error management, everything that could error must go into
@@ -119,7 +118,10 @@ namespace CML {
 
     NewEEGSave();
 
-    //TODO: JPB: Remove hardcoded morlet_settings
+    // TODO: JPB: Remove hardcoded task_classifier_manager parameters
+    task_classifier_manager = new TaskClassifierManager(this, 100);
+
+    // TODO: JPB: Remove hardcoded morlet_settings
     MorletSettings morlet_settings;
     morlet_settings.channels = RC::Data1D<BipolarPair>{BipolarPair()};
     morlet_settings.frequencies = RC::Data1D<double>{1};
@@ -128,19 +130,11 @@ namespace CML {
     ClassifierEvenOddSettings classifier_settings;
     classifier = new ClassifierEvenOdd(this, classifier_settings);
 
-    task_classifier_manager.SetCallback(feature_generator->Process);
+    task_classifier_manager->SetCallback(feature_generator->Process);
     feature_generator->SetCallback(classifier->Classify);
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-    File::MakeDir(elemem_dir);
-    File::MakeDir(non_session_dir);
-=======
     classifier->RegisterCallback("ClassifierDecision", classification_data.ClassifierDecision);
->>>>>>> Updated ClassificationData to handle the task classifier decision to stim
-=======
     classifier->RegisterCallback("ClassifierDecision", task_classifier_manager.ClassifierDecision);
->>>>>>> Changed ClassificationData to TaskClassifierManager
+    classifier->RegisterCallback("ClassifierDecision", task_classifier_manager->ClassifierDecision);
   }
 
   void Handler::CerebusTest_Handler() {
