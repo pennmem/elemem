@@ -6,6 +6,8 @@
 #else
 #include "HDF5Save.h"
 #endif
+#include "Cerebus.h"
+#include "CerebusSim.h"
 #include "Classifier.h"
 #include "JSONLines.h"
 #include "About.h"
@@ -44,10 +46,8 @@ namespace CML {
       elemem_dir(File::FullPath(GetDesktop(), "ElememData")),
       non_session_dir(File::FullPath(elemem_dir, "NonSessionData")),
       exper_ops(this) {
-
-    NewEEGSave();
-    File::MakeDir(elemem_dir);
-    File::MakeDir(non_session_dir);
+    // For error management, everything that could error must go into
+    // Initialize_Handler()
   }
 
   Handler::~Handler() {
@@ -67,8 +67,42 @@ namespace CML {
     PopupManager::GetManager()->SetLogFile(error_log_file);
   }
 
+  void Handler::LoadSysConfig_Handler() {
+    if (experiment_running) {
+      Throw_RC_Error("Attempted to load system config while experiment "
+          "running!");
+    }
+
+    settings.LoadSystemConfig();
+
+    RC::RStr eeg_system;
+    settings.sys_config->Get(eeg_system, "eeg_system");
+    RC::APtr<EEGSource> eeg_source;
+    if (eeg_system == "Cerebus") {
+      eeg_source = new Cerebus();
+    }
+    else if (eeg_system == "CerebusSim") {
+      eeg_source = new CerebusSim();
+    }
+    else {
+      Throw_RC_Type(File, "Unknown sys_config.json eeg_system value");
+    }
+    eeg_acq.SetSource(eeg_source);
+  }
+
+  void Handler::Initialize_Handler() {
+    NewEEGSave();
+    File::MakeDir(elemem_dir);
+    File::MakeDir(non_session_dir);
+  }
+
   void Handler::CerebusTest_Handler() {
-    eeg_acq.CloseCerebus();
+    if (experiment_running) {
+      ErrorWin("Attempted CerebusTest while experiment running!");
+      return;
+    }
+
+    eeg_acq.CloseSource();
 
     APITests::CereLinkTest();
   }
@@ -80,6 +114,11 @@ namespace CML {
       }
 
       stim_api_test_warning = false;
+    }
+
+    if (experiment_running) {
+      ErrorWin("Attempted CereStimTest while experiment running!");
+      return;
     }
 
     stim_worker.CloseCereStim();
@@ -236,11 +275,7 @@ namespace CML {
   }
 
   void Handler::InitializeChannels_Handler() {
-    Data1D<uint16_t> channels;
-    for (uint16_t c=0; c<256; c++) {
-      channels += c;
-    }
-    eeg_acq.SetChannels(channels, settings.sampling_rate);
+    eeg_acq.InitializeChannels(settings.sampling_rate);
   }
 
   // TODO - SelectStim_Handler goes through settings.stimconf and extracts
@@ -562,7 +597,7 @@ namespace CML {
   }
 
   void Handler::Shutdown_Handler() {
-    eeg_acq.CloseCerebus();
+    eeg_acq.CloseSource();
     CloseExperimentComponents();
   }
 

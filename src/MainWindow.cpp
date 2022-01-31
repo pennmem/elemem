@@ -43,7 +43,7 @@ namespace CML {
   MainWindow::~MainWindow() {
     hndl->eeg_acq.RemoveCallback("EEGDisplay");
   }
-    
+
 
   template<class T>
   void MainWindow::SubMenuEntry(Ptr<QMenu> menu_entry,
@@ -120,7 +120,7 @@ namespace CML {
     button_layout->addWidget(test_stim);
     button_layout->addWidget(new QWidget());
     stimloc_layout->addLayout(button_layout);
-    
+
     stimloc_layout->addWidget(new QWidget());
     stimloc_panel->setLayout(stimloc_layout);
 
@@ -165,11 +165,8 @@ namespace CML {
 
     RC::Ptr<QHBoxLayout> eeg_and_chan = new QHBoxLayout();
 
-    hndl->InitializeChannels();
-
     eeg_disp = new EEGDisplay(800, 800);
     eeg_and_chan->addWidget(eeg_disp);
-    hndl->eeg_acq.RegisterCallback("EEGDisplay", eeg_disp->UpdateData);
 
     channel_selector = new ChannelSelector(this);
     Data1D<EEGChan> demo_chans;
@@ -191,6 +188,15 @@ namespace CML {
     central->setLayout(control_and_display);
 
     setCentralWidget(central);
+  }
+
+
+  void MainWindow::RegisterEEGDisplay_Handler() {
+    // By call in Elemem.cpp sequenced after LoadSysConfig.
+    // It must stay this way.
+    hndl->InitializeChannels();
+
+    hndl->eeg_acq.RegisterCallback("EEGDisplay", eeg_disp->UpdateData);
   }
 
 

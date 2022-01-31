@@ -5,7 +5,7 @@
 #include "RC/RStr.h"
 #include "RCqt/Worker.h"
 #include "EEGData.h"
-#include "Cerebus.h"
+#include "EEGSource.h"
 #include <QTimer>
 
 namespace CML {
@@ -22,11 +22,11 @@ namespace CML {
     EEGAcq(const EEGAcq&) = delete;
     EEGAcq& operator=(const EEGAcq&) = delete;
 
-    RCqt::TaskCaller<uint32_t> SetInstance =
-      TaskHandler(EEGAcq::SetInstance_Handler);
+    RCqt::TaskCaller<RC::APtr<EEGSource>> SetSource =
+      TaskHandler(EEGAcq::SetSource_Handler);
 
-    RCqt::TaskCaller<ChannelList, const size_t> SetChannels =
-      TaskHandler(EEGAcq::SetChannels_Handler);
+    RCqt::TaskCaller<const size_t> InitializeChannels =
+      TaskHandler(EEGAcq::InitializeChannels_Handler);
 
     RCqt::TaskCaller<const RC::RStr, const EEGCallback>
       RegisterCallback =
@@ -35,8 +35,8 @@ namespace CML {
     RCqt::TaskCaller<const RC::RStr> RemoveCallback =
       TaskHandler(EEGAcq::RemoveCallback_Handler);
 
-    RCqt::TaskBlocker<> CloseCerebus =
-      TaskHandler(EEGAcq::CloseCerebus_Handler);
+    RCqt::TaskBlocker<> CloseSource =
+      TaskHandler(EEGAcq::CloseSource_Handler);
 
     protected slots:
 
@@ -44,21 +44,21 @@ namespace CML {
 
     protected:
 
-    void SetInstance_Handler(uint32_t& instance);
-    void SetChannels_Handler(ChannelList& channels,
-        const size_t& new_sampling_rate);
+    void SetSource_Handler(RC::APtr<EEGSource>& new_source);
+    void InitializeChannels_Handler(const size_t& new_sampling_rate);
 
     // All channels have either 0 data or the same amount.
     void RegisterCallback_Handler(const RC::RStr& tag,
                                   const EEGCallback& callback);
     void RemoveCallback_Handler(const RC::RStr& tag);
-    void CloseCerebus_Handler();
+    void CloseSource_Handler();
 
     void StopEverything();
 
     void BeAllocatedTimer();
+    void BePollingIfCallbacks();
 
-    Cerebus cereb;
+    RC::APtr<EEGSource> eeg_source;
     size_t sampling_rate = 1000;
 
     RC::APtr<QTimer> acq_timer;

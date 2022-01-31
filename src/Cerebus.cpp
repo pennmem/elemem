@@ -112,7 +112,7 @@ namespace CML {
     cbSdkResult res = cbSdkOpen(instance, CBSDKCONNECTION_DEFAULT);
 
     if (res != CBSDKRESULT_SUCCESS) {
-      throw CBException(res, "cbSdkOpen", instance);
+      throw CBException(res, "Open of Neuroport failed.", instance);
     }
 
     for (size_t i=0; i<cbNUM_ANALOG_CHANS; i++) {
@@ -144,6 +144,34 @@ namespace CML {
   void Cerebus::SetInstance(uint32_t instance_) {
     Close();
     instance = instance_;
+  }
+
+
+  void Cerebus::InitializeChannels(size_t sampling_rate_Hz) {
+    BeOpen();
+
+    ClearChannels();
+
+    uint32_t samprate_index = 0;
+
+    // These are the only values the NeuroPort can handle.
+    switch (sampling_rate_Hz) {
+      case 500:   samprate_index = 1; break;
+      case 1000:  samprate_index = 2; break;
+      case 2000:  samprate_index = 3; break;
+      case 10000: samprate_index = 4; break;
+      case 30000: samprate_index = 5; break;
+      default: std::runtime_error("Configuration selected invalid sampling "
+                 "rate.  Allowed values are 500, 1000, 2000, 10000, 30000.");
+    }
+
+    first_chan = 0;
+    last_chan = 127;
+    for (uint16_t c=first_chan; c<=last_chan; c++) {
+      ConfigureChannel(c, samprate_index);
+    }
+
+    SetTrialConfig();
   }
 
 

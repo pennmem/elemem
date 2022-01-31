@@ -32,6 +32,8 @@ namespace CML {
 
     Settings();
 
+    void LoadSystemConfig();
+
     void Clear();
     RC::Data1D<EEGChan> LoadElecConfig(RC::RStr dir);
     void LoadStimParamGrid();
@@ -41,6 +43,8 @@ namespace CML {
     void UpdateConfOPS(JSONFile& current_config);
 
     size_t GridSize() const;
+
+    RC::APtr<const JSONFile> sys_config;
 
     RC::APtr<const JSONFile> exp_config;
     RC::APtr<const CSVFile> elec_config;

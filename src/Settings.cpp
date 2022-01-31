@@ -4,12 +4,29 @@
 #include "Popup.h"
 #include "EEGDisplay.h"
 
+#include <QCoreApplication>
+
 //using namespace RC;
 
 
 namespace CML {
   Settings::Settings() {
     Clear();
+  }
+
+  void Settings::LoadSystemConfig() {
+    RC::RStr sys_conf_file =
+      RC::File::FullPath(QCoreApplication::applicationDirPath(),
+        "sys_config.json");
+
+    RC::APtr<JSONFile> load_sys_conf = new JSONFile();
+    RC::FileRead fr;
+    if (!fr.Open(sys_conf_file)) {
+      Throw_RC_Type(File, (sys_conf_file + " could not be opened.").c_str());
+    }
+    load_sys_conf->Load(fr);
+
+    sys_config = load_sys_conf.ExtractConst();
   }
 
   void Settings::Clear() {
