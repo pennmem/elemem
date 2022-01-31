@@ -103,8 +103,6 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/ChannelSelector.cpp
   src/CImage.h
   src/CImage.cpp
-  src/ClassificationData.h
-  src/ClassificationData.cpp
   src/Classifier.h
   src/Classifier.cpp
   src/ClassifierEvenOdd.h
@@ -169,6 +167,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/StimGUIConfig.cpp
   src/StimWorker.h
   src/StimWorker.cpp
+  src/TaskClassifierManager.h
+  src/TaskClassifierManager.cpp
   src/Utils.h
   src/Utils.cpp
 

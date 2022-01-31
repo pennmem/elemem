@@ -17,22 +17,22 @@ namespace CML {
     bool sham;
   };
 
-  class ClassificationData : public RCqt::WorkerThread {
+  class TaskClassifierManager : public RCqt::WorkerThread {
     public:
-    ClassificationData(RC::Ptr<Handler> hndl, int sampling_rate); 
+    TaskClassifierManager(RC::Ptr<Handler> hndl, int sampling_rate); 
 
     RCqt::TaskCaller<const RC::RStr> ProcessTaskClassifierEvent =
-      TaskHandler(ClassificationData::ProcessTaskClassifierEvent_Handler);
+      TaskHandler(TaskClassifierManager::ProcessTaskClassifierEvent_Handler);
 
     ClassifierCallback ClassifierDecision =
-      TaskHandler(ClassificationData::ClassifierDecision_Handler);
+      TaskHandler(TaskClassifierManager::ClassifierDecision_Handler);
 
     RCqt::TaskCaller<const EEGCallback> SetCallback =
-      TaskHandler(ClassificationData::SetCallback_Handler);
+      TaskHandler(TaskClassifierManager::SetCallback_Handler);
 
     protected:
     RCqt::TaskCaller<RC::APtr<const EEGData>> ClassifyData = 
-      TaskHandler(ClassificationData::ClassifyData_Handler);
+      TaskHandler(TaskClassifierManager::ClassifyData_Handler);
 
     // TODO: Decide whether to have json configurable variables for the
     //       classifier data, such as binning sizes
