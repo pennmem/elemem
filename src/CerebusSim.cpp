@@ -9,6 +9,7 @@
 #include "Popup.h"
 #include "RC/RTime.h"
 #include "RC/Errors.h"
+#include <cmath>
 
 namespace CML {
   uint64_t TimeSinceLast_ms() {
@@ -157,13 +158,14 @@ namespace CML {
     BeOpen();
 
     size_t data_len = TimeSinceLast_ms(); // 1000Hz
+    size_t sim_base_samp = 1000;
     switch(StubSampRateStash()) {
-      case 0: data_len = 0; break;
-      case 1: data_len /= 2; break;
+      case 0: data_len = 0;   sim_base_samp = 0;   break;
+      case 1: data_len /= 2;  sim_base_samp /= 2;  break;
       case 2: break;
-      case 3: data_len *= 2; break;
-      case 4: data_len *= 10; break;
-      case 5: data_len *= 30; break;
+      case 3: data_len *= 2;  sim_base_samp *= 2;  break;
+      case 4: data_len *= 10; sim_base_samp *= 10; break;
+      case 5: data_len *= 30; sim_base_samp *= 30; break;
       default: Throw_RC_Error("Unsupported stub sampling rate");
     }
 
@@ -171,9 +173,13 @@ namespace CML {
     for (uint32_t c=0; c<channel_data.size(); c++) {
       channel_data[c].data.resize(data_len);
       for (uint64_t d=0; d<channel_data[c].data.size(); d++) {
-        channel_data[c].data[d] = d;
+        double wt = 2*3.14159265358979*(sim_offset+d) / double(sim_base_samp);
+        wt += c;
+        wt *= c % 5;
+        channel_data[c].data[d] = int16_t(1000*std::cos(wt));
       }
     }
+    sim_offset += data_len;
 
     return channel_data;
   }
