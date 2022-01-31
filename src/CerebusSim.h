@@ -58,6 +58,7 @@ namespace CML {
     uint16_t last_chan=0;
 
     std::vector<TrialData> channel_data;
+    size_t sim_offset = 0;
 
     uint64_t stub_chan_count = 0;
     const size_t num_analog_chans = 256+16;
