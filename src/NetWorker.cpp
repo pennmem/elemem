@@ -162,20 +162,23 @@ namespace CML {
         hndl->stim_worker.Stimulate();
       }
       else if (type == "CLSTIM") {
-        uint64_t classifyms;
+        uint64_t classifyms, id;
         inp.Get(classifyms, "data", "classifyms");
+        inp.Get(id, "data", "id");
         hndl->task_classifier_manager->ProcessClassifierEvent(
             ClassificationType::STIM, classifyms, id);
       }
       else if (type == "CLSHAM") {
-        uint64_t classifyms;
+        uint64_t classifyms, id;
         inp.Get(classifyms, "data", "classifyms");
+        inp.Get(id, "data", "id");
         hndl->task_classifier_manager->ProcessClassifierEvent(
             ClassificationType::SHAM, classifyms, id);
       }
       else if (type == "CLNORMALIZE") {
-        uint64_t duration;
+        uint64_t duration, id;
         inp.Get(duration, "data", "duration");
+        inp.Get(id, "data", "id");
         hndl->task_classifier_manager->ProcessClassifierEvent(
             ClassificationType::NORMALIZE, duration, id);
       }
@@ -224,6 +227,7 @@ namespace CML {
     std::string host_subject;
 
     try {
+      RC_DEBOUT(inp);
       auto conf = hndl->GetConfig();
       inp.Get(task_stim_mode, "data", "stim_mode");
       inp.Get(task_experiment, "data", "experiment");

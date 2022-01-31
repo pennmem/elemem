@@ -161,7 +161,7 @@ namespace CML {
   }
 
   void FeatureFilters::Process_Handler(RC::APtr<const EEGData>& data, const TaskClassifierSettings& task_classifier_settings) {
-    //RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
+    RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
     if (!callback.IsSet())
       return;
 
