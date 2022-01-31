@@ -121,19 +121,18 @@ namespace CML {
     // TODO: JPB: Remove hardcoded task_classifier_manager parameters
     task_classifier_manager = new TaskClassifierManager(this, 100);
 
-    // TODO: JPB: Remove hardcoded morlet_settings
-    MorletSettings morlet_settings;
-    morlet_settings.channels = RC::Data1D<BipolarPair>{BipolarPair()};
-    morlet_settings.frequencies = RC::Data1D<double>{1};
-    feature_generator = new MorletTransformer(morlet_settings);
+    // TODO: JPB: Remove hardcoded butterworth_settings and morlet_settings
+    ButterworthSettings but_set;
+    MorletSettings mor_set;
+    mor_set.channels = RC::Data1D<BipolarPair>{BipolarPair()};
+    mor_set.frequencies = RC::Data1D<double>{1};
+    feature_filters = new FeatureFilters(mor_set, but_set);
 
     ClassifierEvenOddSettings classifier_settings;
     classifier = new ClassifierEvenOdd(this, classifier_settings);
 
-    task_classifier_manager->SetCallback(feature_generator->Process);
-    feature_generator->SetCallback(classifier->Classify);
-    classifier->RegisterCallback("ClassifierDecision", classification_data.ClassifierDecision);
-    classifier->RegisterCallback("ClassifierDecision", task_classifier_manager.ClassifierDecision);
+    task_classifier_manager->SetCallback(feature_filters->Process);
+    feature_filters->SetCallback(classifier->Classify);
     classifier->RegisterCallback("ClassifierDecision", task_classifier_manager->ClassifierDecision);
   }
 

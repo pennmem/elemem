@@ -7,7 +7,7 @@
 #include "EEGAcq.h"
 #include "EEGFileSave.h"
 #include "TaskClassifierManager.h"
-#include "MorletTransformer.h"
+#include "FeatureFilters.h"
 #include "ClassifierEvenOdd.h"
 #include "EventLog.h"
 #include "ExperOPS.h"
@@ -104,7 +104,7 @@ namespace CML {
     EEGAcq eeg_acq;
     RC::APtr<EEGFileSave> eeg_save;
     RC::APtr<TaskClassifierManager> task_classifier_manager;
-    RC::APtr<FeatureGenerator> feature_generator;
+    RC::APtr<FeatureFilters> feature_filters;
     RC::APtr<Classifier> classifier;
     NetWorker net_worker;
     EventLog event_log;
