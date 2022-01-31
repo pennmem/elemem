@@ -30,6 +30,7 @@ namespace CML {
     auto& datar = data->data;
 
     if (stim_event_waiting) {
+      RC_DEBOUT(RC::RStr("TaskClassifierManager_Handler stim_event_waiting\n"));
       if (num_eeg_events_before_stim <= datar.size()) {
         circular_data.Append(data, 0, num_eeg_events_before_stim);
         StartClassification();
@@ -62,7 +63,7 @@ namespace CML {
 
   void TaskClassifierManager::ClassifierDecision_Handler(const double& result,
     const TaskClassifierSettings& task_classifier_settings) {
-    //RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
+    RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
     bool stim = result < 0.5;
     bool stim_type =
       (task_classifier_settings.cl_type == ClassificationType::STIM);
