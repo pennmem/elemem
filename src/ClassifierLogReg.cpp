@@ -25,24 +25,26 @@ namespace CML {
     auto& coef = weights->coef;
     auto& datar = data->data;
 
-    if ( (datar.size1() != coef.size1()) ||
-         (datar.size2() != coef.size2()) ||
-         (datar.size3() != 1) ) {
-      Throw_RC_Error("Classification data and coefficient dimensions do not "
-          "match.");
+    size_t freqlen = datar.size3();
+    size_t chanlen = datar.size2();
+    size_t eventlen = datar.size1();
+
+    if ( (eventlen != 1) ||
+         (chanlen != coef.size1()) ||
+         (freqlen != coef.size2()) ) {
+      Throw_RC_Error((RC::RStr("Classification data len (") + freqlen + ", " + chanlen + ", " + eventlen + ") " + 
+                               "and coefficient dimensions (" + coef.size2() + ", " + coef.size1() + ", " + 1 + ") do not match.").c_str());
     }
 
     double logodds = intercept;
-    for (size_t f=0; f<coef.size1(); f++) {
-      auto& dataf = datar[f];
-      auto& coeff = coef[f];
-      for (size_t c=0; c<coef.size2(); c++) {
-        logodds += dataf[c][0]*coeff[c];
+    RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
+      RC_ForRange(j, 0, chanlen) { // Iterate over channels
+        logodds += datar[i][j][0] * coef[i][j];
       }
     }
 
-
     double prob = 1 / (1 + std::exp(-logodds));
+    //RC_DEBOUT(prob)
 
     return prob;
   }
