@@ -30,14 +30,14 @@ namespace CML {
     auto& datar = data->data;
 
     if (stim_event_waiting) {
-      RC_DEBOUT(RC::RStr("TaskClassifierManager_Handler stim_event_waiting\n"));
-      if (num_eeg_events_before_stim <= datar.size()) {
+      RC_DEBOUT(RC::RStr("TaskClassifierManager_Handler stim_event_waiting ") + num_eeg_events_before_stim);
+      if (num_eeg_events_before_stim <= datar[0].size()) { // TODO: JPB: (Need) How to handle if first channel is empty
         circular_data.Append(data, 0, num_eeg_events_before_stim);
         StartClassification();
         circular_data.Append(data, num_eeg_events_before_stim);
       } else { // num_eeg_events_before_stim > datar.size()
         circular_data.Append(data);
-        num_eeg_events_before_stim -= datar.size();
+        num_eeg_events_before_stim -= datar[0].size(); // TODO: JPB: (Need) How to handle if first channel is empty
       }
     } else {
       // TODO: JPB: (feature) This can likely be removed to reduce overhead
@@ -82,6 +82,7 @@ namespace CML {
 
     auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
     hndl->event_log.Log(resp.Line());
+    RC_DEBOUT(resp);
 
     if (stim_type && stim) {
       // TODO: JPB: (need) Temporarily remove call to stimulate

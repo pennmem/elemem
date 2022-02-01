@@ -700,7 +700,7 @@ namespace CML {
     settings.exp_config->Get(binning_freq, "experiment", "classifier",
         "binning_frequency_Hz");
     task_classifier_manager = new TaskClassifierManager(this,
-        settings.sampling_rate, 10, binning_freq); // TODO: JPB: (need) Load num_events from configs
+        settings.sampling_rate, 800, binning_freq); // TODO: JPB: (need) Load num_events from configs - mirrored_num
 
     ButterworthSettings but_set;
     but_set.channels = settings.weight_manager->weights->chans;
@@ -708,7 +708,7 @@ namespace CML {
     settings.sys_config->Get(but_set.cpus, "closed_loop_thread_level");
 
     MorletSettings mor_set;
-    mor_set.num_events = 10; // TODO: JPB: (need) Load num_events from configs
+    mor_set.num_events = 1000; // TODO: JPB: (need) Load num_events from configs
     mor_set.channels = settings.weight_manager->weights->chans;
     mor_set.frequencies = settings.weight_manager->weights->freqs;
     mor_set.sampling_rate = binning_freq;
@@ -716,10 +716,10 @@ namespace CML {
         "morlet_cycles");
     settings.sys_config->Get(mor_set.cpus, "closed_loop_thread_level");
 
-	NormalizePowersSettings np_set;
-	np_set.num_events = 10; // TODO: JPB: (need) Load num_events from configs
-	np_set.num_chans = settings.weight_manager->weights->chans.size();
-	np_set.num_freqs = settings.weight_manager->weights->freqs.size();
+	  NormalizePowersSettings np_set;
+	  np_set.num_events = 1000; // TODO: JPB: (need) Load num_events from configs
+	  np_set.num_chans = settings.weight_manager->weights->chans.size();
+	  np_set.num_freqs = settings.weight_manager->weights->freqs.size();
     feature_filters = new FeatureFilters(mor_set.channels, but_set, mor_set, np_set);
 
     ClassifierLogRegSettings classifier_settings;
