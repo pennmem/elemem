@@ -66,7 +66,7 @@ namespace CML {
         const bool& stim_event,
         const TaskClassifierSettings& task_classifier_settings,
         const CSStimChannel& stim_params) {
-    RC_DEBOUT(RC::RStr("TaskClassifierManager::ClassifierDecision_Handler\n\n"));
+    // RC_DEBOUT(RC::RStr("TaskClassifierManager::ClassifierDecision_Handler\n\n"));
     bool stim = result < 0.5;
     bool stim_type =
       (task_classifier_settings.cl_type == ClassificationType::STIM);
