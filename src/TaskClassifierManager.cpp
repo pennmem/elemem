@@ -61,9 +61,12 @@ namespace CML {
     }
   }
 
+  // TODO how/where is ExperCPS::ClassifierDecision_Handler() called?
   void TaskClassifierManager::ClassifierDecision_Handler(const double& result,
-    const TaskClassifierSettings& task_classifier_settings) {
-    RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
+        const bool& stim_event,
+        const TaskClassifierSettings& task_classifier_settings,
+        const CSStimChannel& stim_params) {
+    RC_DEBOUT(RC::RStr("TaskClassifierManager::ClassifierDecision_Handler\n\n"));
     bool stim = result < 0.5;
     bool stim_type =
       (task_classifier_settings.cl_type == ClassificationType::STIM);
@@ -74,8 +77,10 @@ namespace CML {
 
     const RC::RStr type = [&] {
         switch (task_classifier_settings.cl_type) {
-          case ClassificationType::STIM: return "STIM_DECISON";
-          case ClassificationType::SHAM: return "SHAM_DECISON";
+          case ClassificationType::STIM: return "STIM_DECISION";
+          case ClassificationType::SHAM: return "SHAM_DECISION";
+          case ClassificationType::NOSTIM: return "NOSTIM_DECISION";
+          case ClassificationType::NORMALIZE: return "NORMALIZE_NOSTIM_DECISION";
           default: Throw_RC_Error("Invalid classification type received.");
         }
     }();
