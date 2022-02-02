@@ -61,11 +61,11 @@ namespace CML {
     }
   }
 
-  // TODO how/where is ExperCPS::ClassifierDecision_Handler() called?
+  // TODO: RDD: note to self, this is currently the stim manager function 
+  //            that will be moved out to a StimulationManager class. It does not itself publish, so this info
+  //            is not currently accessible from this class, which publishes the info in the callback function signature here
   void TaskClassifierManager::ClassifierDecision_Handler(const double& result,
-        const bool& stim_event,
-        const TaskClassifierSettings& task_classifier_settings,
-        const CSStimChannel& stim_params) {
+        const TaskClassifierSettings& task_classifier_settings) {
     // RC_DEBOUT(RC::RStr("TaskClassifierManager::ClassifierDecision_Handler\n\n"));
     bool stim = result < 0.5;
     bool stim_type =

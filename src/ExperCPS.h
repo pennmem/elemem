@@ -9,7 +9,7 @@
 #include "ConfigFile.h"
 #include "CereStim.h"
 #include "ExpEvent.h"
-#include "OPSSpecs.h"
+#include "CPSSpecs.h"
 #include "TaskClassifierSettings.h"
 #include <QTimer>
 #include <QThread>
@@ -19,6 +19,8 @@ namespace CML {
   class Handler;
   class StatusPanel;
 
+  using ClassifierCallback = RCqt::TaskCaller<const double, const TaskClassifierSettings>;
+  using StimulationCallback = RCqt::TaskCaller<const bool, const uint64_t>;
 
   class ExperCPS : public RCqt::WorkerThread, public QObject {
     public:
@@ -48,6 +50,9 @@ namespace CML {
     ClassifierCallback ClassifierDecision =
       TaskHandler(ExperCPS::ClassifierDecision_Handler);
 
+    StimulationCallback StimulationDecision =
+      TaskHandler(ExperCPS::StimulationDecision_Handler);
+
     protected:
     void SetCPSSpecs_Handler(const CPSSpecs& new_cps_specs) {
       cps_specs = new_cps_specs;
@@ -72,7 +77,7 @@ namespace CML {
     void InternalStop();
 
     void ClassifierDecision_Handler(const double& result, const TaskClassifierSettings& task_classifier_settings);
-
+    void ExperCPS::StimulationDecision_Handler(const bool& stim_event, const uint64_t& stim_time);
     protected slots:
     void RunEvent();
     protected:

@@ -108,14 +108,20 @@ namespace CML {
   }
 
 
-  // TODO: RDD/JPB: classifier handler is calling stim events. Are there any needs for these events/status panel messages to be managed in ExperCPS.cpp?
+  // TODO: RDD/JPB: classifier handler is calling stim events. 
+  //                Are there any needs for these events/status 
+  //                panel messages to be managed in ExperCPS.cpp? 
+  //                Yes, add, should remain constant during stim vs. sham blocks of events
   void ExperCPS::DoConfigEvent(RC::Caller<>event) {
     status_panel->SetEvent("PRESET");
     event();
   }
 
 
-  // TODO: RDD/JPB: classifier handler is calling stim events. Are there any needs for these events/status panel messages to be managed in ExperCPS.cpp?
+  // TODO: RDD/JPB: classifier handler is calling stim events.
+  //                Are there any needs for these events/status 
+  //                panel messages to be managed in ExperCPS.cpp? 
+  //                Yes, add, should remain constant during stim vs. sham blocks of events
   void ExperCPS::DoStimEvent(RC::Caller<> event) {
     status_panel->SetEvent("STIM");
     event();
@@ -123,6 +129,9 @@ namespace CML {
 
 
   // TODO: RDD/JPB: classifier handler is calling stim events. Are there any needs for these events/status panel messages to be managed in ExperCPS.cpp?
+  //                Are there any needs for these events/status 
+  //                panel messages to be managed in ExperCPS.cpp? 
+  //                Yes, add, should remain constant during stim vs. sham blocks of events
   void ExperCPS::DoShamEvent() {
     JSONFile sham_event = MakeResp("SHAM");
     sham_event.Set(cps_specs.sham_duration_ms, "data", "duration");
@@ -189,8 +198,13 @@ namespace CML {
     }
 
     // delay in 50 ms increments to ensure thread sensitivity to shutdowns
-    // TODO test delay accuracy
-    // TODO implement me (min)
+    // TODO: RDD: test delay accuracy - ask Ryan, 
+    //            generally use system time to compare at beginning and end of event in question, 
+    //            running on separate counter running on processor crystal clock
+    //            need to confirm on every machine, task laptop, etc.
+    //            James thinks this is overkill for precision of 10-15 ms
+    //            https://stackoverflow.com/questions/12937963/get-local-time-in-nanoseconds
+    // TODO: RDD: implement me (min)
     uint64_t delay_next = min(delay, 50);
     while (delay > 0) {
       delay_next = min(delay, 50);
@@ -199,14 +213,20 @@ namespace CML {
     }
   }
 
-  // TODO: RDD/JPB: update callback signature
-  void ExperCPS::ClassifierDecision_Handler(const double& result,
-        const bool& stim_event,
-        const TaskClassifierSettings& task_classifier_settings,
-        const CSStimChannel& stim_params) {
 
+  void ExperCPS::ClassifierDecision_Handler(const double& result,
+        const TaskClassifierSettings& task_classifier_settings) {
+    // record classifier outcomes
+    classif_results += result;
+    exper_classif_settings += task_classifier_settings;
+  }
+
+
+  void ExperCPS::StimulationDecision_Handler(const bool& stim_event, const uint64_t& stim_time) {
     f64 cur_time_sec = RC::Time::Get();
-    uint64_t cur_time_ms = uint64_t(1000*(cur_time_sec - exp_start)+0.5);
+    // uint64_t cur_time_ms = uint64_t(1000*(cur_time_sec - exp_start)+0.5);
+    uint64_t cur_time_ms = stim_time;
+
     // TODO: RDD: ensure that last events in all saved event arrays can be disambiguated 
     // (i.e., if any array is longer than another because the experiment stopped in some particular place, 
     // ensure the odd element out can be identified)
@@ -214,6 +234,16 @@ namespace CML {
     //                might be simplest to let this function control the stim?
     //                do/can we receive a callback when a stim event ends?
     abs_event_times += current_time_ms;
+    // TODO: RDD: setting off classification events in this function starts the data collection
+    //            process (currently), meaning that the classification EEG collection interval is 
+    //            bounded by the time at which ExperCPS calls for classification and that time
+    //            plus the classif_ms classification EEG collection duration
+    //            need to update the event timing to record those times
+
+    // TODO: RDD: times to record: EEG collection onset/offset for each classification event,
+    //                             stim onset/offset for each stim/sham event
+    //                             also, return callback return times both for this handler, 
+    //                             ClassifierDecision_Handler, and for the StimManager handler
 
     classif_state = task_classifier_settings.cl_type;
     // RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler\n\n"));
@@ -225,10 +255,8 @@ namespace CML {
     // TODO: RDD: need to set classifyms and id for all calls to classifier class
     // TODO define minimum numbers of events for each stim location/sham for experiment
 
-    // store all results
-    classif_results += result;
+    // store stim event results
     stim_event_flags += stim_event;
-    exper_classif_settings += task_classifier_settings;
 
     ClassificationType next_classif_state;
     // TODO logging
@@ -239,8 +267,8 @@ namespace CML {
       if (stim_event) { // stim event occurred or would have occurred if the event were not a sham
         // TODO handle cases where say stim duration not equal between given and used params...
         //      use assert as a placeholder for initial testing
-        // TODO RDD/RC: when will CereStim change received stim parameters internally and will we receive that
-        //              info back in some way?
+        // TODO: RDD/RC: when will CereStim change received stim parameters internally and will we receive that
+        //               info back in some way?
         // assert(stim_params == stim_profiles[cur_ev]);
         if (stim_params != stim_profiles[cur_ev]) {
           // TODO: RDD: add warning message here
@@ -258,6 +286,7 @@ namespace CML {
       else { // good memory state detected and stim event would not have occurred
         // TODO: RDD/JPB: add some timing control? or maximize classification rate? in any case should record event times
         //                to analyze event time frequencies, may want to add some jitter if fairly low variance
+        // TODO: RDD/RC: need to make separate handler for grabbing time interval of classification features from FeatureFilters class
         // keep classifying until a poor memory state is detected
         next_min_event_time = cur_time_ms;
         next_classif_state = classif_state;
@@ -265,7 +294,7 @@ namespace CML {
       }
     }
     else if (classif_state == ClassificationType::NOSTIM) { // received post-stim/post-sham classification event
-      // TODO get stim_offset_ms from classifier or from CereStim handler class, don't compute here if possible
+      // TODO: RDD/JPB: get stim_offset_ms from classifier or from CereStim handler class, don't compute here if possible
       // though errors wouldn't accumulate too much
       uint64_t stim_offset_ms = abs_event_times[abs_event_times.size() - 1] + stim_params.duration;
       next_min_event_time = stim_offset_ms + stim_lockout_ms;

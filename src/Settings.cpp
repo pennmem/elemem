@@ -352,6 +352,8 @@ namespace CML {
   }
 
 
+  // TODO: RDD: note to self, OPS configuration, 
+  //            sel_chan_json for selecting channels? loading available channels with ranges?
   void Settings::UpdateConfOPS(JSONFile& current_config) {
     RC::Data1D<RC::RStr> sel_chans;
     for (size_t i=0; i<stimconf.size(); i++) {

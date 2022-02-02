@@ -394,6 +394,7 @@ namespace CML {
     File::MakeDir(session_dir);
 
     // Save updated experiment configuration.
+    // TODO: RDD: add CPS config update (session/subject specific, loaded at runtime)
     JSONFile current_config = *(settings.exp_config);
     if (settings.exper.find("OPS") == 0) {
       settings.UpdateConfOPS(current_config);
