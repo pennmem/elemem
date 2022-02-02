@@ -162,6 +162,7 @@ namespace CML {
     RC::RStr session_dir;
 
     ExperOPS exper_ops;
+    ExperCPS exper_cps;
     StimMode stim_mode = StimMode::NONE;
 
     RC::APtr<QTimer> exit_timer;

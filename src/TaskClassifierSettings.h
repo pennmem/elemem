@@ -9,7 +9,8 @@ namespace CML {
   enum class ClassificationType {
     STIM,
     SHAM,
-    NORMALIZE
+    NORMALIZE,
+    NOSTIM  // for non-stim/non-sham (e.g. post-stim) classification events
   };
 
   //RC::RStr ClassificationTypeToRStr(const ClassificationType& cl_type) {

@@ -555,6 +555,11 @@ namespace CML {
             File::FullPath(base_dir, classif_json), settings.elec_config);
 
         SetupClassifier();
+        if (settings.exper.find("CPS") == 0) {
+          settings.grid_exper = false;
+          settings.task_driven = false;
+          classifier->RegisterCallback("CPSClassifierDecision", exper_cps->ClassifierDecision);
+        }
       }
     }
     catch (ErrorMsg&) {
