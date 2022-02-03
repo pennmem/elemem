@@ -83,7 +83,7 @@ namespace CML {
       if (num_mirrored_samples >= in_eventlen) {
         Throw_RC_Error(("Number of events to mirror "
               "(" + RC::RStr(num_mirrored_samples) + ") " +
-              "is greater than number of samples in channel " + RC::RStr(i) +
+              "is greater than number of samples in channel " + RC::RStr(i) + " " +
               "(" + RC::RStr(in_eventlen) + ")").c_str());
       }
 
@@ -161,26 +161,26 @@ namespace CML {
   }
 
   void FeatureFilters::Process_Handler(RC::APtr<const EEGData>& data, const TaskClassifierSettings& task_classifier_settings) {
-    //RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
-    if (!callback.IsSet())
-      return;
+    RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
+	if (!callback.IsSet()) Throw_RC_Error("FeatureFilters callback not set");
 
     auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
-    auto mirrored_data = MirrorEnds(bipolar_ref_data, 1000).ExtractConst();
+    auto mirrored_data = MirrorEnds(bipolar_ref_data, 100).ExtractConst();
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
     auto log_data = Log10Transform(morlet_data, log_min_power_clamp).ExtractConst();
-    auto avg_data = AvgOverTime(log_data).ExtractConst();
 
     // Normalize Powers
     switch (task_classifier_settings.cl_type) {
       case ClassificationType::NORMALIZE:
-        normalize_powers.Update(avg_data);
+        normalize_powers.Update(log_data);
+        //normalize_powers.PrintStats();
         break;
       case ClassificationType::STIM:
       case ClassificationType::SHAM:
       {
-        auto norm_data = normalize_powers.ZScore(avg_data).ExtractConst();
-        callback(norm_data, task_classifier_settings);
+        auto norm_data = normalize_powers.ZScore(log_data).ExtractConst();
+        auto avg_data = AvgOverTime(norm_data).ExtractConst();
+        callback(avg_data, task_classifier_settings);
         break;
       }
       default: Throw_RC_Error("Invalid classification type received.");

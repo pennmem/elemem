@@ -134,17 +134,18 @@ namespace CML {
 
   // Note:  Closes the FileWrite before saving to the filename.
   bool CImage::SavePDF_Handler(FileWrite& fwr) {
-    RStr filename = fwr.GetFilename();
-    fwr.Close();
-    
-    QPrinter printer;
-    printer.setOutputFormat(QPrinter::PdfFormat);
-    printer.setOutputFileName(filename.ToQString());
-    printer.setPaperSize(QSizeF(width, height), QPrinter::Point);
-    printer.setResolution(72);
-    printer.setFullPage(true);
+    // TODO: JPB: (feature) Add this back in
+    //RStr filename = fwr.GetFilename();
+    //fwr.Close();
+    //
+    //QPrinter printer;
+    //printer.setOutputFormat(QPrinter::PdfFormat);
+    //printer.setOutputFileName(filename.ToQString());
+    //printer.setPaperSize(QSizeF(width, height), QPrinter::Point);
+    //printer.setResolution(72);
+    //printer.setFullPage(true);
 
-    DrawGeneral(&printer);
+    //DrawGeneral(&printer);
 
     return true;
   }

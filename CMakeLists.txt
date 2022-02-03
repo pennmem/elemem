@@ -11,7 +11,7 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 set(IS_RELEASE true)
 option(CEREBUS_HW "Use the Cerebus/Neuroport interface" ON) # cmake -DCEREBUS_HW=OFF ..
 option(CERESTIM_STUB # cmake -DCERESTIM_STUB=ON ..
-  "Use the CereStim simulator (default ON for non-Windows)" OFF)
+	"Use the CereStim simulator (default ON for non-Windows)" OFF)
 option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake -DHDF5_EXPORT=ON ..
 
 if (IS_RELEASE)
@@ -183,6 +183,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/TaskClassifierManager.h
   src/TaskClassifierManager.cpp
   src/TaskClassifierSettings.h
+  src/TaskStimManager.h
+  src/TaskStimManager.cpp
   src/Utils.h
   src/Utils.cpp
   src/WeightManager.h

@@ -24,7 +24,7 @@ namespace CML {
    */
   void RollingStats::Update(const RC::Data1D<double>& new_values) {
     if (new_values.size() != means.size())
-      Throw_RC_Type(Bounds, "Data1D size mismatch between new_values and means");
+      Throw_RC_Type(Bounds, (RC::RStr("Data1D size mismatch between new_values (") + new_values.size() + ") and means (" + means.size() + ")").c_str());
     count += 1;
     RC_ForIndex(i, new_values) {
       double delta = new_values[i] - means[i];
@@ -39,7 +39,7 @@ namespace CML {
    */
   RC::Data1D<double> RollingStats::ZScore(const RC::Data1D<double>& data) {
     if (data.size() != means.size())
-      Throw_RC_Type(Bounds, "Data1D size mismatch between data and means");
+      Throw_RC_Type(Bounds, (RC::RStr("Data1D size mismatch between data (") + data.size() + ") and means (" + means.size() + ")").c_str());
     RC::Data1D<double> zscored_data(data.size());
     StatsData stats = GetStats();
     RC_ForIndex(i, data) {

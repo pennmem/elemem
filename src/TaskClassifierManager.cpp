@@ -16,6 +16,8 @@ namespace CML {
   }
 
   void TaskClassifierManager::StartClassification() {
+	if (!callback.IsSet()) Throw_RC_Error("Start classification callback not set");
+
     stim_event_waiting = false;
     num_eeg_events_before_stim = 0;
 
@@ -30,13 +32,14 @@ namespace CML {
     auto& datar = data->data;
 
     if (stim_event_waiting) {
-      if (num_eeg_events_before_stim <= datar.size()) {
+      RC_DEBOUT(num_eeg_events_before_stim);
+      if (num_eeg_events_before_stim <= datar[0].size()) { // TODO: JPB: (Need) How to handle if first channel is empty
         circular_data.Append(data, 0, num_eeg_events_before_stim);
         StartClassification();
         circular_data.Append(data, num_eeg_events_before_stim);
       } else { // num_eeg_events_before_stim > datar.size()
         circular_data.Append(data);
-        num_eeg_events_before_stim -= datar.size();
+        num_eeg_events_before_stim -= datar[0].size(); // TODO: JPB: (Need) How to handle if first channel is empty
       }
     } else {
       // TODO: JPB: (feature) This can likely be removed to reduce overhead
@@ -60,33 +63,34 @@ namespace CML {
     }
   }
 
-  void TaskClassifierManager::ClassifierDecision_Handler(const double& result,
-    const TaskClassifierSettings& task_classifier_settings) {
-    //RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
-    bool stim = result < 0.5;
-    bool stim_type =
-      (task_classifier_settings.cl_type == ClassificationType::STIM);
+  //void TaskClassifierManager::ClassifierDecision_Handler(const double& result,
+  //  const TaskClassifierSettings& task_classifier_settings) {
+  //  RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
+  //  bool stim = result < 0.5;
+  //  bool stim_type =
+  //    (task_classifier_settings.cl_type == ClassificationType::STIM);
 
-    JSONFile data;
-    data.Set(result, "result");
-    data.Set(stim, "decision");
+  //  JSONFile data;
+  //  data.Set(result, "result");
+  //  data.Set(stim, "decision");
 
-    const RC::RStr type = [&] {
-        switch (task_classifier_settings.cl_type) {
-          case ClassificationType::STIM: return "STIM_DECISON";
-          case ClassificationType::SHAM: return "SHAM_DECISON";
-          default: Throw_RC_Error("Invalid classification type received.");
-        }
-    }();
+  //  const RC::RStr type = [&] {
+  //      switch (task_classifier_settings.cl_type) {
+  //        case ClassificationType::STIM: return "STIM_DECISON";
+  //        case ClassificationType::SHAM: return "SHAM_DECISON";
+  //        default: Throw_RC_Error("Invalid classification type received.");
+  //      }
+  //  }();
 
-    auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
-    hndl->event_log.Log(resp.Line());
+  //  auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
+  //  hndl->event_log.Log(resp.Line());
+  //  RC_DEBOUT(resp);
 
-    if (stim_type && stim) {
-      // TODO: JPB: (need) Temporarily remove call to stimulate
-      //hndl->stim_worker.Stimulate();
-    }
-  }
+  //  if (stim_type && stim) {
+  //    // TODO: JPB: (need) Temporarily remove call to stimulate
+  //    //hndl->stim_worker.Stimulate();
+  //  }
+  //}
 
   void TaskClassifierManager::SetCallback_Handler(const TaskClassifierCallback& new_callback) {
     callback = new_callback;

@@ -1,5 +1,5 @@
-#ifndef CLASSIFICATIONDATA_H
-#define CLASSIFICATIONDATA_H
+#ifndef TASKCLASSIFIERMANAGER_H
+#define TASKCLASSIFIERMANAGER_H
 
 #include "EEGData.h"
 #include "EEGCircularData.h"
@@ -11,6 +11,7 @@
 namespace CML {
   class Handler;
 
+  using ClassifierEvent = RCqt::TaskCaller<const ClassificationType, const uint64_t, const uint64_t>;
   using ClassifierCallback = RCqt::TaskCaller<const double, const TaskClassifierSettings>;
   using TaskClassifierCallback = RCqt::TaskCaller<RC::APtr<const EEGData>, const TaskClassifierSettings>;
 
@@ -20,12 +21,11 @@ namespace CML {
     TaskClassifierManager(RC::Ptr<Handler> hndl, size_t sampling_rate,
       size_t circular_buffer_len, size_t bin_frequency);
 
-    RCqt::TaskCaller<const ClassificationType, const uint64_t, const uint64_t>
-      ProcessClassifierEvent =
+    ClassifierEvent ProcessClassifierEvent =
       TaskHandler(TaskClassifierManager::ProcessClassifierEvent_Handler);
 
-    ClassifierCallback ClassifierDecision =
-      TaskHandler(TaskClassifierManager::ClassifierDecision_Handler);
+    //ClassifierCallback ClassifierDecision =
+    //  TaskHandler(TaskClassifierManager::ClassifierDecision_Handler);
 
     RCqt::TaskCaller<const TaskClassifierCallback> SetCallback =
       TaskHandler(TaskClassifierManager::SetCallback_Handler);
@@ -38,7 +38,8 @@ namespace CML {
 
     void ProcessClassifierEvent_Handler(const ClassificationType& cl_type,
         const uint64_t& duration_ms, const uint64_t& classif_id);
-    void ClassifierDecision_Handler(const double& result, const TaskClassifierSettings& task_classifier_settings);
+
+    //void ClassifierDecision_Handler(const double& result, const TaskClassifierSettings& task_classifier_settings);
 
     void SetCallback_Handler(const TaskClassifierCallback& new_callback);
 
@@ -59,4 +60,4 @@ namespace CML {
   };
 }
 
-#endif // CLASSIFICATIONDATA_H
+#endif // TASKCLASSIFIERMANAGER_H

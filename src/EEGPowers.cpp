@@ -6,7 +6,7 @@ namespace CML {
     auto& datar = powers.data;
     size_t freqlen = datar.size3();
     size_t chanlen = datar.size2();
-    //size_t eventlen = in_datar.size1();
+    //size_t eventlen = datar.size1();
 
     RC::RStr deb_msg = RC::RStr("sampling_rate: ") + powers.sampling_rate + "\n";
     deb_msg += "data:\n\n";
