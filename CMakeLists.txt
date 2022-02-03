@@ -183,6 +183,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/TaskClassifierManager.h
   src/TaskClassifierManager.cpp
   src/TaskClassifierSettings.h
+  src/TaskStimManager.h
+  src/TaskStimManager.cpp
   src/Utils.h
   src/Utils.cpp
   src/WeightManager.h

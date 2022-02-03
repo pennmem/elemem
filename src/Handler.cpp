@@ -716,19 +716,21 @@ namespace CML {
         "morlet_cycles");
     settings.sys_config->Get(mor_set.cpus, "closed_loop_thread_level");
 
-	  NormalizePowersSettings np_set;
-	  np_set.num_events = 1000; // TODO: JPB: (need) Load num_events from configs
-	  np_set.num_chans = settings.weight_manager->weights->chans.size();
-	  np_set.num_freqs = settings.weight_manager->weights->freqs.size();
+    NormalizePowersSettings np_set;
+    np_set.num_events = 1000; // TODO: JPB: (need) Load num_events from configs
+    np_set.num_chans = settings.weight_manager->weights->chans.size();
+    np_set.num_freqs = settings.weight_manager->weights->freqs.size();
     feature_filters = new FeatureFilters(mor_set.channels, but_set, mor_set, np_set);
 
     ClassifierLogRegSettings classifier_settings;
     classifier = new ClassifierLogReg(this, classifier_settings,
         settings.weight_manager->weights);
 
+    task_stim_manager = new TaskStimManager(this);
+
     task_classifier_manager->SetCallback(feature_filters->Process);
     feature_filters->SetCallback(classifier->Classify);
-    classifier->RegisterCallback("ClassifierDecision", task_classifier_manager->ClassifierDecision);
+    classifier->RegisterCallback("ClassifierDecision", task_stim_manager->StimDecision);
 
     //RC_DEBOUT(RC::RStr("TESTING\n"));
     //task_classifier_manager->ProcessClassifierEvent(ClassificationType::STIM, 1000, 0);

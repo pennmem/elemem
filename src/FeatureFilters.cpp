@@ -162,8 +162,7 @@ namespace CML {
 
   void FeatureFilters::Process_Handler(RC::APtr<const EEGData>& data, const TaskClassifierSettings& task_classifier_settings) {
     RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
-    if (!callback.IsSet())
-      return;
+	if (!callback.IsSet()) Throw_RC_Error("FeatureFilters callback not set");
 
     auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
     auto mirrored_data = MirrorEnds(bipolar_ref_data, 100).ExtractConst();
