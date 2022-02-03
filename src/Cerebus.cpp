@@ -8,7 +8,6 @@
 
 #include "Cerebus.h"
 
-
 namespace CML {
   CBException::~CBException() { }
 
@@ -94,8 +93,8 @@ namespace CML {
   }
 
 
-  Cerebus::Cerebus(uint32_t instance_)
-      : instance(instance_) {
+  Cerebus::Cerebus(uint32_t chan_count, uint32_t instance_)
+      : instance(instance_), chan_count(chan_count) {
   }
 
 
@@ -166,7 +165,7 @@ namespace CML {
     }
 
     first_chan = 0;
-    last_chan = 127;
+    last_chan = chan_count-1;
     for (uint16_t c=first_chan; c<=last_chan; c++) {
       ConfigureChannel(c, samprate_index);
     }
