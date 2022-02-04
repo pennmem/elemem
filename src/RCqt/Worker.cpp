@@ -151,7 +151,7 @@ namespace RCqt {
             worker->KeepGoing()) {
           cmd->Run();  // Threads not operational yet.
         }
-        if (QThread::currentThread() == worker->worker_qobject.thread()) {
+        else if (QThread::currentThread() == worker->worker_qobject.thread()) {
           emit CommandSignal(cmd);
         }
         else {
