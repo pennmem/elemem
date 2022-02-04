@@ -10,28 +10,31 @@
 namespace CML {
   class NormalizePowersSettings {
     public: 
-    size_t num_freqs = 0;
-    size_t num_chans = 0;
-    size_t num_events = 0;
+    size_t freqlen = 0;
+    size_t chanlen = 0;
+    size_t eventlen = 0;
   }; 
 
   // TODO: JPB: (feature) Make NormalizePowers an RCWorker?
   class NormalizePowers {
     public:
-    NormalizePowers(size_t eventlen, size_t chanlen, size_t freqlen);
+    NormalizePowers(const NormalizePowersSettings& np_set);
     ~NormalizePowers();
     NormalizePowers(const NormalizePowers& other) = delete;
     NormalizePowers& operator=(const NormalizePowers& other) = delete;
 
     void Reset();
     void Update(RC::APtr<const EEGPowers>& new_data);
-    RC::APtr<EEGPowers> ZScore(RC::APtr<const EEGPowers>& in_data);
+    RC::APtr<EEGPowers> ZScore(RC::APtr<const EEGPowers>& in_data, bool div_by_zero_eq_zero);
     //RC::Data2D<StatsData> GetStats();
     void PrintStats();
+    void PrintStats(size_t num_freqs);
+    void PrintStats(size_t num_freqs, size_t num_chans);
 
 
-	protected:
-	RC::Data2D<RollingStats *> rolling_powers;
+    protected:
+    NormalizePowersSettings np_set;
+    RC::Data2D<RollingStats *> rolling_powers;
   };
 }
 

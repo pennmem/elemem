@@ -720,9 +720,9 @@ namespace CML {
     settings.sys_config->Get(mor_set.cpus, "closed_loop_thread_level");
 
     NormalizePowersSettings np_set;
-    np_set.num_events = 1000; // TODO: JPB: (need) Load num_events from configs
-    np_set.num_chans = settings.weight_manager->weights->chans.size();
-    np_set.num_freqs = settings.weight_manager->weights->freqs.size();
+    np_set.eventlen = 1; // This is set to 1 because data is averaged first
+    np_set.chanlen = settings.weight_manager->weights->chans.size();
+    np_set.freqlen = settings.weight_manager->weights->freqs.size();
     feature_filters = new FeatureFilters(mor_set.channels, but_set, mor_set, np_set);
 
     ClassifierLogRegSettings classifier_settings;
@@ -735,7 +735,12 @@ namespace CML {
     feature_filters->SetCallback(classifier->Classify);
     classifier->RegisterCallback("ClassifierDecision", task_stim_manager->StimDecision);
 
+    // TODO: JPB: (need) Remove testing classifier processing events in Handler::SetupClassifier
     //RC_DEBOUT(RC::RStr("TESTING\n"));
+    //task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
+    //sleep(3);
+    //task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
+    //sleep(3);
     //task_classifier_manager->ProcessClassifierEvent(ClassificationType::STIM, 1000, 0);
   }
 

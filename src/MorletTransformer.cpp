@@ -58,6 +58,9 @@ namespace CML {
     }
 
     mt->set_signal_array(flat_data.Raw(), chanlen, eventlen);
+    // TODO: JPB: (refactor) MorletTransformer::prepare_run should not be needed every time
+    //                       This is a PTSA bug
+    mt->prepare_run();
     mt->compute_wavelets_threads();
 
     // UnflattenData

@@ -32,7 +32,7 @@ namespace CML {
     static RC::APtr<EEGData> BipolarReference(RC::APtr<const EEGData>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels);
     static RC::APtr<EEGData> MirrorEnds(RC::APtr<const EEGData>& in_data, size_t duration_ms);
     static RC::APtr<EEGPowers> Log10Transform(RC::APtr<const EEGPowers>& in_data, double epsilon);
-    static RC::APtr<EEGPowers> AvgOverTime(RC::APtr<const EEGPowers>& in_data);
+    static RC::APtr<EEGPowers> AvgOverTime(RC::APtr<const EEGPowers>& in_data, bool ignore_inf_and_nan);
 
 
     protected:

@@ -44,7 +44,6 @@ namespace CML {
     }
 
     double prob = 1 / (1 + std::exp(-logodds));
-    //RC_DEBOUT(prob)
 
     return prob;
   }
