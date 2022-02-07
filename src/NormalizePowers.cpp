@@ -3,12 +3,14 @@
 
 namespace CML {
   /// Default constructor that initializes and resets the internal lists
-  /** @param The number of events
-   *  @param The number of channels
-   *  @param The number of freqs
+  /** @param The settings needed to set up consistent normalization
    */
-  NormalizePowers::NormalizePowers(size_t eventlen, size_t chanlen, size_t freqlen) 
-      : rolling_powers(chanlen, freqlen) {
+  NormalizePowers::NormalizePowers(const NormalizePowersSettings& np_set) 
+      : np_set(np_set), rolling_powers(np_set.chanlen, np_set.freqlen) {
+    size_t freqlen = np_set.freqlen;
+    size_t chanlen = np_set.chanlen;
+    size_t eventlen = np_set.eventlen;
+
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
         rolling_powers[i][j] = new RollingStats(eventlen);
@@ -17,8 +19,9 @@ namespace CML {
   }
 
   NormalizePowers::~NormalizePowers() {
-    size_t freqlen = rolling_powers.size2();
-    size_t chanlen = rolling_powers.size1();
+    size_t freqlen = np_set.freqlen;
+    size_t chanlen = np_set.chanlen;
+
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
         if (rolling_powers[i][j])
@@ -29,8 +32,9 @@ namespace CML {
 
   /// Reset all of the values back to 0 
   void NormalizePowers::Reset() {
-    size_t freqlen = rolling_powers.size2();
-    size_t chanlen = rolling_powers.size1();
+    size_t freqlen = np_set.freqlen;
+    size_t chanlen = np_set.chanlen;
+
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
         rolling_powers[i][j]->Reset(); 
@@ -43,9 +47,10 @@ namespace CML {
    */
   void NormalizePowers::Update(RC::APtr<const EEGPowers>& new_data) {
     RC_DEBOUT(RC::RStr("NormalizePowers::Update\n\n"));
-    size_t freqlen = rolling_powers.size2();
-    size_t chanlen = rolling_powers.size1();
     auto& new_datar = new_data->data;
+    size_t freqlen = np_set.freqlen;
+    size_t chanlen = np_set.chanlen;
+
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
         rolling_powers[i][j]->Update(new_datar[i][j]);
@@ -56,15 +61,26 @@ namespace CML {
   /// Z-score the powers with the current statistics
   /** @param The powers to be z-scored
    */
-  RC::APtr<EEGPowers> NormalizePowers::ZScore(RC::APtr<const EEGPowers>& in_data) {
-    size_t freqlen = rolling_powers.size2();
-    size_t chanlen = rolling_powers.size1();
-    RC::APtr<EEGPowers> out_data = new EEGPowers(in_data->sampling_rate, 0, chanlen, freqlen);
+  RC::APtr<EEGPowers> NormalizePowers::ZScore(RC::APtr<const EEGPowers>& in_data, bool div_by_zero_eq_zero) {
     auto& in_datar = in_data->data;
+    size_t freqlen = np_set.freqlen;
+    size_t chanlen = np_set.chanlen;
+    size_t eventlen = np_set.eventlen;
+
+    if ( (eventlen != in_datar.size1()) ||
+         (chanlen != in_datar.size2()) ||
+         (freqlen != in_datar.size3()) ) {
+      Throw_RC_Error((RC::RStr("Classification data len (") + freqlen + ", " + chanlen + ", " +
+                               eventlen + ") " + "and in_data dimensions (" + in_datar.size3() +
+                               ", " + in_datar.size2() + ", " + in_datar.size1() + ") do not match.").c_str());
+    }
+
+    RC::APtr<EEGPowers> out_data = new EEGPowers(in_data->sampling_rate, 1, chanlen, freqlen);
     auto& out_datar = out_data->data;
+
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
-        out_datar[i][j] = rolling_powers[i][j]->ZScore(in_datar[i][j]);
+        out_datar[i][j] = rolling_powers[i][j]->ZScore(in_datar[i][j], div_by_zero_eq_zero);
       }
     }
     return out_data;
@@ -88,8 +104,28 @@ namespace CML {
   //}
 
   void NormalizePowers::PrintStats() {
-    size_t freqlen = rolling_powers.size2();
-    size_t chanlen = rolling_powers.size1();
+    size_t freqlen = np_set.freqlen;
+    size_t chanlen = np_set.chanlen;
+    PrintStats(freqlen, chanlen);
+  }
+
+  void NormalizePowers::PrintStats(size_t num_freqs) {
+    size_t freqlen = num_freqs;
+    size_t chanlen = np_set.chanlen;
+    PrintStats(freqlen, chanlen);
+  }
+
+  void NormalizePowers::PrintStats(size_t num_freqs, size_t num_chans) {
+    size_t freqlen = num_freqs;
+    size_t chanlen = num_chans;
+    if (freqlen > rolling_powers.size2()) {
+      Throw_RC_Error((RC::RStr("The num_freqs (") + freqlen +
+            ") is longer than then number of freqs in powers (" + rolling_powers.size2() + ")").c_str());
+    } else if (chanlen > rolling_powers.size1()) {
+      Throw_RC_Error((RC::RStr("The num_chans (") + chanlen +
+            ") is longer than then number of freqs in powers (" + rolling_powers.size1() + ")").c_str());
+    }
+
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
         rolling_powers[i][j]->PrintStats();

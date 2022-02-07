@@ -166,7 +166,7 @@ set (BAYES_FILES
 endif(APPLE)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g -fno-omit-frame-pointer")
-set (CMAKE_CXX_FLAGS_RELEASE "-O3 -g -ffast-math")
+set (CMAKE_CXX_FLAGS_RELEASE "-O3 -g -ffast-math -fno-finite-math-only")
 set (ELEMEM_DEFINES)
 
 
@@ -305,6 +305,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/TaskClassifierManager.h
   src/TaskClassifierManager.cpp
   src/TaskClassifierSettings.h
+  src/TaskStimManager.h
+  src/TaskStimManager.cpp
   src/Utils.h
   src/Utils.cpp
   src/WeightManager.h

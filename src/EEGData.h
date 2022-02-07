@@ -51,6 +51,7 @@ namespace CML {
   };
 
   void PrintEEGData(const EEGData& data);
+  void PrintEEGData(const EEGData& data, size_t num_chans);
 }
 
 #endif // EEGDATA_H

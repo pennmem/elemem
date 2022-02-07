@@ -7,6 +7,7 @@
 #include "EEGAcq.h"
 #include "EEGFileSave.h"
 #include "TaskClassifierManager.h"
+#include "TaskStimManager.h"
 #include "FeatureFilters.h"
 #include "Classifier.h"
 #include "EventLog.h"
@@ -107,6 +108,7 @@ namespace CML {
     RC::APtr<TaskClassifierManager> task_classifier_manager;
     RC::APtr<FeatureFilters> feature_filters;
     RC::APtr<Classifier> classifier;
+    RC::APtr<TaskStimManager> task_stim_manager;
     NetWorker net_worker;
     EventLog event_log;
 

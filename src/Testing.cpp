@@ -119,9 +119,10 @@ namespace CML {
   }
   
   void TestAvgOverTime() {
+    // TODO: JPB: Add test for inf, -inf, and nan
     RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers();
   
-    RC::APtr<EEGPowers> out_powers = FeatureFilters::AvgOverTime(in_powers);
+    RC::APtr<EEGPowers> out_powers = FeatureFilters::AvgOverTime(in_powers, false);
   
     PrintEEGPowers(*in_powers);
     PrintEEGPowers(*out_powers);
@@ -171,13 +172,15 @@ namespace CML {
     rolling_stats.Update(in_powers->data[0][2]);
     rolling_stats.PrintStats();
 
-    auto out_data = rolling_stats.ZScore(in_powers->data[0][4]);
+    auto out_data = rolling_stats.ZScore(in_powers->data[0][4], true);
     RC_DEBOUT(RC::RStr::Join(out_data, ", ") + "\n");
 
     // means should be 10 through 19
     // std_devs should be 10
     // sample_std_devs should be 14.1421...
     // zscores should be 2.1213...
+
+	// TODO: JPB: (test) Add test for std_dev = 0, inf, -inf, nan
   }
 
   void TestNormalizePowers() {
@@ -192,13 +195,14 @@ namespace CML {
     RC::APtr<const EEGPowers> in_powers3 = CreateTestingEEGPowers(sampling_rate, eventlen, chanlen, freqlen, 40);
     PrintEEGPowers(*in_powers3);
 
-    NormalizePowers normalize_powers(eventlen, chanlen, freqlen);
+    NormalizePowersSettings np_set = { eventlen, chanlen, freqlen };
+    NormalizePowers normalize_powers(np_set);
     normalize_powers.Update(in_powers1);
     normalize_powers.PrintStats();
     normalize_powers.Update(in_powers2);
     normalize_powers.PrintStats();
 
-    RC::APtr<EEGPowers> out_powers = normalize_powers.ZScore(in_powers3);
+    RC::APtr<EEGPowers> out_powers = normalize_powers.ZScore(in_powers3, true);
     PrintEEGPowers(*out_powers);
   }
 

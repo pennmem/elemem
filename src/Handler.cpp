@@ -78,7 +78,9 @@ namespace CML {
     RC::APtr<EEGSource> eeg_source;
     if (eeg_system == "Cerebus") {
       #ifdef CEREBUS_HW
-      eeg_source = new Cerebus();
+      uint32_t chan_count;
+      settings.sys_config->Get(chan_count, "channel_count");
+      eeg_source = new Cerebus(chan_count);
       #else
       Throw_RC_Type(File, "sys_config.json eeg_system set to \"Cerebus\", "
           "but this build does not have Cerebus Hardware support.");
@@ -96,6 +98,7 @@ namespace CML {
       Throw_RC_Type(File, "Unknown sys_config.json eeg_system value");
     }
     eeg_acq.SetSource(eeg_source);
+    InitializeChannels_Handler();
   }
 
   void Handler::Initialize_Handler() {
@@ -723,21 +726,28 @@ namespace CML {
         "morlet_cycles");
     settings.sys_config->Get(mor_set.cpus, "closed_loop_thread_level");
 
-	  NormalizePowersSettings np_set;
-	  np_set.num_events = 1000; // TODO: JPB: (need) Load num_events from configs
-	  np_set.num_chans = settings.weight_manager->weights->chans.size();
-	  np_set.num_freqs = settings.weight_manager->weights->freqs.size();
+    NormalizePowersSettings np_set;
+    np_set.eventlen = 1; // This is set to 1 because data is averaged first
+    np_set.chanlen = settings.weight_manager->weights->chans.size();
+    np_set.freqlen = settings.weight_manager->weights->freqs.size();
     feature_filters = new FeatureFilters(mor_set.channels, but_set, mor_set, np_set);
 
     ClassifierLogRegSettings classifier_settings;
     classifier = new ClassifierLogReg(this, classifier_settings,
         settings.weight_manager->weights);
 
+    task_stim_manager = new TaskStimManager(this);
+
     task_classifier_manager->SetCallback(feature_filters->Process);
     feature_filters->SetCallback(classifier->Classify);
-    classifier->RegisterCallback("ClassifierDecision", task_classifier_manager->ClassifierDecision);
+    classifier->RegisterCallback("ClassifierDecision", task_stim_manager->StimDecision);
 
+    // TODO: JPB: (need) Remove testing classifier processing events in Handler::SetupClassifier
     //RC_DEBOUT(RC::RStr("TESTING\n"));
+    //task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
+    //sleep(3);
+    //task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
+    //sleep(3);
     //task_classifier_manager->ProcessClassifierEvent(ClassificationType::STIM, 1000, 0);
   }
 

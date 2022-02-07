@@ -147,7 +147,11 @@ namespace RCqt {
     switch(task_type) {
       case AUTOTASK:  emit CommandSignal(cmd);  break;
       case BLOCKTASK:
-        if (QThread::currentThread() == worker->worker_qobject.thread()) {
+        if (!worker->worker_qobject.thread()->isRunning() &&
+            worker->KeepGoing()) {
+          cmd->Run();  // Threads not operational yet.
+        }
+        else if (QThread::currentThread() == worker->worker_qobject.thread()) {
           emit CommandSignal(cmd);
         }
         else {
