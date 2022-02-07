@@ -9,9 +9,9 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 # Compilation settings
 
 set(IS_RELEASE true)
-option(CEREBUS_HW "Use the Cerebus/Neuroport interface" ON) # cmake -DCEREBUS_HW=OFF ..
+option(CEREBUS_HW "Use the Cerebus/Neuroport interface" OFF) # cmake -DCEREBUS_HW=OFF ..
 option(CERESTIM_STUB # cmake -DCERESTIM_STUB=ON ..
-	"Use the CereStim simulator (default ON for non-Windows)" OFF)
+	"Use the CereStim simulator (default ON for non-Windows)" ON)
 option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake -DHDF5_EXPORT=ON ..
 
 if (IS_RELEASE)
@@ -41,13 +41,134 @@ endif()
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-zero-as-null-pointer-constant")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnull-dereference -Werror")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRC_HAVE_QT")
+
+# FORTRAN
+enable_language(Fortran)
+SET(CMAKE_FC_COMPILER "/usr/local/bin/gfortran-7")
+set (CMAKE_Fortran_FLAGS "-funroll-all-loops -O3 -fPIC")
+#set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DVAR=2")
+#add_definitions(-DVAR=2)
+
 if(APPLE)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1")
+
+  # CBayes dependencies
+  # TODO: RDD: remove and put in include directory, ideally as a subtree/Git reference? ask Ryan/James
+  set (LAPACKLIBS "-llapack -lblas -lc")
+  set (F2CLIB "-L/usr/local/lib/gcc/7/ -lgfortran")
+
+  set (BAYES_DIR "/Users/rdehaan/projects/elemem/src/BayesGPc")
+  set (OPTIMDIR "/Users/rdehaan/projects/dependencies/optim/header_only_version")
+  set (OPTIMFLAG "-O3 -march=native -ffp-contract=fast")
+  set (EIGENDIR "/usr/local/include")
+  set (NPYLINKFLAG "-L/usr/local/lib -lcnpy -lz")
+  set (MATPLOT_INCLUDE_DIRS "matplot")
+  set (MATPLOTLINKFLAG "-lmatplot")
+
+  include_directories(${BAYES_DIR}
+                      ${OPTIMDIR}
+                      ${EIGENDIR}
+                      ${MATPLOT_INCLUDE_DIRS}
+                      )
+  # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
+  #link_directories(${LAPACKLIBS}
+  #                 ${F2CLIB}
+  #                 ${NPYLINKFLAG}
+  #                 ${MATPLOTLINKFLAG}
+  #                 )
+  # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
+  # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
+  # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
+
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMFLAG} -mmacosx-version-min=11.0 -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
+
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -ffp-contract=fast")
+set (BAYES_FILES
+  ${BAYES_DIR}/CBayesianSearch.cpp
+  ${BAYES_DIR}/CBayesianSearch.h
+  ${BAYES_DIR}/CGp.cpp
+  ${BAYES_DIR}/CGp.h
+  ${BAYES_DIR}/CMltools.cpp
+  ${BAYES_DIR}/CMltools.h
+  ${BAYES_DIR}/ndlassert.cpp
+  ${BAYES_DIR}/ndlassert.h
+  ${BAYES_DIR}/ndlexceptions.h
+  ${BAYES_DIR}/ndlstrutil.cpp
+  ${BAYES_DIR}/ndlstrutil.h
+  ${BAYES_DIR}/COptimisable.cpp
+  ${BAYES_DIR}/COptimisable.h
+  ${BAYES_DIR}/CMatrix.cpp
+  ${BAYES_DIR}/CMatrix.h
+  ${BAYES_DIR}/CNdlInterfaces.h
+  ${BAYES_DIR}/ndlutil.cpp
+  ${BAYES_DIR}/ndlutil.h
+  ${BAYES_DIR}/ndlfortran.h
+  ${BAYES_DIR}/ndlfortran_lbfgsb.h
+  ${BAYES_DIR}/ndlfortran.f
+  ${BAYES_DIR}/ndlfortran_linpack.f
+  ${BAYES_DIR}/ndlfortran_lbfgsb.f
+  ${BAYES_DIR}/ndlfortran_timer.f
+  ${BAYES_DIR}/ndlfortran_linpack.h
+  ${BAYES_DIR}/ndlfortran_timer.h
+  ${BAYES_DIR}/lapack.h
+  ${BAYES_DIR}/CKern.cpp
+  ${BAYES_DIR}/CKern.h
+  ${BAYES_DIR}/CTransform.cpp
+  ${BAYES_DIR}/CTransform.h
+  ${BAYES_DIR}/CDataModel.h
+  ${BAYES_DIR}/CDist.cpp
+  ${BAYES_DIR}/CDist.h
+  ${BAYES_DIR}/CNoise.cpp
+  ${BAYES_DIR}/CNoise.h
+  ${BAYES_DIR}/version.h
+  )
+
+#  ${BAYES_DIR}/BayesTestFunction.cpp
+#  ${BAYES_DIR}/Logger.cpp
+#  ${BAYES_DIR}/Logger.h
+#  ${BAYES_DIR}/CIvm.h
+#  ${BAYES_DIR}/testKern.cpp
+#  ${BAYES_DIR}/testKern_sklearn.cpp
+#  ${BAYES_DIR}/CClctrl.cpp
+#  ${BAYES_DIR}/CPpa.cpp
+#  ${BAYES_DIR}/testMatrix.cpp
+#  ${BAYES_DIR}/sklearn_util.cpp
+#  ${BAYES_DIR}/testMltools.cpp
+#  ${BAYES_DIR}/testBayesianSearch.cpp
+#  ${BAYES_DIR}/testNdlutil.cpp
+#  ${BAYES_DIR}/CGplvm.cpp
+#  ${BAYES_DIR}/bayesPlotUtil.cpp
+#  ${BAYES_DIR}/testCode.cpp
+#  ${BAYES_DIR}/testNoise.cpp
+#  ${BAYES_DIR}/CIvm.cpp
+#  ${BAYES_DIR}/gp.cpp
+#  ${BAYES_DIR}/testDist.cpp
+#  ${BAYES_DIR}/testTransform.cpp
+#  ${BAYES_DIR}/gplvm.cpp
+#  ${BAYES_DIR}/testGp.cpp
+#  ${BAYES_DIR}/test_matplot.cpp
+#  ${BAYES_DIR}/ivm.cpp
+#  ${BAYES_DIR}/testGp_sklearn.cpp
+#  ${BAYES_DIR}/test_optim.cpp
+#  ${BAYES_DIR}/testIvm.cpp
+#  ${BAYES_DIR}/CMatlab.h
+#  ${BAYES_DIR}/bayesPlotUtil.h
+#  ${BAYES_DIR}/gp.h
+#  ${BAYES_DIR}/CClctrl.h
+#  ${BAYES_DIR}/gplvm.h
+#  ${BAYES_DIR}/ivm.h
+#  ${BAYES_DIR}/sklearn_util.h
+#  ${BAYES_DIR}/testBayesianSearch.h
+#  ${BAYES_DIR}/CGplvm.h
+#  ${BAYES_DIR}/CPpa.h
+
+
 endif(APPLE)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g -fno-omit-frame-pointer")
 set (CMAKE_CXX_FLAGS_RELEASE "-O3 -g -ffast-math")
 set (ELEMEM_DEFINES)
+
 
 ##############
 # Source files
@@ -82,7 +203,6 @@ set (PTSA_FILES
   ptsa/ptsa/extensions/morlet/MorletWaveletTransformMP.cpp
   ptsa/ptsa/extensions/ThreadPool/ThreadPool.h
 )
-
 
 add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Elemem.cpp
@@ -134,6 +254,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/EEGSource.h
   src/EventLog.h
   src/EventLog.cpp
+  src/ExperCPS.h
+  src/ExperCPS.cpp
   src/ExperOPS.h
   src/ExperOPS.cpp
   src/ExpEvent.h
@@ -224,6 +346,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
 
   include/edflib/edflib.cpp
   ${PTSA_FILES}
+
+  ${BAYES_FILES}
 )
 
 ####################
@@ -312,6 +436,10 @@ target_link_libraries (${PROJECT_NAME}
   ${HDF5_LIBRARIES}
   ${FFTW_LIB}
   ${PTHREAD_LIB}
+  ${LAPACKLIBS}
+  ${F2CLIB}
+  ${NPYLINKFLAG}
+  ${MATPLOTLINKFLAG}
 )
 
 target_compile_definitions (${PROJECT_NAME} PUBLIC

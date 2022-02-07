@@ -10,6 +10,7 @@
 #include "FeatureFilters.h"
 #include "Classifier.h"
 #include "EventLog.h"
+#include "ExperCPS.h"
 #include "ExperOPS.h"
 #include "NetWorker.h"
 #include "Settings.h"

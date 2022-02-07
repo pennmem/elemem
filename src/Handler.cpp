@@ -48,7 +48,8 @@ namespace CML {
   Handler::Handler()
     : stim_worker(this),
       net_worker(this),
-      exper_ops(this) {
+      exper_ops(this),
+      exper_cps(this) {
     // For error management, everything that could error must go into
     // Initialize_Handler()
   }
@@ -562,7 +563,7 @@ namespace CML {
         if (settings.exper.find("CPS") == 0) {
           settings.grid_exper = false;
           settings.task_driven = false;
-          classifier->RegisterCallback("CPSClassifierDecision", exper_cps->ClassifierDecision);
+          classifier->RegisterCallback("CPSClassifierDecision", exper_cps.ClassifierDecision);
         }
       }
     }

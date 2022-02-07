@@ -14,12 +14,23 @@ namespace CML {
     : hndl(hndl) {
     AddToThread(this);
 
+    seed = 1;
+    n_var = 1;
+    obsNoise = 0.1;
+    exp_bias = 0.25;
+    n_init_samples = 100;
+    CMatrix bounds(n_var, 2);
+    // amplitude bounds in mA
+    bounds(0, 0) = 0.1;
+    bounds(0, 1) = 1.0;
+    int verbosity = 0;
+
     // cnpy::npz_t npz_dict;
-    // CKern* k = getSklearnKernel((unsigned int)x_dim, npz_dict, kernel, std::string(""), true);
-    k = new CMatern32Kern(x_dim);
-    kern = CCmpndKern{x_dim};
+    // CKern* k = getSklearnKernel((unsigned int)n_var, npz_dict, kernel, std::string(""), true);
+    k = new CMatern32Kern(n_var);
+    kern = CCmpndKern(n_var);
     kern.addKern(k);
-    whitek = new CWhiteKern(x_dim);
+    whitek = new CWhiteKern(n_var);
     kern.addKern(whitek);
 
     // TODO load parameters from config file - ask Ryan/James about how this is handled
@@ -34,14 +45,7 @@ namespace CML {
     // classifier event counter
     classif_id = 0;
 
-    seed = 1;
-    n_var = 1;
-    obsNoise = 0.1;
-    exp_bias = 0.25;
-    n_init_samples = 100;
-
-    BayesianSearchModel BO(kern, &test.x_interval, obsNoise * obsNoise, exp_bias, n_init_samples, seed, verbosity);
-    BayesianSearchModel search();
+    BayesianSearchModel search(kern, &bounds, obsNoise * obsNoise, exp_bias, n_init_samples, seed, verbosity);
   }
 
   ExperCPS::~ExperCPS() {
@@ -51,8 +55,8 @@ namespace CML {
   }
 
   void ExperCPS::SetStimProfiles_Handler(
-        const RC::Data1D<CSStimProfile>& new_stim_loc_profiles) {
-    stim_loc_profiles = new_stim_loc_profiles;
+        const RC::Data1D<CSStimChannel>& new_stim_loc_param_sets) {
+    stim_loc_param_sets = new_stim_loc_param_sets;
   }
 
   void ExperCPS::GetNextEvent() {
@@ -60,8 +64,8 @@ namespace CML {
 
     // TODO: RDD: update to select between multiple stim sites
     // TODO: all: currently assuming that stim parameters not being searched over are set separately in
-    //            stim_loc_profiles, should ensure these are set in Settings.cpp
-    CSStimChannel stim_info(stim_loc_profiles[0][0]);
+    //            stim_loc_param_sets, should ensure these are set in Settings.cpp
+    CSStimChannel stim_info((stim_loc_param_sets[0]));
 
     // set stim parameter values for next search point
     // TODO: RDD: may want to scale down into more desirable interval, e.g., [0, 1]
@@ -70,9 +74,9 @@ namespace CML {
     // stim_pars amplitude in mA
     // CSStimChannel.amplitude in uA but allowed stim values in increments of 100 uA
     // TODO: RDD: check this conversion works
-    stim_info.amplitude = ((uint16_t)(stim_pars.vals(0)*10 + 0.5)) * 100;
+    stim_info.amplitude = ((uint16_t)(stim_pars->getVal(0)*10 + 0.5)) * 100;
 
-    stim_profiles += stim_info;
+    stim_param_sets += stim_info;
 
     ExpEvent ev;
     ev.active_ms = stim_info.duration/1000;
@@ -84,7 +88,7 @@ namespace CML {
 
     // auto prefunc = MakeFunctor<void>(
     //     hndl->stim_worker.ConfigureStimulation.ToCaller().
-    //     Bind(stim_profiles[p]));
+    //     Bind(stim_param_sets[p]));
     // ev.pre_event =
     //   MakeCaller(this, &ExperCPS::DoConfigEvent).Bind(prefunc);
 
@@ -92,10 +96,11 @@ namespace CML {
     //     MakeCaller(this, &ExperCPS::DoStimEvent).Bind(
     //     hndl->stim_worker.Stimulate.ToCaller()));
 
+    delete stim_pars;
     exp_events += ev;
   }
 
-  void UpdateSearch(const CSStimChannel stim_info, const ExpEvent ev, const double biomarker) {
+  void ExperCPS::UpdateSearch(const CSStimChannel stim_info, const ExpEvent ev, const double biomarker) {
     // ExpEvent ev currently unused; API allows for future experiments in which stim duration is tuned
     CMatrix stim_pars(1, 1);
     // map stim parameters for search model
@@ -103,7 +108,7 @@ namespace CML {
     //            easy to forget to change in both UpdateSearch() and GetNextEvent()
     stim_pars(0) = ((double)stim_info.amplitude)/1000;
 
-    CMatrix biomarker_cmat(biomarker);
+    CMatrix biomarker_mat(biomarker);
     search.add_sample(stim_pars, biomarker_mat);
   }
 
@@ -204,10 +209,10 @@ namespace CML {
     //            need to confirm on every machine, task laptop, etc.
     //            James thinks this is overkill for precision of 10-15 ms
     //            https://stackoverflow.com/questions/12937963/get-local-time-in-nanoseconds
-    // TODO: RDD: implement me (min)
-    uint64_t delay_next = min(delay, 50);
+    uint64_t min_delay = 50;
+    uint64_t delay_next = delay ? delay < min_delay : min_delay;
     while (delay > 0) {
-      delay_next = min(delay, 50);
+      delay_next = delay ? delay < min_delay : min_delay;
       delay -= delay_next;
       QThread::msleep(delay_next);
     }
@@ -233,7 +238,7 @@ namespace CML {
     // TODO: RDD/JPB: ensure that stim events are set off as close as possible to this callback being called
     //                might be simplest to let this function control the stim?
     //                do/can we receive a callback when a stim event ends?
-    abs_event_times += current_time_ms;
+    abs_event_times += cur_time_ms;
     // TODO: RDD: setting off classification events in this function starts the data collection
     //            process (currently), meaning that the classification EEG collection interval is 
     //            bounded by the time at which ExperCPS calls for classification and that time
@@ -245,7 +250,17 @@ namespace CML {
     //                             also, return callback return times both for this handler, 
     //                             ClassifierDecision_Handler, and for the StimManager handler
 
-    classif_state = task_classifier_settings.cl_type;
+    // all classification requests indexed with classif_id (which will not align with pre-stim/post-stim event indices)
+    double result = classif_results[classif_id];
+    // TODO: RDD/JPB: confirm whether StimManager event from current cycle will always return before next Classifier event does to ensure correct ordering.
+    TaskClassifierSettings task_classifier_settings = exper_classif_settings[classif_id];
+    ClassificationType classif_state = task_classifier_settings.cl_type;
+
+    // pre-stim/post-stim events indexed with cur_ev
+    CSStimChannel stim_params = stim_param_sets[cur_ev];
+    ExpEvent cur_event = exp_events[cur_ev];
+
+
     // RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler\n\n"));
 
     // TODO: RDD: separate Bayesian search objects for different stim locations
@@ -268,14 +283,16 @@ namespace CML {
         // TODO handle cases where say stim duration not equal between given and used params...
         //      use assert as a placeholder for initial testing
         // TODO: RDD/RC: when will CereStim change received stim parameters internally and will we receive that
-        //               info back in some way?
-        // assert(stim_params == stim_profiles[cur_ev]);
-        if (stim_params != stim_profiles[cur_ev]) {
-          // TODO: RDD: add warning message here
-          warning
-          stim_profiles[cur_ev] = stim_params;
-        }
-        prev_sham = classif_state == ClassificationType::SHAM;
+        //               info back in some way? no, we cannot receive it back, should be covered with Elemem 
+        //               stim constraints being a superset of CereStim constraints, should all throw exceptions
+        //               and shut down the experiment
+        // assert(stim_params == stim_param_sets[cur_ev]);
+        // if (stim_params != stim_param_sets[cur_ev]) {
+        //   // TODO: RDD: add warning message here
+        //   warning
+        //   stim_param_sets[cur_ev] = stim_params;
+        // }
+        // prev_sham = classif_state == ClassificationType::SHAM;
         // get post-stim classifier output
         // TODO: RDD/JPB: when will stim event offset be relative to this callback being called?
         //                can we get that info from CereStim? Or can we use nominal duration instead?
@@ -303,13 +320,16 @@ namespace CML {
       // TODO add struct for storing everything related to a full pre-post event (i.e., pre-stim classifier event time, stim event time, post-stim classifier time, classifier results, biomarker, stim parameters, ideally Bayesian search hps? definitely should store those separately...)
       //      otherwise could just parse after the fact, this would prevent misparsing...
       if (!prev_sham) {
-        UpdateSearch(stim_profiles[cur], exp_events[cur], biomarker);
+        UpdateSearch(stim_params, cur_event, biomarker);
         GetNextEvent();
         cur_ev++;
+        CSStimChannel next_stim_params = stim_param_sets[cur_ev];
         
         // run pre-event (stim configuration) as soon as stim parameters are available
         if (cur_ev < exp_events.size()) {
-          hndl->stim_worker.ConfigureStimulation(stim_profiles[cur_ev]);
+          CSStimProfile stim_profile;
+          stim_profile += next_stim_params;
+          hndl->stim_worker.ConfigureStimulation(stim_profile);
         }
         else {
           Throw_RC_Error("Event requested before being allocated by the search process.");
@@ -328,12 +348,12 @@ namespace CML {
     }
     else if (classif_state == ClassificationType::NORMALIZE) {
       next_min_event_time = cur_time_ms + normalize_lockout_ms;
-      if (results.size() < n_normalize_events) {
+      if (classif_results.size() < n_normalize_events) {
         // TODO log event info
         // TODO add some jitter? add (explicit) jitter to timeouts in general?
         next_classif_state = ClassificationType::NORMALIZE;
       }
-      else if (results.size() == n_normalize_events) {
+      else if (classif_results.size() == n_normalize_events) {
         // TODO log event info
         // TODO update to select between sham and stim events based on some criteria
         next_classif_state = ClassificationType::STIM;
@@ -348,8 +368,10 @@ namespace CML {
 
     // run next classification result (which conditionally calls for stimulation events)
     if (next_min_event_time > experiment_duration) {
-      EndExperiment();
+      // TODO: RDD/RC: preferred method for ending experiments?
+      InternalStop();
     }
+    prev_sham = next_classif_state == ClassificationType::SHAM;
     WaitUntil(next_min_event_time);
     // TODO: RDD?JPB: use id = 0 for now, how much performance improvement would classifier queueing add?
     hndl->task_classifier_manager->ProcessClassifierEvent(

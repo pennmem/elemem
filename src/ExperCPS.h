@@ -35,7 +35,7 @@ namespace CML {
     RCqt::TaskCaller<const CPSSpecs> SetCPSSpecs =
       TaskHandler(ExperCPS::SetCPSSpecs_Handler);
 
-    RCqt::TaskCaller<const RC::Data1D<CSStimProfile>> SetStimProfiles =
+    RCqt::TaskCaller<const RC::Data1D<CSStimChannel>> SetStimProfiles =
       TaskHandler(ExperCPS::SetStimProfiles_Handler);
 
     RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
@@ -59,7 +59,7 @@ namespace CML {
     }
 
     void SetStimProfiles_Handler(
-        const RC::Data1D<CSStimProfile>& new_stim_profiles);
+        const RC::Data1D<CSStimChannel>& new_stim_profiles);
 
 
     void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
@@ -77,7 +77,7 @@ namespace CML {
     void InternalStop();
 
     void ClassifierDecision_Handler(const double& result, const TaskClassifierSettings& task_classifier_settings);
-    void ExperCPS::StimulationDecision_Handler(const bool& stim_event, const uint64_t& stim_time);
+    void StimulationDecision_Handler(const bool& stim_event, const uint64_t& stim_time);
     protected slots:
     void RunEvent();
     protected:
@@ -96,6 +96,7 @@ namespace CML {
     // TODO: RDD: link to general Elemem seed
     int seed;
     int n_var;
+    CMatrix bounds;
     double obsNoise;
     double exp_bias;
     int n_init_samples;
@@ -111,10 +112,10 @@ namespace CML {
     // TODO will want to update this to an extenxible container or else ensure list is long enough for all possible events, e.g.,
     // include all potential stim events as well, potentially being recorded as non-stim events if stim wasn't 
     // ordered on basis of biomarkers
-    RC::Data1D<CSStimProfile> stim_profiles;
+    RC::Data1D<CSStimChannel> stim_param_sets;
     // set of stimulation profiles used to indicate unique stim locations
     // ordered by testing priority (unknown number of stim events per experiment)
-    RC::Data1D<CSStimProfile> stim_loc_profiles;
+    RC::Data1D<CSStimChannel> stim_loc_param_sets;
     RC::Data1D<double> classif_results;
     RC::Data1D<ExpEvent> exp_events;
     RC::Data1D<bool> stim_event_flags;
@@ -123,6 +124,7 @@ namespace CML {
     uint64_t event_time;
     f64 exp_start;
     size_t cur_ev;
+    bool prev_sham;
     uint64_t next_min_event_time;
     uint64_t classif_id;
 
