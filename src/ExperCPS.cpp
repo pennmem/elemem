@@ -21,8 +21,8 @@ namespace CML {
     n_init_samples = 100;
     CMatrix bounds(n_var, 2);
     // amplitude bounds in mA
-    bounds(0, 0) = 0.1;
-    bounds(0, 1) = 1.0;
+    bounds(0, 0) = 0.0;
+    bounds(0, 1) = 0.0;
     int verbosity = 0;
 
     // cnpy::npz_t npz_dict;
@@ -55,8 +55,20 @@ namespace CML {
   }
 
   void ExperCPS::SetStimProfiles_Handler(
-        const RC::Data1D<CSStimChannel>& new_stim_loc_param_sets) {
-    stim_loc_param_sets = new_stim_loc_param_sets;
+        const RC::Data1D<CSStimProfile>& new_stim_loc_profiles) {
+    if (new_stim_loc_profiles.size() != 1) {
+      Throw_RC_Error("ExperCPS::SetStimProfiles: Need to update for multiple stim sites...");
+    }
+    for (int i = 0; i < new_stim_loc_profiles.size(); i++) {
+      if (new_stim_loc_profiles[i].size() != 1) {
+        Throw_RC_Error("ExperCPS::SetStimProfiles: Only stimulation events with stimulation profiles of length 1 are supported currently.");
+      }
+      // TODO: RDD: fix this to allow for searching over arbitrary parameters
+      //            for now assume that the maximum amplitude is the amplitude in the given profiles
+      search.bounds->setVal(0.1, 0);
+      search.bounds->setVal(new_stim_loc_profiles[i][0].amplitude, 1);
+    }
+    stim_loc_profiles = new_stim_loc_profiles;
   }
 
   void ExperCPS::GetNextEvent() {
@@ -64,8 +76,11 @@ namespace CML {
 
     // TODO: RDD: update to select between multiple stim sites
     // TODO: all: currently assuming that stim parameters not being searched over are set separately in
-    //            stim_loc_param_sets, should ensure these are set in Settings.cpp
-    CSStimChannel stim_info((stim_loc_param_sets[0]));
+    //            stim_loc_profiles, should ensure these are set in Settings.cpp
+    if (stim_loc_profiles[0].size() != 1) {
+      Throw_RC_Error("ExperCPS::GetNextEvent: Only stimulation events with stimulation profiles of length 1 are supported currently.");
+    }
+    CSStimChannel stim_chan((stim_loc_profiles[0][0]));
 
     // set stim parameter values for next search point
     // TODO: RDD: may want to scale down into more desirable interval, e.g., [0, 1]
@@ -74,69 +89,92 @@ namespace CML {
     // stim_pars amplitude in mA
     // CSStimChannel.amplitude in uA but allowed stim values in increments of 100 uA
     // TODO: RDD: check this conversion works
-    stim_info.amplitude = ((uint16_t)(stim_pars->getVal(0)*10 + 0.5)) * 100;
-
-    stim_param_sets += stim_info;
+    stim_chan.amplitude = ((uint16_t)(stim_pars->getVal(0)*10 + 0.5)) * 100;
 
     ExpEvent ev;
-    ev.active_ms = stim_info.duration/1000;
+    ev.active_ms = stim_chan.duration/1000;
     // TODO: RDD: reevaluate ISI values
     // Add ISI
     ev.event_ms = ev.active_ms +
       rng.GetRange(cps_specs.intertrial_range_ms[0],
           cps_specs.intertrial_range_ms[1]);
 
-    // auto prefunc = MakeFunctor<void>(
-    //     hndl->stim_worker.ConfigureStimulation.ToCaller().
-    //     Bind(stim_param_sets[p]));
-    // ev.pre_event =
-    //   MakeCaller(this, &ExperCPS::DoConfigEvent).Bind(prefunc);
-
-    // ev.event = MakeFunctor<void>(
-    //     MakeCaller(this, &ExperCPS::DoStimEvent).Bind(
-    //     hndl->stim_worker.Stimulate.ToCaller()));
-
+    CSStimProfile stim_profile;
+    stim_profile += stim_chan;
+    stim_profiles += stim_profile;
     delete stim_pars;
     exp_events += ev;
   }
 
-  void ExperCPS::UpdateSearch(const CSStimChannel stim_info, const ExpEvent ev, const double biomarker) {
+  void ExperCPS::UpdateSearch(const CSStimProfile stim_info, const ExpEvent ev, const double biomarker) {
+    if (stim_info.size() != 1) {
+      Throw_RC_Error("ExperCPS::UpdateSearch: Only stimulation events with stimulation profiles of length 1 are supported currently.");
+    }
+
     // ExpEvent ev currently unused; API allows for future experiments in which stim duration is tuned
     CMatrix stim_pars(1, 1);
     // map stim parameters for search model
     // TODO: RDD: remove magic numbers for conversion factors, 
     //            easy to forget to change in both UpdateSearch() and GetNextEvent()
-    stim_pars(0) = ((double)stim_info.amplitude)/1000;
+    stim_pars(0) = ((double)(stim_info[0].amplitude))/1000;
 
     CMatrix biomarker_mat(biomarker);
     search.add_sample(stim_pars, biomarker_mat);
   }
 
 
-  // TODO: RDD/JPB: classifier handler is calling stim events. 
-  //                Are there any needs for these events/status 
-  //                panel messages to be managed in ExperCPS.cpp? 
-  //                Yes, add, should remain constant during stim vs. sham blocks of events
-  void ExperCPS::DoConfigEvent(RC::Caller<>event) {
+  void ExperCPS::DoConfigEvent(const CSStimProfile& profile) {
+    JSONFile config_event = MakeResp("CONFIG");
+    config_event.Set(JSONifyCSStimProfile(profile), "data");
     status_panel->SetEvent("PRESET");
-    event();
   }
 
 
-  // TODO: RDD/JPB: classifier handler is calling stim events.
-  //                Are there any needs for these events/status 
-  //                panel messages to be managed in ExperCPS.cpp? 
-  //                Yes, add, should remain constant during stim vs. sham blocks of events
-  void ExperCPS::DoStimEvent(RC::Caller<> event) {
+  void ExperCPS::UpdateSearchPanel(const CSStimProfile& profile) {
+    JSONFile update_event = MakeResp("UPDATE SEARCH");
+    // update_event.Set(JSONifyCSStimProfile(profile), "data");
+    for (int i = 0; i < profile.size(); i++) {
+      CSStimChannel chan = profile[i];
+      update_event.Set(chan.electrode_pos, "data", i, "electrode_pos");
+      update_event.Set(chan.electrode_neg, "data", i, "electrode_neg");
+      update_event.Set(chan.amplitude, "data", i, "amplitude");
+    }
+    hndl->event_log.Log(update_event.Line());
+  }
+
+
+  void ExperCPS::ClassifyingPanel() {
+    JSONFile classif_event = MakeResp("CLASSIFYING");
+    hndl->event_log.Log(classif_event.Line());
+    status_panel->SetEvent("CLASSIFYING");
+  }
+
+
+  void ExperCPS::DoStimEvent(const CSStimProfile& profile) {
+    JSONFile stim_event = MakeResp("STIM");
+    stim_event.Set(JSONifyCSStimProfile(profile), "data");
+    hndl->event_log.Log(stim_event.Line());
     status_panel->SetEvent("STIM");
-    event();
   }
 
 
-  // TODO: RDD/JPB: classifier handler is calling stim events. Are there any needs for these events/status panel messages to be managed in ExperCPS.cpp?
-  //                Are there any needs for these events/status 
-  //                panel messages to be managed in ExperCPS.cpp? 
-  //                Yes, add, should remain constant during stim vs. sham blocks of events
+  JSONFile ExperCPS::JSONifyCSStimProfile(const CSStimProfile& profile) {
+    JSONFile stim_event;
+    for (int i = 0; i < profile.size(); i++) {
+      CSStimChannel chan = profile[i];
+      stim_event.Set(chan.electrode_pos, i, "electrode_pos");
+      stim_event.Set(chan.electrode_neg, i, "electrode_neg");
+      stim_event.Set(chan.amplitude, i, "amplitude");
+      stim_event.Set(chan.frequency, i, "frequency");
+      stim_event.Set(chan.duration, i, "duration");
+      stim_event.Set(chan.area, i, "area");
+      stim_event.Set(chan.burst_frac, i, "burst_frac");
+      stim_event.Set(chan.burst_slow_freq, i, "burst_slow_freq");
+    }
+    return stim_event;
+  }
+
+
   void ExperCPS::DoShamEvent() {
     JSONFile sham_event = MakeResp("SHAM");
     sham_event.Set(cps_specs.sham_duration_ms, "data", "duration");
@@ -182,6 +220,43 @@ namespace CML {
 
 
   void ExperCPS::InternalStop() {
+    ComputeBestStimProfile();
+
+    // log best stim profile
+    
+    // TODO RDD/RC: how could I safely make separate data logs into the session directory?
+    //              e.g. for convenience of analysis
+
+    // JSONFile best_stim_log;
+    // best_stim_log.Load(File::FullPath(hndl->session_dir,
+    //       "experiment_config.json"));
+    JSONFile best_stim_json;
+    best_stim_json.Set(JSONifyCSStimProfile(best_stim_profile), "data", "best_stim_profile");
+    // best_stim_log.Set("", "experiment", "stim_channels");
+    // best_stim_log.Set(best_stim_json, "experiment", "stim_channels", 0);
+    // best_stim_log.Save(File::FullPath(hndl->session_dir,
+    //       "best_stim_parameters.json"));
+    hndl->event_log.Log(best_stim_json.Line());
+
+    JSONFile data_log;
+    // save all other data for analysis
+    for (int i = 0; i < classif_results.size(); i++) {
+      data_log.Set(classif_results[i], "analysis_data", "classif_results", i);
+      data_log.Set(JSONifyCSStimProfile(stim_profiles[i]), "analysis_data", "stim_profiles", i);
+      data_log.Set(exp_events[i].active_ms, "analysis_data", "exp_events", i, "active_ms");
+      data_log.Set(exp_events[i].event_ms, "analysis_data", "exp_events", i, "event_ms");
+    }
+
+    for (int i = 0; i < stim_loc_profiles.size(); i++) {
+      data_log.Set(JSONifyCSStimProfile(stim_loc_profiles[i]), "analysis_data", "stim_loc_profiles", i);
+    }
+
+    // data_log.Set(exper_classif_settings, "analysis_data", "exper_classif_settings");
+    // data_log.Set(abs_event_times, "analysis_data", "abs_event_times");
+    // data_log.Save(File::FullPath(hndl->session_dir,
+    //       "experiment_data.json"));
+    hndl->event_log.Log(data_log.Line());
+
     Stop_Handler();
     hndl->StopExperiment();
   }
@@ -227,10 +302,9 @@ namespace CML {
   }
 
 
-  void ExperCPS::StimulationDecision_Handler(const bool& stim_event, const uint64_t& stim_time) {
-    f64 cur_time_sec = RC::Time::Get();
-    // uint64_t cur_time_ms = uint64_t(1000*(cur_time_sec - exp_start)+0.5);
-    uint64_t cur_time_ms = stim_time;
+  void ExperCPS::StimDecision_Handler(const bool& stim_event, const TaskClassifierSettings& classif_settings, const f64& stim_time_from_start_sec) {
+    // TODO: RDD: add docstrings for everything
+    uint64_t cur_time_ms = uint64_t(1000*(stim_time_from_start_sec - exp_start)+0.5);
 
     // TODO: RDD: ensure that last events in all saved event arrays can be disambiguated 
     // (i.e., if any array is longer than another because the experiment stopped in some particular place, 
@@ -257,7 +331,7 @@ namespace CML {
     ClassificationType classif_state = task_classifier_settings.cl_type;
 
     // pre-stim/post-stim events indexed with cur_ev
-    CSStimChannel stim_params = stim_param_sets[cur_ev];
+    CSStimProfile stim_params = stim_profiles[cur_ev];
     ExpEvent cur_event = exp_events[cur_ev];
 
 
@@ -286,19 +360,21 @@ namespace CML {
         //               info back in some way? no, we cannot receive it back, should be covered with Elemem 
         //               stim constraints being a superset of CereStim constraints, should all throw exceptions
         //               and shut down the experiment
-        // assert(stim_params == stim_param_sets[cur_ev]);
-        // if (stim_params != stim_param_sets[cur_ev]) {
+        // assert(stim_params == stim_profiles[cur_ev]);
+        // if (stim_params != stim_profiles[cur_ev]) {
         //   // TODO: RDD: add warning message here
         //   warning
-        //   stim_param_sets[cur_ev] = stim_params;
+        //   stim_profiles[cur_ev] = stim_params;
         // }
         // prev_sham = classif_state == ClassificationType::SHAM;
         // get post-stim classifier output
         // TODO: RDD/JPB: when will stim event offset be relative to this callback being called?
         //                can we get that info from CereStim? Or can we use nominal duration instead?
-        uint64_t stim_offset_ms = abs_event_times[abs_event_times.size()] + stim_params.duration;
+        uint64_t stim_offset_ms = abs_event_times[abs_event_times.size()] + stim_params[0].duration;
         next_min_event_time = stim_offset_ms + poststim_classif_lockout_ms;
         next_classif_state = ClassificationType::NOSTIM;
+        if (classif_state == ClassificationType::STIM) { DoStimEvent(stim_profiles[cur_ev]); }
+        else { DoShamEvent(); }
       }
       else { // good memory state detected and stim event would not have occurred
         // TODO: RDD/JPB: add some timing control? or maximize classification rate? in any case should record event times
@@ -307,14 +383,16 @@ namespace CML {
         // keep classifying until a poor memory state is detected
         next_min_event_time = cur_time_ms;
         next_classif_state = classif_state;
+        ClassifyingPanel();
         // TODO always access results[], classif_results[], and any other event arrays with last event
       }
     }
     else if (classif_state == ClassificationType::NOSTIM) { // received post-stim/post-sham classification event
       // TODO: RDD/JPB: get stim_offset_ms from classifier or from CereStim handler class, don't compute here if possible
       // though errors wouldn't accumulate too much
-      uint64_t stim_offset_ms = abs_event_times[abs_event_times.size() - 1] + stim_params.duration;
+      uint64_t stim_offset_ms = abs_event_times[abs_event_times.size() - 1] + stim_params[0].duration;
       next_min_event_time = stim_offset_ms + stim_lockout_ms;
+      status_panel->SetEvent("UPDATING");
 
       double biomarker = result - classif_results[classif_results.size() - 1];
       // TODO add struct for storing everything related to a full pre-post event (i.e., pre-stim classifier event time, stim event time, post-stim classifier time, classifier results, biomarker, stim parameters, ideally Bayesian search hps? definitely should store those separately...)
@@ -323,13 +401,13 @@ namespace CML {
         UpdateSearch(stim_params, cur_event, biomarker);
         GetNextEvent();
         cur_ev++;
-        CSStimChannel next_stim_params = stim_param_sets[cur_ev];
+        UpdateSearchPanel(stim_profiles[cur_ev]);
         
         // run pre-event (stim configuration) as soon as stim parameters are available
+        DoConfigEvent(stim_profiles[cur_ev]);
         if (cur_ev < exp_events.size()) {
-          CSStimProfile stim_profile;
-          stim_profile += next_stim_params;
-          hndl->stim_worker.ConfigureStimulation(stim_profile);
+          CSStimProfile next_stim_profile = stim_profiles[cur_ev];
+          hndl->stim_worker.ConfigureStimulation(next_stim_profile);
         }
         else {
           Throw_RC_Error("Event requested before being allocated by the search process.");
@@ -345,8 +423,10 @@ namespace CML {
       else {
         next_classif_state = ClassificationType::SHAM;
       }
+      status_panel->SetEvent("CLASSIFYING");
     }
     else if (classif_state == ClassificationType::NORMALIZE) {
+      ClassifyingPanel();
       next_min_event_time = cur_time_ms + normalize_lockout_ms;
       if (classif_results.size() < n_normalize_events) {
         // TODO log event info
@@ -373,13 +453,13 @@ namespace CML {
     }
     prev_sham = next_classif_state == ClassificationType::SHAM;
     WaitUntil(next_min_event_time);
-    // TODO: RDD?JPB: use id = 0 for now, how much performance improvement would classifier queueing add?
+    // TODO: RDD/JPB: use id = 0 for now, how much performance improvement would classifier queueing add?
+    // TODO: RDD: remove classify_ms
     hndl->task_classifier_manager->ProcessClassifierEvent(
         next_classif_state, classify_ms, classif_id);
     classif_id++;
 
-    // TODO are the next 15 or so commented lines all for logging? how are we logging in general?
-    // JSONFile data;
+    //  JSONFile data;
     // data.Set(result, "result");
     // data.Set(stim, "decision");
 
@@ -387,19 +467,27 @@ namespace CML {
     //     switch (task_classifier_settings.cl_type) {
     //       case ClassificationType::STIM: return "STIM_DECISON";
     //       case ClassificationType::SHAM: return "SHAM_DECISON";
+    //       case ClassificationType::NOSTIM: return "NOSTIM_DECISION";
+    //       case ClassificationType::NORMALIZE: return "NORMALIZE_NOSTIM_DECISION";
     //       default: Throw_RC_Error("Invalid classification type received.");
     //     }
     // }();
 
     // auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
     // hndl->event_log.Log(resp.Line());
+    // RC_DEBOUT(resp);
 
-    // code for stimulating:
-    // if (stim_type && stim) {
-    //   // TODO: JPB: (need) Temporarily remove call to stimulate
-    //   hndl->stim_worker.Stimulate();
-    // }
   }
 
+
+  void ExperCPS::ComputeBestStimProfile() {
+    // TODO: RDD: extend to tuning with arbitrary stim parameters
+    CMatrix* best_sol_mat = search.get_best_solution();
+    CSStimChannel chan = stim_profiles[0][0];
+    chan.amplitude = best_sol_mat->getVal(0);
+    best_stim_profile += chan;
+
+    delete best_sol_mat;
+  }
 }
 

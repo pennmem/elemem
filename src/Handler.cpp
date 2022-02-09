@@ -342,7 +342,7 @@ namespace CML {
       return;
     }
 
-    if (settings.grid_exper) {
+    if (settings.grid_exper) {  // OPS
       size_t grid_size = settings.GridSize();
       if (grid_size == 0) {
         ErrorWin("Error!  At least one value must be approved for each "
@@ -354,6 +354,44 @@ namespace CML {
       Data1D<CSStimProfile> grid_profiles = CreateGridProfiles();
       exper_ops.SetOPSSpecs(settings.ops_specs);
       exper_ops.SetStimProfiles(grid_profiles);
+    }
+    else if (!settings.task_driven) {  // CPS
+      // from OPS-style configuration attempt
+      // Data1D<CSStimProfile> discrete_stim_param_sets = CreateDiscreteStimProfiles();
+
+      // FR5-style configuration attempt
+      // Count all approved.
+      CSStimProfile cnt_profile;
+      for (size_t c=0; c<settings.stimconf.size(); c++) {
+        if (settings.stimconf[c].approved) {
+          cnt_profile += settings.stimconf[c].params;
+        }
+      }
+      if (cnt_profile.size() == 0 && stim_mode != StimMode::NONE) {
+        if (!ConfirmWin("No stim channels approved on experiment configured "
+             "with stimulation.  Proceed?")) {
+          return;
+        }
+      }
+      if (cnt_profile.size() > 0 && stim_mode == StimMode::NONE) {
+        ErrorWin("Error!  Stim channels enabled on experiment with "
+                 "experiment:stim_mode set to \"none\".");
+        return;
+      }
+
+      // But default select only those with no stimtag.
+      Data1D<CSStimProfile> discrete_stim_param_sets;
+      for (size_t c=0; c<settings.stimconf.size(); c++) {
+        if (settings.stimconf[c].approved &&
+            settings.stimconf[c].stimtag.empty()) {
+          CSStimProfile profile;
+          profile += settings.stimconf[c].params;
+          discrete_stim_param_sets += profile;
+        }
+      }
+
+      exper_cps.SetCPSSpecs(settings.cps_specs);
+      exper_cps.SetStimProfiles(discrete_stim_param_sets);
     }
     else {
       // Count all approved.
@@ -398,14 +436,19 @@ namespace CML {
     File::MakeDir(session_dir);
 
     // Save updated experiment configuration.
-    // TODO: RDD: add CPS config update (session/subject specific, loaded at runtime)
     JSONFile current_config = *(settings.exp_config);
     if (settings.exper.find("OPS") == 0) {
       settings.UpdateConfOPS(current_config);
     }
+    else if (settings.exper.find("CPS") == 0) {
+      settings.UpdateConfCPS(current_config);
+    }
     else {
       settings.UpdateConfFR(current_config);
     }
+    // TODO: RDD: does this overwrite an existing config file? Is there an expectation that config settings
+    //            could be edited internally? if so, why wouldn't an error just be raised if some internal 
+    //            config constraint were violated instead of a silent conversion?
     current_config.Save(File::FullPath(session_dir,
           "experiment_config.json"));
 
@@ -546,10 +589,6 @@ namespace CML {
       new_chans = settings.LoadElecConfig(base_dir);
       settings.LoadChannelSettings();
 
-      if (settings.grid_exper) {
-        settings.LoadStimParamGrid();
-      }
-
       RStr stim_mode_str;
       settings.exp_config->Get(stim_mode_str, "experiment", "stim_mode");
       stim_mode_str.ToLower();
@@ -567,7 +606,17 @@ namespace CML {
           settings.grid_exper = false;
           settings.task_driven = false;
           classifier->RegisterCallback("CPSClassifierDecision", exper_cps.ClassifierDecision);
+          task_stim_manager->SetCallback(exper_cps.StimDecision);
         }
+      }
+
+      // TODO: RC: Riley moved this LoadStimParamGrid call from above since settings.grid_exper is edited in the 
+      //           StimMode::CLOSED block. I imagine there's no issue with this but wanted to flag it
+      if (settings.grid_exper) {
+        settings.LoadStimParamGrid();
+      }
+      else if (!settings.task_driven) {  // then CPS
+        settings.LoadStimParamsCPS();
       }
     }
     catch (ErrorMsg&) {
@@ -613,6 +662,20 @@ namespace CML {
       main_window->GetLocConfigDur().SetOptions(dur_strs);
 
       main_window->SwitchToStimPanelLoc();
+    }
+    // TODO: RDD: update for CPS with min/max safety testing interface
+    else if (settings.exper.find("CPS") == 0) {
+      size_t config_box_cnt = std::min(settings.stimconf.size(),
+          main_window->StimConfigCount());
+      for (size_t c=0; c<config_box_cnt; c++) {
+        main_window->GetStimConfigBox(c).SetChannel(
+            settings.min_stimconf[c].params, settings.max_stimconf[c].params,
+            settings.stimconf[c].label, settings.stimconf[c].stimtag, c);
+        main_window->GetStimConfigBox(c).SetParameters(
+            settings.stimconf[c].params);
+      }
+
+      main_window->SwitchToStimPanelFR();
     }
     else {
       size_t config_box_cnt = std::min(settings.stimconf.size(),
@@ -704,6 +767,38 @@ namespace CML {
     return grid_profiles;
   }
 
+  RC::Data1D<CSStimProfile> Handler::CreateDiscreteStimProfiles() {
+    Data1D<CSStimProfile> profiles;
+
+    for (size_t c=0; c<settings.stimgrid_chan_on.size(); c++) {
+      if (!settings.stimgrid_chan_on[c]) { continue; }
+      auto& chan = settings.stimconf[c];
+      // TODO: RDD: tuning amplitude for now; update to tune arbitrary stim parameters
+      // for (size_t a=0; a<settings.stimgrid_amp_on.size(); a++) {
+      //   if (!settings.stimgrid_amp_on[a]) { continue; }
+      //   auto& amp = settings.stimgrid_amp_uA[a];
+      for (size_t f=0; f<settings.stimgrid_freq_on.size(); f++) {
+        if (!settings.stimgrid_freq_on[f]) { continue; }
+        auto& freq = settings.stimgrid_freq_Hz[f];
+        for (size_t d=0; d<settings.stimgrid_dur_on.size(); d++) {
+          if (!settings.stimgrid_dur_on[d]) { continue; }
+          auto& dur = settings.stimgrid_dur_us[d];
+
+          CSStimChannel target = chan.params;
+          target.amplitude = 0;
+          target.frequency = freq;
+          target.duration = dur;
+
+          CSStimProfile profile;
+          profile += target;
+
+          profiles += profile;
+        }
+      }
+    }
+
+    return profiles;
+  }
 
   void Handler::SetupClassifier() {
     size_t binning_freq;

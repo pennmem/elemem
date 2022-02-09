@@ -20,7 +20,7 @@ namespace CML {
   class StatusPanel;
 
   using ClassifierCallback = RCqt::TaskCaller<const double, const TaskClassifierSettings>;
-  using StimulationCallback = RCqt::TaskCaller<const bool, const uint64_t>;
+  using StimulationCallback = RCqt::TaskCaller<const bool, const TaskClassifierSettings, const f64>;
 
   class ExperCPS : public RCqt::WorkerThread, public QObject {
     public:
@@ -35,7 +35,7 @@ namespace CML {
     RCqt::TaskCaller<const CPSSpecs> SetCPSSpecs =
       TaskHandler(ExperCPS::SetCPSSpecs_Handler);
 
-    RCqt::TaskCaller<const RC::Data1D<CSStimChannel>> SetStimProfiles =
+    RCqt::TaskCaller<const RC::Data1D<CSStimProfile>> SetStimProfiles =
       TaskHandler(ExperCPS::SetStimProfiles_Handler);
 
     RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
@@ -50,8 +50,8 @@ namespace CML {
     ClassifierCallback ClassifierDecision =
       TaskHandler(ExperCPS::ClassifierDecision_Handler);
 
-    StimulationCallback StimulationDecision =
-      TaskHandler(ExperCPS::StimulationDecision_Handler);
+    StimulationCallback StimDecision =
+      TaskHandler(ExperCPS::StimDecision_Handler);
 
     protected:
     void SetCPSSpecs_Handler(const CPSSpecs& new_cps_specs) {
@@ -59,7 +59,7 @@ namespace CML {
     }
 
     void SetStimProfiles_Handler(
-        const RC::Data1D<CSStimChannel>& new_stim_profiles);
+        const RC::Data1D<CSStimProfile>& new_stim_loc_profiles);
 
 
     void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
@@ -67,17 +67,22 @@ namespace CML {
     }
 
     void GetNextEvent();
-    void UpdateSearch(const CSStimChannel stim_info, const ExpEvent ev, const double biomarker);
-    void DoConfigEvent(RC::Caller<> event);
-    void DoStimEvent(RC::Caller<> event);
+    void UpdateSearch(const CSStimProfile stim_info, const ExpEvent ev, const double biomarker);
+    void ComputeBestStimProfile();
+
+    void UpdateSearchPanel(const CSStimProfile& profile);
+    void ClassifyingPanel();
+    void DoConfigEvent(const CSStimProfile& profile);
+    void DoStimEvent(const CSStimProfile& profile);
     void DoShamEvent();
+    JSONFile JSONifyCSStimProfile(const CSStimProfile& profile);
 
     void Start_Handler();
     void Stop_Handler();
     void InternalStop();
 
     void ClassifierDecision_Handler(const double& result, const TaskClassifierSettings& task_classifier_settings);
-    void StimulationDecision_Handler(const bool& stim_event, const uint64_t& stim_time);
+    void StimDecision_Handler(const bool& stim_event, const TaskClassifierSettings& task_classifier_settings, const f64& stim_time_from_start_sec);
     protected slots:
     void RunEvent();
     protected:
@@ -112,10 +117,10 @@ namespace CML {
     // TODO will want to update this to an extenxible container or else ensure list is long enough for all possible events, e.g.,
     // include all potential stim events as well, potentially being recorded as non-stim events if stim wasn't 
     // ordered on basis of biomarkers
-    RC::Data1D<CSStimChannel> stim_param_sets;
+    RC::Data1D<CSStimProfile> stim_profiles;
     // set of stimulation profiles used to indicate unique stim locations
     // ordered by testing priority (unknown number of stim events per experiment)
-    RC::Data1D<CSStimChannel> stim_loc_param_sets;
+    RC::Data1D<CSStimProfile> stim_loc_profiles;
     RC::Data1D<double> classif_results;
     RC::Data1D<ExpEvent> exp_events;
     RC::Data1D<bool> stim_event_flags;
@@ -129,6 +134,7 @@ namespace CML {
     uint64_t classif_id;
 
     CPSSpecs cps_specs;
+    CSStimProfile best_stim_profile;
 
 
 

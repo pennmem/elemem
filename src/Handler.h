@@ -154,6 +154,7 @@ namespace CML {
     void NewEEGSave();
     void SaveDefaultEEG();
     RC::Data1D<CSStimProfile> CreateGridProfiles();
+    RC::Data1D<CSStimProfile> CreateDiscreteStimProfiles();
     void SetupClassifier();
 
     void CloseExperimentComponents();
