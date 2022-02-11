@@ -12,6 +12,13 @@ namespace CML {
     Reset();
   }
 
+  /// Get the size of the internal Data1Ds
+  /** @return The size of the internal Data1Ds
+   */
+  size_t RollingStats::size() {
+    return means.size();
+  }
+
   /// Reset all of the values back to 0 
   void RollingStats::Reset() {
     count = 0;
@@ -37,13 +44,16 @@ namespace CML {
   /// Z-score the data with the current statistics
   /** @param The data to be z-scored
    */
-  RC::Data1D<double> RollingStats::ZScore(const RC::Data1D<double>& data) {
+  RC::Data1D<double> RollingStats::ZScore(const RC::Data1D<double>& data, bool div_by_zero_eq_zero) {
     if (data.size() != means.size())
       Throw_RC_Type(Bounds, (RC::RStr("Data1D size mismatch between data (") + data.size() + ") and means (" + means.size() + ")").c_str());
     RC::Data1D<double> zscored_data(data.size());
     StatsData stats = GetStats();
     RC_ForIndex(i, data) {
-      zscored_data[i] = (data[i] - stats.means[i]) / stats.sample_std_devs[i];
+      if (div_by_zero_eq_zero && stats.sample_std_devs[i] == 0)
+        zscored_data[i] = 0;
+      else
+        zscored_data[i] = (data[i] - stats.means[i]) / stats.sample_std_devs[i];
     }
     return zscored_data;
   }

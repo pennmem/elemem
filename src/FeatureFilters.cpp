@@ -1,4 +1,5 @@
 #include "FeatureFilters.h"
+#include "Popup.h"
 #include <cmath>
 
 
@@ -8,7 +9,7 @@ namespace CML {
       ButterworthSettings butterworth_settings, MorletSettings morlet_settings,
       NormalizePowersSettings np_set) 
 	  : bipolar_reference_channels(bipolar_reference_channels),
-	  normalize_powers(np_set.num_events, np_set.num_chans, np_set.num_freqs) {
+	  normalize_powers(np_set) {
     butterworth_transformer.Setup(butterworth_settings);
     morlet_transformer.Setup(morlet_settings);
   }
@@ -29,15 +30,21 @@ namespace CML {
       uint8_t pos = bipolar_reference_channels[i].pos;
       uint8_t neg = bipolar_reference_channels[i].neg;
 
-      if (pos >= in_datar.size()) {
+      if (pos >= in_datar.size()) { // Pos channel not in data
         Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
               " is not a valid channel. The number of channels available is " +
               RC::RStr(in_datar.size())).c_str());
-      } else if (neg >= in_datar.size()) {
+      } else if (neg >= in_datar.size()) { // Neg channel not in data
         Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
               " is not a valid channel. The number of channels available is " +
               RC::RStr(in_datar.size())).c_str());
-      } else if (in_datar[pos].size() != in_datar[neg].size()) {
+      } else if (in_datar[pos].IsEmpty()) { // Pos channel is empty
+        Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
+              " does not have any data.").c_str());
+      } else if (in_datar[neg].IsEmpty()) { // Neg channel is empty
+        Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
+              " does not have any data.").c_str());
+      } else if (in_datar[pos].size() != in_datar[neg].size()) { // Pos and Neg channel sizes don't match
         Throw_RC_Error(("Size of positive channel " + RC::RStr(pos) +
               " (" + RC::RStr(in_datar[pos].size()) + ") " +
               "and size of negitive channel " + RC::RStr(neg) +
@@ -76,6 +83,9 @@ namespace CML {
     RC_ForIndex(i, in_datar) { // Iterate over channels
       auto& in_events = in_datar[i];
       auto& out_events = out_datar[i];
+
+      if (in_events.IsEmpty()) { continue; } // Skip empty channels
+
       size_t in_eventlen = in_events.size();
       size_t out_eventlen = in_eventlen + num_mirrored_samples * 2;
       out_events.Resize(out_eventlen);
@@ -137,7 +147,7 @@ namespace CML {
     * @param The data to be averaged
     * @return The time averaged EEGPowers
     */
-  RC::APtr<EEGPowers> FeatureFilters::AvgOverTime(RC::APtr<const EEGPowers>& in_data) {
+  RC::APtr<EEGPowers> FeatureFilters::AvgOverTime(RC::APtr<const EEGPowers>& in_data, bool ignore_inf_and_nan) {
     auto& in_datar = in_data->data;
     size_t freqlen = in_datar.size3();
     size_t chanlen = in_datar.size2();
@@ -153,7 +163,12 @@ namespace CML {
         auto& in_events = in_datar[i][j];
         auto& out_events = out_datar[i][j];
         out_events[0] = std::accumulate(in_events.begin(), in_events.end(),
-                          0, accum_event) / static_cast<double>(in_eventlen);
+                          0.0, accum_event) / static_cast<double>(in_eventlen);
+        if (ignore_inf_and_nan && !std::isfinite(out_events[0])) {
+          out_events[0] = 0;
+          RC::RStr inf_nan_error = RC::RStr("The value at frequency ") + i + " and channel " + j + " is not finite";
+          DEBLOG_OUT(inf_nan_error);
+        }
       }
     }
 
@@ -162,25 +177,49 @@ namespace CML {
 
   void FeatureFilters::Process_Handler(RC::APtr<const EEGData>& data, const TaskClassifierSettings& task_classifier_settings) {
     RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
-	if (!callback.IsSet()) Throw_RC_Error("FeatureFilters callback not set");
+    if (!callback.IsSet()) Throw_RC_Error("FeatureFilters callback not set");
 
     auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
-    auto mirrored_data = MirrorEnds(bipolar_ref_data, 100).ExtractConst();
-    auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
+
+    // This calculates the mirroring duration based on the minimum statistical morlet duration 
+    size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
+    auto mirrored_data = MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
+
+    size_t num_bipolar_ref_events = task_classifier_settings.duration_ms * bipolar_ref_data->sampling_rate / 1000;
+    size_t num_mirroring_events = mirroring_duration_ms * mirrored_data->sampling_rate / 1000;
+    size_t num_all_mirrored_events = num_bipolar_ref_events + (num_mirroring_events * 2);
+    auto morlet_data = morlet_transformer.Filter(mirrored_data, num_all_mirrored_events).ExtractConst();
+    RC_DEBOUT(num_bipolar_ref_events, mirroring_duration_ms, num_all_mirrored_events)
+
     auto log_data = Log10Transform(morlet_data, log_min_power_clamp).ExtractConst();
+    auto avg_data = AvgOverTime(log_data, true).ExtractConst();
+
+    // TODO: JPB (need) Remove debug code in FeatureFilters::Process_Handler
+    RC_DEBOUT(data->data.size())
+    RC_DEBOUT(bipolar_ref_data->data.size())
+    RC_DEBOUT(data->data[0].size())
+    RC_DEBOUT(mirrored_data->data[0].size())
+    RC_DEBOUT(morlet_data->data[0][0].size())
+    PrintEEGData(*data, 2);
+    PrintEEGData(*bipolar_ref_data, 2);
+    PrintEEGData(*mirrored_data, 2);
+    PrintEEGPowers(*morlet_data, 1, 2);
+    PrintEEGPowers(*log_data, 1, 2);
+    PrintEEGPowers(*avg_data, 1, 10);
 
     // Normalize Powers
     switch (task_classifier_settings.cl_type) {
       case ClassificationType::NORMALIZE:
-        normalize_powers.Update(log_data);
-        //normalize_powers.PrintStats();
+        normalize_powers.Update(avg_data);
+        normalize_powers.PrintStats(1, 10);
         break;
       case ClassificationType::STIM:
       case ClassificationType::SHAM:
       {
-        auto norm_data = normalize_powers.ZScore(log_data).ExtractConst();
-        auto avg_data = AvgOverTime(norm_data).ExtractConst();
-        callback(avg_data, task_classifier_settings);
+        auto norm_data = normalize_powers.ZScore(avg_data, true).ExtractConst();
+        RC_DEBOUT(RC::RStr("NORM POWERS"));
+        PrintEEGPowers(*norm_data, 1, 20);
+        callback(norm_data, task_classifier_settings);
         break;
       }
       default: Throw_RC_Error("Invalid classification type received.");

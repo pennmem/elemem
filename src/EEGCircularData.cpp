@@ -66,7 +66,7 @@ namespace CML {
       circular_data.sampling_rate = new_data->sampling_rate;
       circ_datar.Resize(new_datar.size());
       RC_ForIndex(i, circ_datar) { // Iterate over channels
-        // TODO: JPB: (need) This if statement is a speedup, but could be an issue if a wire is loose at first
+        // TODO: JPB: (feature) This if statement is a speedup, but could be an issue if a wire is loose at first
         //if (!new_datar[i].IsEmpty()) { // Skip the empty channels
         circ_datar[i].Resize(circular_data_len);
         circ_datar[i].Zero();
