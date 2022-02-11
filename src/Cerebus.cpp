@@ -114,10 +114,6 @@ namespace CML {
       throw CBException(res, "Open of Neuroport failed.", instance);
     }
 
-    for (size_t i=0; i<cbNUM_ANALOG_CHANS; i++) {
-      trial.samples[i] = reinterpret_cast<void*>(channel_data[i].data.data());
-    }
-
     is_open = true;
   }
 
@@ -232,8 +228,10 @@ namespace CML {
     BeOpen();
 
     // Set vector sizes to maximum allowed.
+    channel_data.resize(cbNUM_ANALOG_CHANS);
     for (uint32_t c=0; c<channel_data.size(); c++) {
       channel_data[c].data.resize(cbSdk_CONTINUOUS_DATA_SAMPLES);
+      trial.samples[c] = reinterpret_cast<void*>(channel_data[c].data.data());
     }
 
     cbSdkResult res = cbSdkInitTrialData(instance, 1, nullptr, &trial,

@@ -192,10 +192,6 @@ namespace CML {
 
 
   void MainWindow::RegisterEEGDisplay_Handler() {
-    // By call in Elemem.cpp sequenced after LoadSysConfig.
-    // It must stay this way.
-    hndl->InitializeChannels();
-
     hndl->eeg_acq.RegisterCallback("EEGDisplay", eeg_disp->UpdateData);
   }
 

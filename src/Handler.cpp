@@ -124,7 +124,6 @@ namespace CML {
     RC_DEBOUT(RC::RStr("TESTING"));
     TestAllCode();
     #endif
-    
   }
 
   void Handler::CerebusTest_Handler() {

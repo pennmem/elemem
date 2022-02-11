@@ -23,7 +23,7 @@ namespace CML {
       return;
     }
 
-    if (eeg_source.IsNull()) {
+    if (eeg_source.IsNull() || !channels_initialized) {
       return;
     }
 
@@ -90,6 +90,7 @@ namespace CML {
 
     eeg_source->InitializeChannels(sampling_rate);
 
+    channels_initialized = true;
     BePollingIfCallbacks();
   }
 
@@ -122,6 +123,7 @@ namespace CML {
     if (eeg_source.IsSet()) {
       eeg_source->Close();
     }
+    channels_initialized = false;
     StopEverything();
   }
 
@@ -146,6 +148,9 @@ namespace CML {
 
 
   void EEGAcq::BePollingIfCallbacks() {
+    if (DirectCallingMode()) {
+      return;
+    }
     BeAllocatedTimer();
     if (!acq_timer->isActive() && data_callbacks.size() > 0) {
       acq_timer->start(polling_interval_ms);

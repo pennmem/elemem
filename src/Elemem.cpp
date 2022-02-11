@@ -23,12 +23,17 @@ int main (int argc, char *argv[]) {
     RC::APtr<CML::Handler> hndl(new CML::Handler());
 
     CML::MainWindow main_window(hndl);
-    hndl->SetMainWindow(&main_window);
 
-    hndl->LoadSysConfig();  // Must come before RegisterEEGDisplay.
-    hndl->Initialize();
+    {
+      RCqt::Worker::DirectCallingScope direct;
+
+      hndl->SetMainWindow(&main_window);
+
+      hndl->LoadSysConfig();  // Must come before RegisterEEGDisplay.
+      hndl->Initialize();
+    }
+
     main_window.RegisterEEGDisplay();
-
     main_window.show();
 
     retval = app.exec();

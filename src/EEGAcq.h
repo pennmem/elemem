@@ -25,7 +25,7 @@ namespace CML {
     RCqt::TaskCaller<RC::APtr<EEGSource>> SetSource =
       TaskHandler(EEGAcq::SetSource_Handler);
 
-    RCqt::TaskCaller<const size_t> InitializeChannels =
+    RCqt::TaskBlocker<const size_t> InitializeChannels =
       TaskHandler(EEGAcq::InitializeChannels_Handler);
 
     RCqt::TaskCaller<> StartingExperiment =
@@ -67,6 +67,7 @@ namespace CML {
 
     RC::APtr<QTimer> acq_timer;
     int polling_interval_ms = 5;
+    bool channels_initialized = false;
 
     struct TaggedCallback {
       RC::RStr tag;
