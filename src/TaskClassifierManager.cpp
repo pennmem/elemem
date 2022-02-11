@@ -7,8 +7,8 @@
 
 namespace CML {
   TaskClassifierManager::TaskClassifierManager(RC::Ptr<Handler> hndl,
-    size_t sampling_rate, size_t circular_buffer_len, size_t bin_frequency)
-    : hndl(hndl), circular_data(sampling_rate, circular_buffer_len), sampling_rate(sampling_rate) {
+    size_t sampling_rate, size_t duration_ms, size_t bin_frequency)
+    : hndl(hndl), circular_data(sampling_rate, duration_ms), sampling_rate(sampling_rate) {
     callback_ID = RC::RStr("TaskClassifierManager_") + bin_frequency;
     task_classifier_settings.binned_sampling_rate = bin_frequency;
 
@@ -62,35 +62,6 @@ namespace CML {
       hndl->event_log.Log("Skipping stim event, another stim event is already waiting (collecting EEGData)");
     }
   }
-
-  //void TaskClassifierManager::ClassifierDecision_Handler(const double& result,
-  //  const TaskClassifierSettings& task_classifier_settings) {
-  //  RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
-  //  bool stim = result < 0.5;
-  //  bool stim_type =
-  //    (task_classifier_settings.cl_type == ClassificationType::STIM);
-
-  //  JSONFile data;
-  //  data.Set(result, "result");
-  //  data.Set(stim, "decision");
-
-  //  const RC::RStr type = [&] {
-  //      switch (task_classifier_settings.cl_type) {
-  //        case ClassificationType::STIM: return "STIM_DECISON";
-  //        case ClassificationType::SHAM: return "SHAM_DECISON";
-  //        default: Throw_RC_Error("Invalid classification type received.");
-  //      }
-  //  }();
-
-  //  auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
-  //  hndl->event_log.Log(resp.Line());
-  //  RC_DEBOUT(resp);
-
-  //  if (stim_type && stim) {
-  //    // TODO: JPB: (need) Temporarily remove call to stimulate
-  //    //hndl->stim_worker.Stimulate();
-  //  }
-  //}
 
   void TaskClassifierManager::SetCallback_Handler(const TaskClassifierCallback& new_callback) {
     callback = new_callback;

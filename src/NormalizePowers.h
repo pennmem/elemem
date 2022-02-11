@@ -20,6 +20,8 @@ namespace CML {
     public:
     NormalizePowers(const NormalizePowersSettings& np_set);
     ~NormalizePowers();
+
+    // Rule of 3.
     NormalizePowers(const NormalizePowers& other) = delete;
     NormalizePowers& operator=(const NormalizePowers& other) = delete;
 

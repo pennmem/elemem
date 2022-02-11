@@ -47,11 +47,14 @@ namespace CML {
     public:
     EEGData(size_t sampling_rate) : sampling_rate(sampling_rate) {}
     size_t sampling_rate;
+    size_t sample_len;
     RC::Data1D<RC::Data1D<int16_t>> data;
   };
 
   void PrintEEGData(const EEGData& data);
   void PrintEEGData(const EEGData& data, size_t num_chans);
+  void PrintEEGDataPythonInput(const EEGData& data);
+  void PrintEEGDataPythonInput(const EEGData& data, size_t num_chans);
 }
 
 #endif // EEGDATA_H
