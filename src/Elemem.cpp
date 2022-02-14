@@ -1,5 +1,6 @@
 #include "Handler.h"
 #include "MainWindow.h"
+#include "Popup.h"
 #include "RC/APtr.h"
 #include "RC/Data1D.h"
 #include "RC/RStr.h"
@@ -24,13 +25,43 @@ int main (int argc, char *argv[]) {
 
     CML::MainWindow main_window(hndl);
 
-    {
+    try { // Preserve this scope for DirectCallingScope.
       RCqt::Worker::DirectCallingScope direct;
 
       hndl->SetMainWindow(&main_window);
 
       hndl->LoadSysConfig();  // Must come before RegisterEEGDisplay.
       hndl->Initialize();
+    }
+    // We need to separately catch all the exceptions from the
+    // DirectCallingScope block, as RCQApplication::notify is not used.
+    catch (RC::ErrorMsgFatal& err) {
+      RC::RStr errormsg = RC::RStr("Fatal Error:  ")+err.what();
+      CML::ErrorWin(errormsg);
+      exit(-1);
+    }
+    catch (RC::ErrorMsgNote& err) {
+      RC::RStr errormsg = RC::RStr(err.GetError());
+      CML::ErrorWin(errormsg);
+    }
+    catch (RC::ErrorMsg& err) {
+      RC::RStr errormsg = RC::RStr("Error:  ")+err.GetError();
+      RC::RStr logmsg = RC::RStr("Error:  ")+err.what();
+      CML::ErrorWin(errormsg, "Error", logmsg);
+    }
+  #ifndef NO_HDF5
+    catch (H5::Exception& ex) {
+      RC::RStr errormsg = RC::RStr("HDF5 Error:  ")+ex.getCDetailMsg();
+      CML::ErrorWin(errormsg);
+    }
+  #endif // NO_HDF5
+    catch (std::exception &ex) {
+      RC::RStr errormsg = RC::RStr("Unhandled exception: ") + ex.what();
+      CML::ErrorWin(errormsg);
+    }
+    catch (...) {
+      RC::RStr errormsg = "Unknown exception type";
+      CML::ErrorWin(errormsg);
     }
 
     main_window.RegisterEEGDisplay();
