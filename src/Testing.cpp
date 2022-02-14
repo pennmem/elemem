@@ -153,7 +153,7 @@ namespace CML {
 
     MorletTransformer morlet_transformer;
     morlet_transformer.Setup(mor_set);
-    RC::APtr<EEGPowers> out_powers = morlet_transformer.Filter(in_data, num_events);
+    RC::APtr<EEGPowers> out_powers = morlet_transformer.Filter(in_data);
 
     PrintEEGData(*in_data);
     PrintEEGPowers(*out_powers);
@@ -177,7 +177,7 @@ namespace CML {
 
     MorletTransformer morlet_transformer;
     morlet_transformer.Setup(mor_set);
-    RC::APtr<EEGPowers> out_powers = morlet_transformer.Filter(in_data, num_events);
+    RC::APtr<EEGPowers> out_powers = morlet_transformer.Filter(in_data);
 
     PrintEEGData(*in_data);
     PrintEEGPowers(*out_powers);
