@@ -163,6 +163,8 @@ namespace CML {
       amount_buffered -= sampling_rate;
       amount_written += sampling_rate;
     }
+
+    buffer.sample_len = amount_buffered; // Keep the buffer sample_len in line with the manual editing
   }
 }
 

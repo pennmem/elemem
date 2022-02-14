@@ -28,10 +28,6 @@ namespace CML {
     }
 
     try {
-      RC::APtr<EEGData> data_aptr = new EEGData(sampling_rate);
-      auto& data = data_aptr->data;
-      data.Resize(cbNUM_ANALOG_CHANS);
-
       auto& cereb_chandata = eeg_source->GetData();
 
       size_t max_len = 0;
@@ -42,6 +38,10 @@ namespace CML {
       if (max_len == 0) {
         return;
       }
+
+      RC::APtr<EEGData> data_aptr = new EEGData(sampling_rate, max_len);
+      auto& data = data_aptr->data;
+      data.Resize(cbNUM_ANALOG_CHANS);
 
       for(size_t i=0; i<cereb_chandata.size(); i++) {
         auto cereb_chan = cereb_chandata[i].chan;

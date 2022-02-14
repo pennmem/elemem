@@ -19,11 +19,11 @@ namespace CML {
 
   void EEGDisplay::SetSamplingRate(size_t sampling_rate) {
     data.sampling_rate = sampling_rate;
-    data_samples = window_seconds*sampling_rate;
+    data.sample_len = window_seconds*sampling_rate;
 
     data.data.Resize(num_data_chans);
     for (size_t i=0; i<data.data.size(); i++) {
-      data.data[i].Resize(data_samples);
+      data.EnableChan(i);
       data.data[i].Zero();
     }
     data_offset = 0;
@@ -54,7 +54,7 @@ namespace CML {
     int draw_mid_first = margin_top + draw_step/2;
     int draw_mid = draw_mid_first;
     xscale = (float(width - 1e-4 - margin_left - margin_right)) /
-        (data_samples-1);
+        (data.sample_len-1);
 
     for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
       size_t chan = eeg_channels[chan_i].channel;
@@ -78,9 +78,9 @@ namespace CML {
         SetPen(palette.NormToARGB(0.0f, 0.4f, 1.0f, 1.0f));
         QPointF last(qreal(margin_left), qreal(draw_mid - (data.data[chan][0]*yscale)));
         // Skip data for display, slicing at 500Hz.
-        size_t inc = data_samples / (window_seconds*500);
+        size_t inc = data.sample_len / (window_seconds*500);
 
-        for (x = inc; x < data_samples; x+=inc) {
+        for (x = inc; x < data.sample_len; x+=inc) {
           QPointF current(qreal(x * xscale), qreal(draw_mid - (data.data[chan][x] * yscale)));
           painter.drawLine(last, current);
           last = current;
@@ -152,7 +152,7 @@ namespace CML {
     }
 
     data_offset += max_len;
-    data_offset = data_offset % data_samples;
+    data_offset = data_offset % data.sample_len;
 
     auto tdiff = timer.SinceStart();
     if (tdiff >= 0.03) {

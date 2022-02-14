@@ -2,6 +2,10 @@
 #include "RC/RStr.h"
 
 namespace CML {
+  void EEGData::EnableChan(size_t chan) {
+    data[chan].Resize(sample_len);
+  }
+
   void PrintEEGData(const EEGData& data) {
     auto& datar = data.data;
     size_t chanlen = datar.size();

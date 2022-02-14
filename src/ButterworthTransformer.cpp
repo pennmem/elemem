@@ -11,13 +11,13 @@ namespace CML {
 
   RC::APtr<EEGData> ButterworthTransformer::Filter(RC::APtr<const EEGData>& data, double freq) {
     // TODO: JPB: (feature) Impl Butterworth Filter
-    RC::APtr<EEGData> out_data = new EEGData(data->sampling_rate);
+    RC::APtr<EEGData> out_data = new EEGData(data->sampling_rate, data->sample_len);
     return out_data;
   } 
   
   RC::APtr<EEGData> ButterworthTransformer::Filter(RC::APtr<const EEGData>& data, double high_freq, double low_freq) {
     // TODO: JPB: (feature) Impl Butterworth Filter
-    RC::APtr<EEGData> out_data = new EEGData(data->sampling_rate);
+    RC::APtr<EEGData> out_data = new EEGData(data->sampling_rate, data->sample_len);
     return out_data;
   } 
 }

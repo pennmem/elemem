@@ -21,12 +21,12 @@ namespace CML {
   }
   
   RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate, size_t eventlen, size_t chanlen, int16_t offset) {
-    RC::APtr<EEGData> data = new EEGData(sampling_rate);
+    RC::APtr<EEGData> data = new EEGData(sampling_rate, eventlen);
     auto& datar = data->data;
   
     datar.Resize(chanlen);
     RC_ForIndex(i, datar) {
-      datar[i].Resize(eventlen);
+      data->EnableChan(i);
       RC_ForIndex(j, datar[i]) {
         datar[i][j] = i*eventlen + j + offset;
       }
@@ -165,7 +165,7 @@ namespace CML {
     RC::Data1D<double> freqs = {6, 9.75368155833899, 15.8557173235803, 25.7752696088736, 41.900628640881, 68.1142314762286, 110.727420568354, 180};
     RC::Data1D real_data = {1715, 1685, 1652, 1617, 1580, 1540, 1499, 1456, 1411, 1365, 1316, 1266, 1216, 1164, 1110, 1056, 1002, 946, 890, 833, 777, 720, 662, 606, 550, 492, 550, 606, 662, 720, 777, 833, 890, 946, 1002, 1056, 1110, 1164, 1216, 1266, 1316, 1365, 1411, 1456, 1499, 1540, 1580, 1617, 1652, 1685, 1715, 1742, 1768, 1791, 1811, 1828, 1843, 1854, 1862, 1868, 1870, 1870, 1866, 1860, 1850, 1837, 1822, 1803, 1781, 1757, 1729, 1698, 1664, 1628, 1589, 1547, 1502, 1456, 1407, 1355, 1300, 1244, 1186, 1124, 1063, 999, 933, 866, 797, 728, 657, 585, 513, 439, 364, 290, 216, 142, 67, -8, -82, -157, -230, -303, -374, -444, -514, -583, -650, -716, -779, -842, -903, -962, -1018, -1072, -1124, -1174, -1222, -1267, -1311, -1351, -1388, -1422, -1455, -1483, -1509, -1533, -1553, -1571, -1586, -1598, -1607, -1613, -1617, -1617, -1615, -1610, -1602, -1592, -1579, -1563, -1546, -1525, -1503, -1479, -1452, -1423, -1392, -1359, -1325, -1288, -1251, -1213, -1172, -1130, -1088, -1045, -1001, -956, -911, -865, -819, -773, -727, -681, -633, -587, -542, -498, -453, -409, -366, -325, -284, -244, -207, -169, -134, -99, -66, -35, -6, 21, 47, 71, 93, 113, 131, 147, 161, 173, 184, 192, 199, 203, 204, 205, 203, 200, 194, 187, 179, 168, 156, 143, 127, 111, 93, 75, 55, 34, 11, -12, -35, -59, -83, -109, -135, -161, -186, -211, -236, -262, -287, -262, -236, -211, -186, -161, -135, -109, -83, -59, -35, -12, 11, 34, 55, 75, 93, 111, 127, 143, 156, 168, 179, 187, 194, 200};
     size_t num_events = real_data.size();
-    EEGData eeg_data(sampling_rate);
+    EEGData eeg_data(sampling_rate, num_events);
     eeg_data.data.Resize(1);
     eeg_data.data[0].CopyFrom(real_data);
     RC::APtr<const EEGData> in_data = RC::MakeAPtr<const EEGData>(eeg_data);
@@ -205,7 +205,7 @@ namespace CML {
     // sample_std_devs should be 14.1421...
     // zscores should be 2.1213...
 
-	// TODO: JPB: (test) Add test for std_dev = 0, inf, -inf, nan
+    // TODO: JPB: (test) Add test for std_dev = 0, inf, -inf, nan
   }
 
   void TestNormalizePowers() {

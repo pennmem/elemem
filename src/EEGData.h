@@ -45,10 +45,14 @@ namespace CML {
    */
   class EEGData {
     public:
-    EEGData(size_t sampling_rate) : sampling_rate(sampling_rate) {}
+    EEGData(size_t sampling_rate, size_t sample_len)
+      : sampling_rate(sampling_rate), sample_len(sample_len) {}
+
     size_t sampling_rate;
-    size_t sample_len;
+    size_t sample_len; // Internal Data1D size is either 0 or sample_len
     RC::Data1D<RC::Data1D<int16_t>> data;
+
+    void EnableChan(size_t chan);
   };
 
   void PrintEEGData(const EEGData& data);

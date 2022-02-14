@@ -20,7 +20,7 @@ namespace CML {
     * @return EEGData of bipolar pair channels
     */
   RC::APtr<EEGData> FeatureFilters::BipolarReference(RC::APtr<const EEGData>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels) {
-    RC::APtr<EEGData> out_data = new EEGData(in_data->sampling_rate);
+    RC::APtr<EEGData> out_data = new EEGData(in_data->sampling_rate, in_data->sample_len);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
     size_t chanlen = bipolar_reference_channels.size();
@@ -52,10 +52,10 @@ namespace CML {
               "are different").c_str());
       }
 
-      auto& out_events = out_datar[i];
-      size_t eventlen = in_datar[pos].size();
-      out_events.Resize(eventlen);
+      // Don't skip empty channels, they are errors above
+      out_data->EnableChan(i);
 
+      auto& out_events = out_datar[i];
       RC_ForIndex(j, out_events) {
         out_events[j] = in_datar[pos][j] - in_datar[neg][j];
       }
@@ -73,8 +73,10 @@ namespace CML {
     */
   RC::APtr<EEGData> FeatureFilters::MirrorEnds(RC::APtr<const EEGData>& in_data, size_t mirrored_duration_ms) {
     size_t num_mirrored_samples = mirrored_duration_ms * in_data->sampling_rate / 1000;
+    size_t in_sample_len = in_data->sample_len;
+    size_t out_sample_len = in_sample_len + num_mirrored_samples * 2;
     
-    RC::APtr<EEGData> out_data = new EEGData(in_data->sampling_rate);
+    RC::APtr<EEGData> out_data = new EEGData(in_data->sampling_rate, out_sample_len);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
     size_t chanlen = in_datar.size();
@@ -85,16 +87,13 @@ namespace CML {
       auto& out_events = out_datar[i];
 
       if (in_events.IsEmpty()) { continue; } // Skip empty channels
+      out_data->EnableChan(i);
 
-      size_t in_eventlen = in_events.size();
-      size_t out_eventlen = in_eventlen + num_mirrored_samples * 2;
-      out_events.Resize(out_eventlen);
-
-      if (num_mirrored_samples >= in_eventlen) {
+      if (num_mirrored_samples >= in_sample_len) {
         Throw_RC_Error(("Number of events to mirror "
               "(" + RC::RStr(num_mirrored_samples) + ") " +
               "is greater than number of samples in channel " + RC::RStr(i) + " " +
-              "(" + RC::RStr(in_eventlen) + ")").c_str());
+              "(" + RC::RStr(in_sample_len) + ")").c_str());
       }
 
       // Copy starting samples in reverse, skipping the first item
@@ -106,9 +105,9 @@ namespace CML {
       out_events.CopyAt(num_mirrored_samples, in_events);
 
       // Copy ending samples in reverse, skipping the last item
-      size_t start_pos = num_mirrored_samples + in_eventlen;
+      size_t start_pos = num_mirrored_samples + in_sample_len;
       RC_ForRange(i, 0, num_mirrored_samples) {
-        out_events[start_pos+i] = in_events[in_eventlen-i-2];
+        out_events[start_pos+i] = in_events[in_sample_len-i-2];
       }
     }
 
