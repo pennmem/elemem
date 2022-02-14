@@ -84,7 +84,7 @@ namespace CML {
     }
 
     first_chan = 0;
-    last_chan = 127;
+    last_chan = 255;
     for (uint16_t c=first_chan; c<=last_chan; c++) {
       ConfigureChannel(c, samprate_index);
     }

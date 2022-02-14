@@ -6,11 +6,6 @@
 namespace CML {
   MorletTransformer::MorletTransformer() = default;
 
-  MorletTransformer::~MorletTransformer() {
-    // TODO: JPB: (need) This delete causes errors
-    //if (mt) { delete mt; }
-  }
-
   void MorletTransformer::Setup(const MorletSettings& morlet_settings) {
     mor_set = morlet_settings;
 
@@ -19,7 +14,7 @@ namespace CML {
           "for classification.");
     }
 
-    mt = new MorletWaveletTransformMP(mor_set.cpus);
+    mt = RC::MakeAPtr<MorletWaveletTransformMP>(mor_set.cpus);
 
     mt->set_output_type(OutputType::POWER);
 

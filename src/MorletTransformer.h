@@ -27,11 +27,6 @@ namespace CML {
   class MorletTransformer {
     public:
     MorletTransformer();
-    ~MorletTransformer();
-
-    // Rule of 3.
-    MorletTransformer(const MorletTransformer& morletTransformer) = delete;
-    MorletTransformer& operator=(const MorletTransformer& morletTransformer) = delete;
 
     void Setup(const MorletSettings& morlet_settings);
     double CalcAvgMirroringDurationMs();
@@ -39,14 +34,14 @@ namespace CML {
 
     protected:
     MorletSettings mor_set;
-    RC::APtr<MorletWaveletTransformMP> mt; 
+    RC::APtr<MorletWaveletTransformMP> mt;
 
     // Sizes freqs*chans*events, freqs outer, events inner.
     RC::Data1D<double> pow_arr;
     RC::Data1D<double> phase_arr;
     RC::Data1D<std::complex<double>> complex_arr;
 
-    double min_freq; 
+    double min_freq;
   };
 }
 
