@@ -39,14 +39,11 @@ namespace CML {
               " is not a valid channel. The number of channels available is " +
               RC::RStr(in_datar.size())).c_str());
       } else if (in_datar[pos].IsEmpty()) { // Pos channel is empty
-        // TODO: JPB: (need) Add these errors back in once CerebusSim puts out data for channel 129
-        //Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
-        //      " does not have any data.").c_str());
-        continue;
+        Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
+              " does not have any data.").c_str());
       } else if (in_datar[neg].IsEmpty()) { // Neg channel is empty
-        //Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
-        //      " does not have any data.").c_str());
-        continue;
+        Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
+              " does not have any data.").c_str());
       } else if (in_datar[pos].size() != in_datar[neg].size()) { // Pos and Neg channel sizes don't match
         Throw_RC_Error(("Size of positive channel " + RC::RStr(pos) +
               " (" + RC::RStr(in_datar[pos].size()) + ") " +

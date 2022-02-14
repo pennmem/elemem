@@ -71,13 +71,20 @@ namespace CML {
     EEGCircularData circular_data(sampling_rate, 10);
     circular_data.Append(in_data);
     circular_data.PrintData();
+    PrintEEGData(*circular_data.GetData(5));
+    PrintEEGData(*circular_data.GetDataAllAsTimeline());
     //circular_data.PrintRawData();
     circular_data.Append(in_data);
     circular_data.PrintData();
+    PrintEEGData(*circular_data.GetData(5));
     //circular_data.PrintRawData();
     circular_data.Append(in_data);
     circular_data.PrintData();
+    PrintEEGData(*circular_data.GetData(5));
     //circular_data.PrintRawData();
+
+    //PrintEEGData(*circular_data.GetData());
+    //PrintEEGData(*circular_data.GetData(5));
   }
 
   void TestEEGBinning() {
@@ -236,9 +243,9 @@ namespace CML {
     //TestAvgOverTime();
     //TestMirrorEnds();
     //TestBipolarReference();
-    TestMorletTransformer();
+    //TestMorletTransformer();
     //TestMorletTransformerRealData();
-    //TestEEGCircularData();
+    TestEEGCircularData();
     //TestEEGBinning();
     //TestRollingStats();
     //TestNormalizePowers();

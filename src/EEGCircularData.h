@@ -22,6 +22,8 @@ namespace CML {
     
     RC::APtr<EEGData> GetData();
     RC::APtr<EEGData> GetData(size_t amnt);
+    RC::APtr<EEGData> GetDataAll();
+    RC::APtr<EEGData> GetDataAllAsTimeline();
     void PrintData();
     void PrintRawData();
 
