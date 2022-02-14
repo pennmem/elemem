@@ -19,7 +19,6 @@ namespace CML {
     size_t cycle_count = 3;
     RC::Data1D<double> frequencies;
     RC::Data1D<BipolarPair> channels;
-    //size_t num_events = 0;
     size_t sampling_rate = 1000;
     uint32_t cpus = 2;
     bool complete = true;
@@ -35,9 +34,8 @@ namespace CML {
     MorletTransformer& operator=(const MorletTransformer& morletTransformer) = delete;
 
     void Setup(const MorletSettings& morlet_settings);
-    // TODO: JPB: (need) double CalcMinMirroringDurationMs(); 
     double CalcAvgMirroringDurationMs();
-    RC::APtr<EEGPowers> Filter(RC::APtr<const EEGData>& data, size_t duration_ms);
+    RC::APtr<EEGPowers> Filter(RC::APtr<const EEGData>& data);
 
     protected:
     MorletSettings mor_set;

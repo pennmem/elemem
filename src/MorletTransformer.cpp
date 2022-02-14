@@ -40,7 +40,7 @@ namespace CML {
     return 1.5 * 1000 * mor_set.cycle_count / 2 / min_freq;
   }
 
-  RC::APtr<EEGPowers> MorletTransformer::Filter(RC::APtr<const EEGData>& data, size_t eventlen) {
+  RC::APtr<EEGPowers> MorletTransformer::Filter(RC::APtr<const EEGData>& data) {
     auto& datar = data->data;
 
     if (mt == NULL) {
@@ -49,6 +49,7 @@ namespace CML {
 
     size_t freqlen = mor_set.frequencies.size();
     size_t chanlen = mor_set.channels.size();
+    size_t eventlen = data->sample_len;
 
     if (chanlen != datar.size()) {
       Throw_RC_Error((RC::RStr("MorletSettings dimensions (") + chanlen + ", _" + ") " +

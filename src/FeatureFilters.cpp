@@ -39,11 +39,14 @@ namespace CML {
               " is not a valid channel. The number of channels available is " +
               RC::RStr(in_datar.size())).c_str());
       } else if (in_datar[pos].IsEmpty()) { // Pos channel is empty
-        Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
-              " does not have any data.").c_str());
+        // TODO: JPB: (need) Add these errors back in once CerebusSim puts out data for channel 129
+        //Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
+        //      " does not have any data.").c_str());
+        continue;
       } else if (in_datar[neg].IsEmpty()) { // Neg channel is empty
-        Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
-              " does not have any data.").c_str());
+        //Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
+        //      " does not have any data.").c_str());
+        continue;
       } else if (in_datar[pos].size() != in_datar[neg].size()) { // Pos and Neg channel sizes don't match
         Throw_RC_Error(("Size of positive channel " + RC::RStr(pos) +
               " (" + RC::RStr(in_datar[pos].size()) + ") " +
@@ -75,6 +78,13 @@ namespace CML {
     size_t num_mirrored_samples = mirrored_duration_ms * in_data->sampling_rate / 1000;
     size_t in_sample_len = in_data->sample_len;
     size_t out_sample_len = in_sample_len + num_mirrored_samples * 2;
+
+    if (num_mirrored_samples >= in_sample_len) {
+      Throw_RC_Error(("The number of samples to be mirrored "
+            "(" + RC::RStr(num_mirrored_samples) + ") " +
+            "is greater than or equal to the number of samples in the data "
+            "(" + RC::RStr(in_sample_len) + ")").c_str());
+    }
     
     RC::APtr<EEGData> out_data = new EEGData(in_data->sampling_rate, out_sample_len);
     auto& in_datar = in_data->data;
@@ -101,7 +111,7 @@ namespace CML {
         out_events[i] = in_events[num_mirrored_samples-i];
       }
 
-      // Copy middle samples verbatim
+      // Copy all original samples verbatim for the middle
       out_events.CopyAt(num_mirrored_samples, in_events);
 
       // Copy ending samples in reverse, skipping the last item
@@ -178,18 +188,12 @@ namespace CML {
     RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
     if (!callback.IsSet()) Throw_RC_Error("FeatureFilters callback not set");
 
-    auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
-
     // This calculates the mirroring duration based on the minimum statistical morlet duration 
     size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
+
+    auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
     auto mirrored_data = MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
-
-    size_t num_bipolar_ref_events = task_classifier_settings.duration_ms * bipolar_ref_data->sampling_rate / 1000;
-    size_t num_mirroring_events = mirroring_duration_ms * mirrored_data->sampling_rate / 1000;
-    size_t num_all_mirrored_events = num_bipolar_ref_events + (num_mirroring_events * 2);
-    auto morlet_data = morlet_transformer.Filter(mirrored_data, num_all_mirrored_events).ExtractConst();
-    RC_DEBOUT(num_bipolar_ref_events, mirroring_duration_ms, num_all_mirrored_events)
-
+    auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
     auto log_data = Log10Transform(morlet_data, log_min_power_clamp).ExtractConst();
     auto avg_data = AvgOverTime(log_data, true).ExtractConst();
 
