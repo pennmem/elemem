@@ -14,6 +14,53 @@ namespace CML {
     morlet_transformer.Setup(morlet_settings);
   }
 
+  /// Bins EEGData from one sampling rate to another
+  /** @param in_data the EEGData to be binned
+    * @param new_sampling_rate the new sampling rate
+    * @return EEGData that has been binned to the new sampling rate
+  */
+  RC::APtr<EEGData> FeatureFilters::BinData(RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
+    if (new_sampling_rate == 0)
+      Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
+
+    // TODO: JPB: (feature) Add ability to handle sampling ratios that aren't true multiples
+    size_t sampling_ratio = in_data->sampling_rate / new_sampling_rate;
+    // This is integer division that returns the ceiling
+    size_t new_sample_len = in_data->sample_len / sampling_ratio + (in_data->sample_len % sampling_ratio != 0);
+    RC::APtr<EEGData> out_data = new EEGData(new_sampling_rate, new_sample_len);
+
+    auto& in_datar = in_data->data;
+    auto& out_datar = out_data->data;
+    out_datar.Resize(in_datar.size());
+
+    auto accum_event = [](u32 sum, size_t val) { return std::move(sum) + val; };
+    RC_ForIndex(i, out_datar) { // Iterate over channels
+      auto& in_events = in_datar[i];
+      auto& out_events = out_datar[i];
+
+      if (in_events.IsEmpty()) { continue; }
+      out_data->EnableChan(i);
+
+      RC_ForIndex(j, out_events) {
+        if (j < out_events.size() - 1) {
+          size_t start = j * sampling_ratio;
+          size_t end = (j+1) * sampling_ratio - 1;
+          size_t items = sampling_ratio;
+          out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
+                            0, accum_event) / items;
+        } else { // Last block could have leftover samples
+          size_t start = j * sampling_ratio;
+          size_t end = in_events.size() - 1;
+          size_t items = std::distance(&in_events[start], &in_events[end]+1);
+          out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
+                            0, accum_event) / items;
+        }
+      }
+    }
+
+    return out_data;
+  }
+
   /// Converts an EEGData of electrode channels into EEGData of bipolar pair channels
   /** @param EEGData of electrode channels
     * @param List of bipolar pairs
@@ -195,11 +242,6 @@ namespace CML {
     auto avg_data = AvgOverTime(log_data, true).ExtractConst();
 
     // TODO: JPB (need) Remove debug code in FeatureFilters::Process_Handler
-    RC_DEBOUT(data->data.size())
-    RC_DEBOUT(bipolar_ref_data->data.size())
-    RC_DEBOUT(data->data[0].size())
-    RC_DEBOUT(mirrored_data->data[0].size())
-    RC_DEBOUT(morlet_data->data[0][0].size())
     PrintEEGData(*data, 2);
     PrintEEGData(*bipolar_ref_data, 2);
     PrintEEGData(*mirrored_data, 2);

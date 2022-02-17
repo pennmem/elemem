@@ -25,7 +25,7 @@ namespace CML {
     RCqt::TaskCaller<RC::APtr<EEGSource>> SetSource =
       TaskHandler(EEGAcq::SetSource_Handler);
 
-    RCqt::TaskBlocker<const size_t> InitializeChannels =
+    RCqt::TaskBlocker<const size_t, const size_t> InitializeChannels =
       TaskHandler(EEGAcq::InitializeChannels_Handler);
 
     RCqt::TaskCaller<> StartingExperiment =
@@ -48,7 +48,7 @@ namespace CML {
     protected:
 
     void SetSource_Handler(RC::APtr<EEGSource>& new_source);
-    void InitializeChannels_Handler(const size_t& new_sampling_rate);
+    void InitializeChannels_Handler(const size_t& new_sampling_rate, const size_t& new_binned_sampling_rate);
     void StartingExperiment_Handler() { eeg_source->StartingExperiment(); }
 
     // All channels have either 0 data or the same amount.
@@ -64,6 +64,7 @@ namespace CML {
 
     RC::APtr<EEGSource> eeg_source;
     size_t sampling_rate = 1000;
+    size_t binned_sampling_rate;
 
     RC::APtr<QTimer> acq_timer;
     int polling_interval_ms = 5;

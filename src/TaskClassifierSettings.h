@@ -26,7 +26,6 @@ namespace CML {
     public:
     ClassificationType cl_type;
     size_t duration_ms;
-    size_t binned_sampling_rate;
     uint64_t classif_id = uint64_t(-1);
   };
 }

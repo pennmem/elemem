@@ -4,6 +4,7 @@
 #include "Cerebus.h" // TODO Remove after moving injection to Handler.
 #include "CerebusSim.h" // TODO Remove after moving injection to Handler.
 
+#include "FeatureFilters.h"
 
 namespace CML {
   EEGAcq::EEGAcq() {
@@ -60,10 +61,12 @@ namespace CML {
         }
       }
 
-
       auto data_captr = data_aptr.ExtractConst();
+      // TODO: JPB: (need) Make BinData smart and use leftover data
+      auto binned_data_captr = FeatureFilters::BinData(data_captr, binned_sampling_rate).ExtractConst();
+
       for (size_t i=0; i<data_callbacks.size(); i++) {
-        data_callbacks[i].callback(data_captr);
+        data_callbacks[i].callback(binned_data_captr);
       }
     }
     catch (...) {
@@ -79,12 +82,14 @@ namespace CML {
   }
 
 
-  void EEGAcq::InitializeChannels_Handler(const size_t& new_sampling_rate) {
+  void EEGAcq::InitializeChannels_Handler(const size_t& new_sampling_rate,
+                                          const size_t& new_binned_sampling_rate) {
     if (eeg_source.IsNull()) {
       return;
     }
 
     sampling_rate = new_sampling_rate;
+    binned_sampling_rate = new_binned_sampling_rate;
 
     StopEverything();
 

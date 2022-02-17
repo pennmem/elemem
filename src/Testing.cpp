@@ -91,7 +91,7 @@ namespace CML {
     size_t sampling_rate = 10;
     RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 11, 3);
 
-    RC::APtr<EEGData> out_data = EEGCircularData::BinData(in_data, 3);
+    RC::APtr<EEGData> out_data = FeatureFilters::BinData(in_data, 3);
 
     PrintEEGData(*in_data);
     PrintEEGData(*out_data);
@@ -245,8 +245,8 @@ namespace CML {
     //TestBipolarReference();
     //TestMorletTransformer();
     //TestMorletTransformerRealData();
-    TestEEGCircularData();
-    //TestEEGBinning();
+    //TestEEGCircularData();
+    TestEEGBinning();
     //TestRollingStats();
     //TestNormalizePowers();
   }

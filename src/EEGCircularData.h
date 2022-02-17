@@ -8,11 +8,12 @@
 namespace CML {
   class EEGCircularData {
     public:
-    EEGCircularData(size_t sampling_rate, size_t duration_ms) : sampling_rate(sampling_rate),
+    EEGCircularData(size_t sampling_rate, size_t duration_ms) : sampling_rate(sampling_rate), duration_ms(duration_ms),
                     circular_data_len(duration_ms * sampling_rate / 1000), circular_data(0, circular_data_len) {}
 
     // TODO: JPB: (refactor) Reuse member variables of EEGData
     size_t sampling_rate = 0;
+    size_t duration_ms = 0;
     size_t circular_data_len = 0;
 
     EEGData circular_data;
@@ -30,8 +31,6 @@ namespace CML {
     void Append(RC::APtr<const EEGData>& new_data);
     void Append(RC::APtr<const EEGData>& new_data, size_t start);
     void Append(RC::APtr<const EEGData>& new_data, size_t start, size_t amnt);
-
-    static RC::APtr<EEGData> BinData(RC::APtr<const EEGData> in_data, size_t new_sampling_rate);
   };
 }
 

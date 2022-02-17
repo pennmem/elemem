@@ -7,25 +7,22 @@
 
 namespace CML {
   TaskClassifierManager::TaskClassifierManager(RC::Ptr<Handler> hndl,
-    size_t sampling_rate, size_t duration_ms, size_t bin_frequency)
-    : hndl(hndl), circular_data(sampling_rate, duration_ms), sampling_rate(sampling_rate) {
-    callback_ID = RC::RStr("TaskClassifierManager_") + bin_frequency;
-    task_classifier_settings.binned_sampling_rate = bin_frequency;
-
+    size_t sampling_rate, size_t circ_buf_duration_ms)
+    : hndl(hndl), circular_data(sampling_rate, circ_buf_duration_ms), sampling_rate(sampling_rate) {
+    callback_ID = RC::RStr("TaskClassifierManager_") + sampling_rate;
     hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
   }
 
   void TaskClassifierManager::StartClassification() {
-	if (!callback.IsSet()) Throw_RC_Error("Start classification callback not set");
+    if (!callback.IsSet()) { Throw_RC_Error("Start classification callback not set"); }
 
     stim_event_waiting = false;
     num_eeg_events_before_stim = 0;
 
-    RC::APtr<const EEGData> data = circular_data.GetData().ExtractConst();
-    // TODO: JPB: (need) Exception if binned_sampling_rate (as early as possible in setup) is less than 2.99X the max classification freq.
-    RC::APtr<const EEGData> binned_data = EEGCircularData::BinData(data, task_classifier_settings.binned_sampling_rate).ExtractConst();
+    size_t num_samples = task_classifier_settings.duration_ms * sampling_rate / 1000;
+    RC::APtr<const EEGData> data = circular_data.GetData(num_samples).ExtractConst();
 
-    callback(binned_data, task_classifier_settings);
+    callback(data, task_classifier_settings);
   }
 
   void TaskClassifierManager::ClassifyData_Handler(RC::APtr<const EEGData>& data) {
@@ -52,6 +49,12 @@ namespace CML {
   void TaskClassifierManager::ProcessClassifierEvent_Handler(
         const ClassificationType& cl_type, const uint64_t& duration_ms,
         const uint64_t& classif_id) {
+    if (duration_ms > circular_data.duration_ms) {
+      Throw_RC_Error(("Classification duration (" + RC::RStr(duration_ms) + ") " +
+            "is greater than the circular buffer duration " +
+            "(" + RC::RStr(circular_data.duration_ms) + ")").c_str());
+    }
+
     if (!stim_event_waiting) {
       stim_event_waiting = true;
       num_eeg_events_before_stim = duration_ms * sampling_rate / 1000;

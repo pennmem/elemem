@@ -19,7 +19,7 @@ namespace CML {
   class TaskClassifierManager : public RCqt::WorkerThread {
     public:
     TaskClassifierManager(RC::Ptr<Handler> hndl, size_t sampling_rate,
-      size_t duration_ms, size_t bin_frequency);
+      size_t circ_buf_duration_ms);
 
     ClassifierEvent ProcessClassifierEvent =
       TaskHandler(TaskClassifierManager::ProcessClassifierEvent_Handler);
@@ -45,7 +45,7 @@ namespace CML {
 
     EEGCircularData circular_data;
 
-    size_t sampling_rate = 1000;
+    size_t sampling_rate = 0;
     TaskClassifierSettings task_classifier_settings;
 
     bool stim_event_waiting = false;

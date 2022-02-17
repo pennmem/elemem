@@ -49,6 +49,7 @@ namespace CML {
     macro_sampling_rate = 0; // Desired
     micro_sampling_rate = 0; // Desired
     sampling_rate = 1000; // All channels. Micro if set, else macro value.
+    binned_sampling_rate = sampling_rate;
 
     exper.clear();
     sub.clear();
