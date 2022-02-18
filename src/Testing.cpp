@@ -87,15 +87,100 @@ namespace CML {
     //PrintEEGData(*circular_data.GetData(5));
   }
 
-  void TestEEGBinning() {
+  //void TestEEGBinning() {
+  //  size_t sampling_rate = 10;
+  //  RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 11, 3);
+
+  //  RC::APtr<EEGData> out_data = FeatureFilters::BinData(in_data, 3);
+
+  //  PrintEEGData(*in_data);
+  //  PrintEEGData(*out_data);
+  //}
+
+  void TestEEGBinning1() {
+    size_t sampling_rate = 10;
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 9, 3);
+
+    RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(in_data, 3);
+
+    PrintEEGData(*in_data);
+    PrintEEGData(*binned_data->out_data);
+    PrintEEGData(*binned_data->leftover_data);
+  }
+  
+  void TestEEGBinning2() {
+    size_t sampling_rate = 10;
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 10, 3);
+
+    RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(in_data, 3);
+
+    PrintEEGData(*in_data);
+    PrintEEGData(*binned_data->out_data);
+    PrintEEGData(*binned_data->leftover_data);
+  }
+
+  void TestEEGBinning3() {
     size_t sampling_rate = 10;
     RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 11, 3);
 
-    RC::APtr<EEGData> out_data = FeatureFilters::BinData(in_data, 3);
+    RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(in_data, 3);
 
     PrintEEGData(*in_data);
-    PrintEEGData(*out_data);
+    PrintEEGData(*binned_data->out_data);
+    PrintEEGData(*binned_data->leftover_data);
   }
+
+  void TestEEGBinningRollover1() {
+    size_t sampling_rate = 10;
+    RC::APtr<const EEGData> rollover_data = CreateTestingEEGData(sampling_rate, 0, 3);
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 9, 3);
+
+    RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(rollover_data, in_data, 3);
+
+    PrintEEGData(*rollover_data);
+    PrintEEGData(*in_data);
+    PrintEEGData(*binned_data->out_data);
+    PrintEEGData(*binned_data->leftover_data);
+  }
+
+  void TestEEGBinningRollover2() {
+    size_t sampling_rate = 10;
+    RC::APtr<const EEGData> rollover_data = CreateTestingEEGData(sampling_rate, 1, 3);
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 9, 3);
+
+    RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(rollover_data, in_data, 3);
+
+    PrintEEGData(*rollover_data);
+    PrintEEGData(*in_data);
+    PrintEEGData(*binned_data->out_data);
+    PrintEEGData(*binned_data->leftover_data);
+  }
+
+  void TestEEGBinningRollover3() {
+    size_t sampling_rate = 10;
+    RC::APtr<const EEGData> rollover_data = CreateTestingEEGData(sampling_rate, 2, 3);
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 9, 3);
+
+    RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(rollover_data, in_data, 3);
+
+    PrintEEGData(*rollover_data);
+    PrintEEGData(*in_data);
+    PrintEEGData(*binned_data->out_data);
+    PrintEEGData(*binned_data->leftover_data);
+  }
+
+  void TestEEGBinningRollover4() {
+    size_t sampling_rate = 10;
+    RC::APtr<const EEGData> rollover_data = CreateTestingEEGData(sampling_rate, 3, 3);
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 9, 3);
+
+    RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(rollover_data, in_data, 3);
+
+    PrintEEGData(*rollover_data);
+    PrintEEGData(*in_data);
+    PrintEEGData(*binned_data->out_data);
+    PrintEEGData(*binned_data->leftover_data);
+  } 
 
   // Feature Filters
   void TestBipolarReference() {
@@ -246,7 +331,13 @@ namespace CML {
     //TestMorletTransformer();
     //TestMorletTransformerRealData();
     //TestEEGCircularData();
-    TestEEGBinning();
+    //TestEEGBinning1();
+    //TestEEGBinning2();
+    //TestEEGBinning3();
+    TestEEGBinningRollover1();
+    TestEEGBinningRollover2();
+    TestEEGBinningRollover3();
+    TestEEGBinningRollover4();
     //TestRollingStats();
     //TestNormalizePowers();
   }

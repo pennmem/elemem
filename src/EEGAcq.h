@@ -66,6 +66,8 @@ namespace CML {
     size_t sampling_rate = 1000;
     size_t binned_sampling_rate;
 
+    RC::APtr<const EEGData> rollover_data;
+
     RC::APtr<QTimer> acq_timer;
     int polling_interval_ms = 5;
     bool channels_initialized = false;

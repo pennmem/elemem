@@ -1,9 +1,16 @@
 #include "FeatureFilters.h"
 #include "Popup.h"
+#include "Util.h"
 #include <cmath>
 
 
 namespace CML {
+  BinnedData::BinnedData(size_t binned_sampling_rate, size_t binned_sample_len, size_t leftover_sampling_rate, size_t leftover_sample_len) {
+    out_data = new EEGData(binned_sampling_rate, binned_sample_len);
+    leftover_data = new EEGData(leftover_sampling_rate, leftover_sample_len);
+  }
+
+
   // TODO: JPB: (refactor) Make this take const refs
   FeatureFilters::FeatureFilters(RC::Data1D<BipolarPair> bipolar_reference_channels,
       ButterworthSettings butterworth_settings, MorletSettings morlet_settings,
@@ -19,7 +26,208 @@ namespace CML {
     * @param new_sampling_rate the new sampling rate
     * @return EEGData that has been binned to the new sampling rate
   */
-  RC::APtr<EEGData> FeatureFilters::BinData(RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
+  RC::APtr<BinnedData> FeatureFilters::BinData(RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
+    if (new_sampling_rate == 0)
+      Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
+
+    // TODO: JPB: (feature) Add ability to handle sampling ratios that aren't true multiples
+    size_t sampling_ratio = in_data->sampling_rate / new_sampling_rate;
+    size_t out_sample_len = in_data->sample_len / sampling_ratio;
+    size_t leftover_sample_len = in_data->sample_len % sampling_ratio;
+    RC::APtr<BinnedData> binned_data = new BinnedData(new_sampling_rate, out_sample_len, in_data->sampling_rate, leftover_sample_len);
+
+    auto& in_datar = in_data->data;
+    auto& out_datar = binned_data->out_data->data;
+    auto& leftover_datar = binned_data->leftover_data->data;
+    out_datar.Resize(in_datar.size());
+    leftover_datar.Resize(in_datar.size());
+
+    auto accum_event = [](u32 sum, size_t val) { return std::move(sum) + val; };
+    RC_ForIndex(i, out_datar) { // Iterate over channels
+      auto& in_events = in_datar[i];
+      auto& out_events = out_datar[i];
+      auto& leftover_events = leftover_datar[i];
+
+      if (in_events.IsEmpty()) { continue; }
+      binned_data->out_data->EnableChan(i);
+      binned_data->leftover_data->EnableChan(i);
+
+      // Bin the events
+      RC_ForIndex(j, out_events) { // Iterate over events
+        size_t start = j * sampling_ratio;
+        size_t end = (j+1) * sampling_ratio - 1;
+        size_t items = sampling_ratio;
+        out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
+                          0, accum_event) / items;
+      }
+
+      // Get the leftover events
+      if (leftover_sample_len != 0) {
+        size_t start = in_events.size() - leftover_sample_len;
+        size_t end = in_events.size() - 1;
+        size_t items = end - start + 1;
+        leftover_events.CopyFrom(in_events, start, items);
+      }
+    }
+
+    return binned_data;
+  }
+
+  /// Bins EEGData from one sampling rate to another
+  /** @param in_data the EEGData to be binned
+    * @param new_sampling_rate the new sampling rate
+    * @return EEGData that has been binned to the new sampling rate
+  */
+  RC::APtr<BinnedData> FeatureFilters::BinData(RC::APtr<const EEGData> rollover_data, RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
+    if (new_sampling_rate == 0)
+      Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
+
+    if (rollover_data->sampling_rate != in_data->sampling_rate) {
+      Throw_RC_Error(("The sampling rate of rollover_data (" + RC::RStr(rollover_data->sampling_rate) + ") " +
+          "and the sampling rate of in_data (" + RC::RStr(in_data->sampling_rate) + ") are not the same").c_str());
+    }
+
+    size_t total_in_sample_len = rollover_data->sample_len + in_data->sample_len;
+    EEGData total_in_data(in_data->sampling_rate, total_in_sample_len);
+
+    // Make total in data that is a appending of in_data to rollover_data
+    // TODO: JPB: (feature)(optimization) There is a more efficient way to do this that doesn't involve all these copy operations
+    //                                    This was started and commented out below
+    auto& rollover_datar = rollover_data->data;
+    auto& in_datar = in_data->data;
+    auto& total_in_datar = total_in_data.data;
+    total_in_datar.Resize(in_datar.size());
+    RC_ForIndex(i, in_datar) { // Iterate over channels
+      if (!in_datar.IsEmpty()) {
+        total_in_data.EnableChan(i);
+        total_in_datar[i].CopyAt(0, rollover_datar[i]);
+        total_in_datar[i].CopyAt(rollover_data->sample_len, in_datar[i]);
+      }
+    }
+
+    // TODO: JPB: (feature) Add ability to handle sampling ratios that aren't true multiples
+    size_t sampling_ratio = total_in_data.sampling_rate / new_sampling_rate;
+    size_t out_sample_len = total_in_data.sample_len / sampling_ratio;
+    size_t leftover_sample_len = total_in_data.sample_len % sampling_ratio;
+    RC::APtr<BinnedData> binned_data = new BinnedData(new_sampling_rate, out_sample_len, total_in_data.sampling_rate, leftover_sample_len);
+
+    auto& out_datar = binned_data->out_data->data;
+    auto& leftover_datar = binned_data->leftover_data->data;
+    out_datar.Resize(total_in_datar.size());
+    leftover_datar.Resize(total_in_datar.size());
+
+    auto accum_event = [](u32 sum, size_t val) { return std::move(sum) + val; };
+    RC_ForIndex(i, out_datar) { // Iterate over channels
+      auto& total_in_events = total_in_datar[i];
+      auto& out_events = out_datar[i];
+      auto& leftover_events = leftover_datar[i];
+
+      if (total_in_events.IsEmpty()) { continue; }
+      binned_data->out_data->EnableChan(i);
+      binned_data->leftover_data->EnableChan(i);
+
+      // Bin the events
+      RC_ForIndex(j, out_events) { // Iterate over events
+        size_t start = j * sampling_ratio;
+        size_t end = (j+1) * sampling_ratio - 1;
+        size_t items = sampling_ratio;
+        out_events[j] = std::accumulate(&total_in_events[start], &total_in_events[end]+1,
+                          0, accum_event) / items;
+      }
+
+      // Get the leftover events
+      if (leftover_sample_len != 0) {
+        size_t start = total_in_events.size() - leftover_sample_len;
+        size_t end = total_in_events.size() - 1;
+        size_t items = end - start + 1;
+        leftover_events.CopyFrom(total_in_events, start, items);
+      }
+    }
+
+    return binned_data;
+  }
+
+  ///// Bins EEGData from one sampling rate to another
+  ///** @param in_data the EEGData to be binned
+  //  * @param new_sampling_rate the new sampling rate
+  //  * @return EEGData that has been binned to the new sampling rate
+  //*/
+  //RC::APtr<EEGData> FeatureFilters::BinData(RC::APtr<const EEGData> leftover_data, RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
+  //  if (new_sampling_rate == 0) {
+  //    Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
+  //  }
+
+  //  if (leftover_data->sampling_rate != in_data->sampling_rate) {
+  //    Throw_RC_Error("The sampling rate of leftover_data (" + RC::RStr(leftover_data->sampling_rate) + ") " +
+  //        "and the sampling rate of in_data (" + RC::RStr(in_data->sampling_rate) + ") are not the same");
+  //  }
+
+  //  if (leftover_data->sample_len >= sampling_ratio) {
+  //    Throw_RC_Error("The leftover_data sample length (" + RC::RStr(leftover_data->sample_len) + ") " +
+  //        "is greater than or equal to the number of samples in one bin (" + RC::RStr(sampling_ratio) + ")");
+  //  }
+
+  //  // TODO: JPB: (feature) Add ability to handle sampling ratios that aren't true multiples
+  //  size_t sampling_ratio = in_data->sampling_rate / new_sampling_rate;
+  //  leftover_data_new_sample_len = 
+  //  size_t in_data_total_sample_len = leftover_data->sample_len + in_data->sample_len;
+  //  size_t new_sample_len = CeilDiv(in_data_total_sample_len, sampling_ratio);
+  //  RC::APtr<EEGData> out_data = new EEGData(new_sampling_rate, new_sample_len);
+
+  //  auto& leftover_datar = leftover_data->data;
+  //  auto& in_datar = in_data->data;
+  //  auto& out_datar = out_data->data;
+  //  out_datar.Resize(in_datar.size());
+
+  //  auto accum_event = [](u32 sum, size_t val) { return std::move(sum) + val; };
+  //  RC_ForIndex(i, out_datar) { // Iterate over channels
+  //    auto& leftover_events = leftover_datar[i];
+  //    auto& in_events = in_datar[i];
+  //    auto& out_events = out_datar[i];
+
+  //    if (in_events.IsEmpty()) { continue; }
+  //    out_data->EnableChan(i);
+
+  //    // TODO: JPB: (feature) bin leftover events
+  //    // Bin leftover events
+  //    out_events[0] = std::accumulate(leftover_events.begin(), leftover_events.end(),
+  //                      0, accum_event);
+  //    size_t end = sampling_ratio - leftover_data->sample_len - 1;
+  //    if (in_events.sample_len < end) {
+  //      // TODO: JPB: 
+  //      // return leftover_data + in_data as leftover;
+  //    }
+  //    out_events[0] = std::accumulate(&in_events[0], &in_events[end]+1,
+  //                      out_events[0], accum_event);
+
+  //    // TODO: JPB: (feature) bin remaining events
+  //    // Bin remaining events
+  //    RC_ForIndex(j, out_events) { // Iterate over events
+  //      if (j < out_events.size() - 1) {
+  //        size_t start = j * sampling_ratio;
+  //        size_t end = (j+1) * sampling_ratio - 1;
+  //        size_t items = sampling_ratio;
+  //        out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
+  //                          0, accum_event) / items;
+  //      } else { // Last block could have leftover samples
+  //        size_t start = j * sampling_ratio;
+  //        size_t end = in_events.size() - 1;
+  //        size_t items = std::distance(&in_events[start], &in_events[end]+1);
+  //        out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
+  //                          0, accum_event) / items;
+  //      }
+  //    }
+  //  }
+
+  //  return out_data;
+  //}
+
+  /// Bins EEGData from one sampling rate to another
+  /** @param in_data the EEGData to be binned
+    * @param new_sampling_rate the new sampling rate
+    * @return EEGData that has been binned to the new sampling rate
+  */
+  RC::APtr<EEGData> FeatureFilters::BinDataAvgRollover(RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
     if (new_sampling_rate == 0)
       Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
 
@@ -41,7 +249,7 @@ namespace CML {
       if (in_events.IsEmpty()) { continue; }
       out_data->EnableChan(i);
 
-      RC_ForIndex(j, out_events) {
+      RC_ForIndex(j, out_events) { // Iterate over events
         if (j < out_events.size() - 1) {
           size_t start = j * sampling_ratio;
           size_t end = (j+1) * sampling_ratio - 1;
@@ -51,7 +259,7 @@ namespace CML {
         } else { // Last block could have leftover samples
           size_t start = j * sampling_ratio;
           size_t end = in_events.size() - 1;
-          size_t items = std::distance(&in_events[start], &in_events[end]+1);
+          size_t items = end - start + 1;
           out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
                             0, accum_event) / items;
         }

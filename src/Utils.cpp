@@ -20,5 +20,10 @@ namespace CML {
     }
     return desktop;
   }
+
+  // This is integer division that returns the ceiling
+  inline int CeilDiv(int dividend, int divisor) {
+    return dividend / divisor + (dividend % divisor != 0); 
+  }
 }
 

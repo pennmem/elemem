@@ -61,12 +61,21 @@ namespace CML {
         }
       }
 
+      // Bin data
       auto data_captr = data_aptr.ExtractConst();
-      // TODO: JPB: (need) Make BinData smart and use leftover data
-      auto binned_data_captr = FeatureFilters::BinData(data_captr, binned_sampling_rate).ExtractConst();
+      RC::APtr<BinnedData> binned_data = [&] {
+        if (rollover_data.IsSet()) {
+          return FeatureFilters::BinData(rollover_data, data_captr, binned_sampling_rate);
+        } else {
+          return FeatureFilters::BinData(data_captr, binned_sampling_rate);
+        }
+      }();
+      rollover_data = binned_data->leftover_data.ExtractConst();
+      RC::APtr<EEGData> out_data_aptr = binned_data->out_data;
+      RC::APtr<const EEGData> out_data_captr = out_data_aptr.ExtractConst();
 
       for (size_t i=0; i<data_callbacks.size(); i++) {
-        data_callbacks[i].callback(binned_data_captr);
+        data_callbacks[i].callback(out_data_captr);
       }
     }
     catch (...) {
