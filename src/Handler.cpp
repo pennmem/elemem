@@ -119,7 +119,6 @@ namespace CML {
 
     NewEEGSave();
 
-    #define TESTING 
     #ifdef TESTING
     RC_DEBOUT(RC::RStr("TESTING"));
     TestAllCode();
