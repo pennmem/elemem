@@ -391,6 +391,8 @@ namespace CML {
       }
 
       exper_cps.SetCPSSpecs(settings.cps_specs);
+      TODO need to input appropriate config parameters rather strictly using set stim param sets
+            instead only use discrete param sets for giving non-optimized stim parameters
       exper_cps.SetStimProfiles(discrete_stim_param_sets);
     }
     else {

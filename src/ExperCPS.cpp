@@ -21,7 +21,7 @@ namespace CML {
     n_init_samples = 100;
     CMatrix bounds(n_var, 2);
     // amplitude bounds in mA
-    bounds(0, 0) = 0.0;
+    bounds(0, 0) = 0.1 if 0.1 < ;
     bounds(0, 1) = 0.0;
     int verbosity = 0;
 
@@ -36,6 +36,7 @@ namespace CML {
     // TODO load parameters from config file - ask Ryan/James about how this is handled
     n_normalize_events = 25;
     poststim_classif_lockout_ms = 500;
+    // TODO: RDD: replace with CPSSpecs.intertrial_range_ms
     stim_lockout_ms = 2500;
     normalize_lockout_ms = 3000; // should be stim_lockout_ms + stim duration, though duration may not be fixed
     // TODO: JPB: move to config file for setting classifier settings during initialization?
@@ -189,7 +190,7 @@ namespace CML {
     next_min_event_time = 0;
 
     // Total run time (ms), fixes experiment length for CPS.
-    experiment_duration = 7200 * 1000;
+    experiment_duration = cps_specs.experiment_duration_secs * 1000;
 
     // Confirm window for run time.
     if (!ConfirmWin(RC::RStr("Total run time will be ") + experiment_duration / (60 * 1000) + " min. "
@@ -219,12 +220,13 @@ namespace CML {
   }
 
 
+  // TODO: RDD: are any of these internal stop functions guaranteed to run if other workers fail?
   void ExperCPS::InternalStop() {
     ComputeBestStimProfile();
 
     // log best stim profile
     
-    // TODO RDD/RC: how could I safely make separate data logs into the session directory?
+    // TODO RDD/RC: how could I safely make separate data logs in the session directory?
     //              e.g. for convenience of analysis
 
     // JSONFile best_stim_log;
@@ -422,6 +424,7 @@ namespace CML {
       }
       else {
         next_classif_state = ClassificationType::SHAM;
+        // TODO: RDD: set sham duration/event info? how are sham events controlled in StimulationManager?
       }
       status_panel->SetEvent("CLASSIFYING");
     }
@@ -459,6 +462,7 @@ namespace CML {
         next_classif_state, classify_ms, classif_id);
     classif_id++;
 
+    // TODO: RDD: add logging after each event
     //  JSONFile data;
     // data.Set(result, "result");
     // data.Set(stim, "decision");

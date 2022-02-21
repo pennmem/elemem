@@ -136,8 +136,6 @@ namespace CML {
     CPSSpecs cps_specs;
     CSStimProfile best_stim_profile;
 
-
-
     RC::RND rng;
     RC::APtr<QTimer> timer;
   };
