@@ -359,6 +359,10 @@ namespace CML {
 
       // FR5-style configuration
       // Count all approved.
+      #ifdef DEBUG_EXPERCPS
+      RC_DEBOUT(RC::RStr("Handler::StartExperiment_Handler: CPS settings\n"));
+      #endif
+
       CSStimProfile cnt_profile;
       for (size_t c=0; c<settings.stimconf.size(); c++) {
         if (settings.stimconf[c].approved) {
@@ -850,13 +854,13 @@ namespace CML {
     classifier->RegisterCallback("ClassifierDecision", task_stim_manager->StimDecision);
 
     // TODO: JPB: (need) Remove testing classifier processing events in Handler::SetupClassifier
-    RC_DEBOUT(RC::RStr("TESTING\n"));
-    RC_DEBOUT(RC::RStr("freqs: ") + RC::RStr::Join(mor_set.frequencies, ", "));
-    task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
-    sleep(7);
-    task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
-    sleep(7);
-    task_classifier_manager->ProcessClassifierEvent(ClassificationType::STIM, 1000, 0);
+    // RC_DEBOUT(RC::RStr("TESTING\n"));
+    // RC_DEBOUT(RC::RStr("freqs: ") + RC::RStr::Join(mor_set.frequencies, ", "));
+    // task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
+    // sleep(7);
+    // task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
+    // sleep(7);
+    // task_classifier_manager->ProcessClassifierEvent(ClassificationType::STIM, 1000, 0);
   }
 
 

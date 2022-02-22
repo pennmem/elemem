@@ -15,6 +15,8 @@
 #include <QThread>
 #include "../../BayesGPc/CBayesianSearch.h"
 
+#define DEBUG_EXPERCPS
+
 namespace CML {
   class Handler;
   class StatusPanel;

@@ -7,10 +7,6 @@
 
 using namespace RC;
 
-#define DEBUG_EXPERCPS
-
-// TODO change name from CPS to something less easily mistaken for OPS
-
 namespace CML {
   ExperCPS::ExperCPS(RC::Ptr<Handler> hndl)
     : hndl(hndl) {
@@ -50,7 +46,7 @@ namespace CML {
     // classifier event counter
     classif_id = 0;
 
-    BayesianSearchModel search(kern, &bounds, obsNoise * obsNoise, exp_bias, n_init_samples, seed, verbosity);
+    BayesianSearchModel search(kern, bounds, obsNoise * obsNoise, exp_bias, n_init_samples, seed, verbosity);
   }
 
   ExperCPS::~ExperCPS() {
@@ -71,8 +67,9 @@ namespace CML {
       // TODO: LATER RDD: fix this to allow for searching over arbitrary parameters
       //            for now assume that the maximum amplitude is the amplitude in the given profiles
       // TODO: RDD: bounds should be passed separately with min/max configuration
-      search.bounds->setVal(0.1, 0);
-      search.bounds->setVal(new_stim_loc_profiles[i][0].amplitude, 1);
+      bounds.setVal(0.1, 0);
+      bounds.setVal(new_stim_loc_profiles[i][0].amplitude, 1);
+      search.bounds = bounds;
     }
     stim_loc_profiles = new_stim_loc_profiles;
   }
