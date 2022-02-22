@@ -1,6 +1,7 @@
 #include "MorletTransformer.h"
 #include "MorletWaveletTransformMP.h"
 #include "RC/RStr.h"
+#include <algorithm>
 
 namespace CML {
   MorletTransformer::MorletTransformer() = default;
@@ -11,12 +12,9 @@ namespace CML {
     if (mor_set.channels.size() < 1 || mor_set.frequencies.size() < 1) {
       Throw_RC_Error("Must configure at least one channel and one frequency "
           "for classification.");
-    } else if (mor_set.num_events < 1) {
-      Throw_RC_Error("Must set the number of events per channel to be "
-          "at least 1");
     }
 
-    mt = new MorletWaveletTransformMP(mor_set.cpus);
+    mt = RC::MakeAPtr<MorletWaveletTransformMP>(mor_set.cpus);
 
     mt->set_output_type(OutputType::POWER);
 
@@ -24,19 +22,35 @@ namespace CML {
     mt->initialize_wavelet_props(mor_set.cycle_count,
         mor_set.frequencies.Raw(), mor_set.frequencies.size(),
         mor_set.complete);
+  }
 
-    // TODO: JPB: (refactor) Change ptsa to include num_events in initialize_signal_props
-    mt->set_signal_array(nullptr, mor_set.channels.size(), mor_set.num_events);
+  // This calculates the minimum statistical buffer duration for the MorletTransform,
+  // based on the input duration
+  double MorletTransformer::CalcAvgMirroringDurationMs() {
+    if (mt == NULL) {
+      Throw_RC_Error("MorletTransformer Setup() was not called before CalcBufferDurationMs() was called.");
+    }
 
-    mt->prepare_run();
+    double min_freq = *std::min_element(mor_set.frequencies.begin(), mor_set.frequencies.end());
+    return 1.5 * 1000 * mor_set.cycle_count / 2 / min_freq;
   }
 
   RC::APtr<EEGPowers> MorletTransformer::Filter(RC::APtr<const EEGData>& data) {
     auto& datar = data->data;
 
+    if (mt == NULL) {
+      Throw_RC_Error("MorletTransformer Setup() was not called before Filter() was called.");
+    }
+
     size_t freqlen = mor_set.frequencies.size();
     size_t chanlen = mor_set.channels.size();
-    size_t eventlen = mor_set.num_events;
+    size_t eventlen = data->sample_len;
+
+    if (chanlen != datar.size()) {
+      Throw_RC_Error((RC::RStr("MorletSettings dimensions (") + chanlen + ", _" + ") " +
+                     "and data dimensions (" + datar.size() + ", _" + ") " +
+                     "do not match.").c_str());
+    }
 
     // The in data dimensions from outer to inner are: channel->time/event
     // The out data dimensions from outer to inner are: frequency->channel->time/event
@@ -44,23 +58,23 @@ namespace CML {
     size_t out_flat_size = freqlen * chanlen * eventlen;
     pow_arr.Resize(out_flat_size);
     phase_arr.Resize(out_flat_size);
-    complex_arr.Resize(out_flat_size); // TODO: (feature) This can likely be removed to reduce overhead
+    complex_arr.Resize(out_flat_size); // TODO: (feature)(optimization) This can likely be removed to reduce overhead
 
     mt->set_wavelet_pow_array(pow_arr.Raw(), chanlen, eventlen);
     mt->set_wavelet_phase_array(phase_arr.Raw(), chanlen, eventlen);
-    mt->set_wavelet_complex_array(complex_arr.Raw(), chanlen, eventlen); // TODO: (feature) This can likely be removed to reduce overhead
+    mt->set_wavelet_complex_array(complex_arr.Raw(), chanlen, eventlen); // TODO: (feature)(optimization) This can likely be removed to reduce overhead
 
     // Flatten Data (and convert to double)
     RC::Data1D<double> flat_data(in_flat_size);
+    flat_data.Zero();
     RC_ForIndex(i, datar) { // Iterate over channels
       size_t flat_pos = i * eventlen; 
       flat_data.CopyAt(flat_pos, datar[i]);
     }
 
+    // TODO: JPB: (feature)(optimization) Only prepare_run when the eventlen has changed
     mt->set_signal_array(flat_data.Raw(), chanlen, eventlen);
-    // TODO: JPB: (refactor) MorletTransformer::prepare_run should not be needed every time
-    //                       This is a PTSA bug
-    mt->prepare_run();
+    mt->prepare_run(); // This must be run every time because the duration can change
     mt->compute_wavelets_threads();
 
     // UnflattenData

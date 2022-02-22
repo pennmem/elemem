@@ -70,7 +70,7 @@ namespace CML {
     if ( (eventlen != in_datar.size1()) ||
          (chanlen != in_datar.size2()) ||
          (freqlen != in_datar.size3()) ) {
-      Throw_RC_Error((RC::RStr("Classification data len (") + freqlen + ", " + chanlen + ", " +
+      Throw_RC_Error((RC::RStr("NormalizePowersSettings dimensions (") + freqlen + ", " + chanlen + ", " +
                                eventlen + ") " + "and in_data dimensions (" + in_datar.size3() +
                                ", " + in_datar.size2() + ", " + in_datar.size1() + ") do not match.").c_str());
     }

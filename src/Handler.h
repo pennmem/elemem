@@ -42,9 +42,9 @@ namespace CML {
 
     void SetMainWindow(RC::Ptr<MainWindow> new_main);
 
-    RCqt::TaskCaller<> LoadSysConfig =
+    RCqt::TaskBlocker<> LoadSysConfig =
       TaskHandler(Handler::LoadSysConfig_Handler);
-    RCqt::TaskCaller<> Initialize =
+    RCqt::TaskBlocker<> Initialize =
       TaskHandler(Handler::Initialize_Handler);
 
     RCqt::TaskCaller<> CerebusTest =

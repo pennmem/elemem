@@ -120,12 +120,10 @@ namespace CML {
 
     NewEEGSave();
 
-    //#define TESTING 
     #ifdef TESTING
     RC_DEBOUT(RC::RStr("TESTING"));
     TestAllCode();
     #endif
-    
   }
 
   void Handler::CerebusTest_Handler() {
@@ -307,7 +305,7 @@ namespace CML {
   }
 
   void Handler::InitializeChannels_Handler() {
-    eeg_acq.InitializeChannels(settings.sampling_rate);
+    eeg_acq.InitializeChannels(settings.sampling_rate, settings.binned_sampling_rate);
   }
 
   // SelectStim_Handler goes through settings.stimconf and extracts values
@@ -585,6 +583,9 @@ namespace CML {
       }
       catch(ErrorMsgFile&) { }
 
+      settings.exp_config->Get(settings.binned_sampling_rate,
+          "global_settings", "binned_sampling_rate");
+
       InitializeChannels_Handler();
 
       new_chans = settings.LoadElecConfig(base_dir);
@@ -802,30 +803,40 @@ namespace CML {
   }
 
   void Handler::SetupClassifier() {
-    size_t binning_freq;
-    settings.exp_config->Get(binning_freq, "experiment", "classifier",
-        "binning_frequency_Hz");
+    size_t circ_buf_duration_ms;
+    settings.exp_config->Get(circ_buf_duration_ms, "experiment", "classifier",
+        "circular_buffer_duration_ms");
+
+    auto& freqs = settings.weight_manager->weights->freqs;
+    auto& chans = settings.weight_manager->weights->chans;
+
+    double max_freq = *std::max_element(freqs.begin(), freqs.end());
+    if (settings.binned_sampling_rate < 2.99 * max_freq) { // This is equivalent to 3 with float rounding errors
+      Throw_RC_Error(("Binned frequency (" + RC::RStr(settings.binned_sampling_rate) + ") " +
+            "is less than 2.99 times the maximum frequency " +
+            "(" + RC::RStr(max_freq) + ")").c_str());
+    }
+
     task_classifier_manager = new TaskClassifierManager(this,
-        settings.sampling_rate, 800, binning_freq); // TODO: JPB: (need) Load num_events from configs - mirrored_num
+        settings.binned_sampling_rate, circ_buf_duration_ms);
 
     ButterworthSettings but_set;
-    but_set.channels = settings.weight_manager->weights->chans;
-    but_set.sampling_rate = binning_freq;
+    but_set.channels = chans;
+    but_set.sampling_rate = settings.binned_sampling_rate;
     settings.sys_config->Get(but_set.cpus, "closed_loop_thread_level");
 
     MorletSettings mor_set;
-    mor_set.num_events = 1000; // TODO: JPB: (need) Load num_events from configs
-    mor_set.channels = settings.weight_manager->weights->chans;
-    mor_set.frequencies = settings.weight_manager->weights->freqs;
-    mor_set.sampling_rate = binning_freq;
+    mor_set.channels = chans;
+    mor_set.frequencies = freqs;
+    mor_set.sampling_rate = settings.binned_sampling_rate;
     settings.exp_config->Get(mor_set.cycle_count, "experiment", "classifier",
         "morlet_cycles");
     settings.sys_config->Get(mor_set.cpus, "closed_loop_thread_level");
 
     NormalizePowersSettings np_set;
     np_set.eventlen = 1; // This is set to 1 because data is averaged first
-    np_set.chanlen = settings.weight_manager->weights->chans.size();
-    np_set.freqlen = settings.weight_manager->weights->freqs.size();
+    np_set.chanlen = chans.size();
+    np_set.freqlen = freqs.size();
     feature_filters = new FeatureFilters(mor_set.channels, but_set, mor_set, np_set);
 
     ClassifierLogRegSettings classifier_settings;
@@ -839,12 +850,13 @@ namespace CML {
     classifier->RegisterCallback("ClassifierDecision", task_stim_manager->StimDecision);
 
     // TODO: JPB: (need) Remove testing classifier processing events in Handler::SetupClassifier
-    //RC_DEBOUT(RC::RStr("TESTING\n"));
-    //task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
-    //sleep(3);
-    //task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
-    //sleep(3);
-    //task_classifier_manager->ProcessClassifierEvent(ClassificationType::STIM, 1000, 0);
+    RC_DEBOUT(RC::RStr("TESTING\n"));
+    RC_DEBOUT(RC::RStr("freqs: ") + RC::RStr::Join(mor_set.frequencies, ", "));
+    task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
+    sleep(7);
+    task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
+    sleep(7);
+    task_classifier_manager->ProcessClassifierEvent(ClassificationType::STIM, 1000, 0);
   }
 
 

@@ -17,6 +17,7 @@ namespace RCqt {
   QMutex Worker::worker_map_mutex;
   Worker::MapType Worker::worker_map;
   bool Worker::terminate_when_done = false;
+  uint64_t Worker::direct_calling = 0;
   WorkerQObject Worker::static_qobject(NULL);
 
   WorkerQObject::WorkerQObject(RC::Ptr<Worker> worker)
@@ -144,21 +145,24 @@ namespace RCqt {
 
   void WorkerQObject::CommandEmitter(RC::APtr<WorkerCommand> &cmd,
                                      TaskType task_type) const {
-    switch(task_type) {
-      case AUTOTASK:  emit CommandSignal(cmd);  break;
-      case BLOCKTASK:
-        if (!worker->worker_qobject.thread()->isRunning() &&
-            worker->KeepGoing()) {
-          cmd->Run();  // Threads not operational yet.
-        }
-        else if (QThread::currentThread() == worker->worker_qobject.thread()) {
-          emit CommandSignal(cmd);
-        }
-        else {
-          emit CommandSignalBlocked(cmd);
-        }
-        break;
-      default:  Throw_RC_Error("Invalid emitter case");
+    if (Worker::direct_calling && worker->KeepGoing()) {
+      // To happen only if multithreading not active yet.
+      // Enabled with Worker::DirectCallingScope
+      cmd->Run();
+    }
+    else {
+      switch(task_type) {
+        case AUTOTASK:  emit CommandSignal(cmd);  break;
+        case BLOCKTASK:
+          if (QThread::currentThread() == worker->worker_qobject.thread()) {
+            emit CommandSignal(cmd);
+          }
+          else {
+            emit CommandSignalBlocked(cmd);
+          }
+          break;
+        default:  Throw_RC_Error("Invalid emitter case");
+      }
     }
   }
 

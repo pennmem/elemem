@@ -54,9 +54,8 @@ namespace CML {
     const size_t num_data_chans = 272;
 
     uint64_t window_seconds = 4;
-    size_t data_samples;
 
-    EEGData data{1000};
+    EEGData data{1000, 0}; // TODO: JPB: (refactor) Maybe this should be changed to pointer (redo EnableChan)
     size_t data_offset = 0;
     RC::Data1D<EEGChan> eeg_channels;
 

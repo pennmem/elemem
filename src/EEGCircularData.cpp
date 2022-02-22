@@ -3,43 +3,80 @@
 #include "RC/RStr.h"
 
 namespace CML {
-    RC::APtr<EEGData> EEGCircularData::GetData() {
-      RC::APtr<EEGData> out_data = new EEGData(circular_data.sampling_rate);
-      auto& circ_datar = circular_data.data;
-      auto& out_datar = out_data->data;
-      out_datar.Resize(circ_datar.size());
-      RC_ForIndex(i, circ_datar) { // Iterate over channels
-        auto& circ_events = circ_datar[i];
-        auto& out_events = out_datar[i];
-        out_events.Resize(circ_events.size());
-        size_t amnt = circ_events.size() - circular_data_end;
-        out_events.CopyAt(0, circ_events, circular_data_end, amnt);
-        out_events.CopyAt(amnt, circ_events, 0, circular_data_end);
-      }   
-      return out_data;
+  RC::APtr<EEGData> EEGCircularData::GetData() {
+    return GetData(circular_data_end);
+  }
+
+  RC::APtr<EEGData> EEGCircularData::GetData(size_t amnt) {
+    if (amnt > circular_data.sampling_rate) {
+      Throw_RC_Error(("The amount of data requested "
+            "(" + RC::RStr(amnt) + ") " +
+            "is greater than the number of samples in the ciruclar data "
+            "(" + RC::RStr(circular_data.sampling_rate) + ")").c_str());
     }
 
-    // TODO: JPB: Implement EEGCircularData::GetData(size_t amnt)
-    //            Should be very similar to above
-    //            Refactor above to use this too
-    RC::APtr<EEGData> EEGCircularData::GetData(size_t amnt) {
-      RC::APtr<EEGData> out_data = new EEGData(circular_data.sampling_rate);
-      return out_data;
-    }
+    RC::APtr<EEGData> out_data = new EEGData(circular_data.sampling_rate, amnt);
+    auto& circ_datar = circular_data.data;
+    auto& out_datar = out_data->data;
+    out_datar.Resize(circ_datar.size());
 
-    void EEGCircularData::PrintData() {
-      RC_DEBOUT(RC::RStr("circular_data_start: ") + circular_data_start + "\n");
-      RC_DEBOUT(RC::RStr("circular_data_end: ") + circular_data_end + "\n");
-      PrintEEGData(*GetData());
-    }
+    RC_ForIndex(i, circ_datar) { // Iterate over channels
+      auto& circ_events = circ_datar[i];
+      auto& out_events = out_datar[i];
 
-    void EEGCircularData::PrintRawData() {
-      RC_DEBOUT(RC::RStr("circular_data_start: ") + circular_data_start + "\n");
-      RC_DEBOUT(RC::RStr("circular_data_end: ") + circular_data_end + "\n");
-      PrintEEGData(circular_data);
-    }
+      if (circ_events.IsEmpty()) { continue; } // Skip empty channels
+      out_data->EnableChan(i);
 
-    void EEGCircularData::Append(RC::APtr<const EEGData>& new_data) {
+      size_t amnt_to_end = circular_data_len - circular_data_start;
+      if (amnt <= amnt_to_end) {
+        out_events.CopyAt(0, circ_events, circular_data_start, amnt);
+      } else {
+        out_events.CopyAt(0, circ_events, circular_data_start, amnt_to_end);
+        size_t amnt_from_start = amnt - amnt_to_end;
+        out_events.CopyAt(amnt_to_end, circ_events, 0, amnt_from_start);
+      }
+    }
+    return out_data;
+  }
+
+  RC::APtr<EEGData> EEGCircularData::GetDataAll() {
+    return GetData(circular_data_len);
+  }
+
+  /// This gets the data as a timeline, meaning that if the data isn't full yet
+  /// then the 0s go before the data instead of after
+  RC::APtr<EEGData> EEGCircularData::GetDataAllAsTimeline() {
+    RC::APtr<EEGData> out_data = new EEGData(circular_data.sampling_rate, circular_data.sample_len);
+    auto& circ_datar = circular_data.data;
+    auto& out_datar = out_data->data;
+    out_datar.Resize(circ_datar.size());
+    RC_ForIndex(i, circ_datar) { // Iterate over channels
+      auto& circ_events = circ_datar[i];
+      auto& out_events = out_datar[i];
+
+      if (circ_events.IsEmpty()) { continue; } // Skip empty channels
+      out_data->EnableChan(i);
+
+      size_t amnt = circ_events.size() - circular_data_end;
+      out_events.CopyAt(0, circ_events, circular_data_end, amnt);
+      out_events.CopyAt(amnt, circ_events, 0, circular_data_end);
+    }   
+    return out_data;
+  }
+
+  void EEGCircularData::PrintData() {
+    RC_DEBOUT(RC::RStr("circular_data_start: ") + circular_data_start + "\n");
+    RC_DEBOUT(RC::RStr("circular_data_end: ") + circular_data_end + "\n");
+    PrintEEGData(*GetData());
+  }
+
+  void EEGCircularData::PrintRawData() {
+    RC_DEBOUT(RC::RStr("circular_data_start: ") + circular_data_start + "\n");
+    RC_DEBOUT(RC::RStr("circular_data_end: ") + circular_data_end + "\n");
+    PrintEEGData(circular_data);
+  }
+
+  void EEGCircularData::Append(RC::APtr<const EEGData>& new_data) {
     size_t start = 0;
     size_t amnt = new_data->data[0].size();
     Append(new_data, start, amnt);
@@ -66,11 +103,11 @@ namespace CML {
       circular_data.sampling_rate = new_data->sampling_rate;
       circ_datar.Resize(new_datar.size());
       RC_ForIndex(i, circ_datar) { // Iterate over channels
-        // TODO: JPB: (feature) This if statement is a speedup, but could be an issue if a wire is loose at first
-        //if (!new_datar[i].IsEmpty()) { // Skip the empty channels
-        circ_datar[i].Resize(circular_data_len);
-        circ_datar[i].Zero();
-        //}
+        auto& new_events = new_datar[i];
+        auto& circ_events = circ_datar[i];
+        if (new_events.IsEmpty()) { continue; } // Skip empty channels
+        circ_events.Resize(circular_data_len);
+        circ_events.Zero();
       }
     }
 
@@ -91,10 +128,10 @@ namespace CML {
     size_t scnd_amnt = std::max(0, (int)amnt - (int)frst_amnt);
     
     RC_ForIndex(i, circ_datar) { // Iterate over channels
-      auto& circ_events = circ_datar[i];
       auto& new_events = new_datar[i];
+      auto& circ_events = circ_datar[i];
 
-      if (new_events.IsEmpty()) { continue; }
+      if (new_events.IsEmpty()) { continue; } // Skip empty channels
 
       // Copy the data up to the end of the Data1D (or all the data, if possible)
       circ_events.CopyAt(circular_data_end, new_events, start, frst_amnt);
@@ -104,50 +141,14 @@ namespace CML {
         circ_events.CopyAt(0, new_events, start+frst_amnt, scnd_amnt);
     }
     
-    if (!has_wrapped && (circular_data_end + amnt >= circular_data_len))
+    if (!has_wrapped && (circular_data_end + amnt >= circular_data_len)) {
       has_wrapped = true;
-    if (has_wrapped)
-      circular_data_start = (circular_data_start + amnt) % circular_data_len;
-    circular_data_end = (circular_data_end + amnt) % circular_data_len;
-  }
-
-  RC::APtr<EEGData> EEGCircularData::BinData(RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
-    // TODO: JPB: (feature) Add ability to handle sampling ratios that aren't true multiples
-    RC::APtr<EEGData> out_data = new EEGData(new_sampling_rate);
-    size_t sampling_ratio = in_data->sampling_rate / new_sampling_rate;
-    auto& in_datar = in_data->data;
-    auto& out_datar = out_data->data;
-    out_datar.Resize(in_datar.size());
-
-    if (new_sampling_rate == 0)
-      Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
-
-    auto accum_event = [](u32 sum, size_t val) { return std::move(sum) + val; };
-    RC_ForIndex(i, out_datar) { // Iterate over channels
-      auto& in_events = in_datar[i];
-      auto& out_events = out_datar[i];
-
-      if (in_events.IsEmpty()) { continue; }
-	  // This is integer division that returns the ceiling
-      size_t out_events_size = in_events.size() / sampling_ratio + (in_events.size() % sampling_ratio != 0);
-      out_events.Resize(out_events_size);
-      RC_ForIndex(j, out_events) {
-        if (j < out_events_size - 1) {
-          size_t start = j * sampling_ratio;
-          size_t end = (j+1) * sampling_ratio - 1;
-          size_t items = sampling_ratio;
-          out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
-                            0, accum_event) / items;
-        } else { // Last block could have leftover samples
-          size_t start = j * sampling_ratio;
-          size_t end = in_events.size() - 1;
-          size_t items = std::distance(&in_events[start], &in_events[end]+1);
-          out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
-                            0, accum_event) / items;
-        }
+      if (scnd_amnt) {
+        circular_data_start = (circular_data_start + scnd_amnt) % circular_data_len;
       }
+    } else if (has_wrapped) {
+      circular_data_start = (circular_data_start + amnt) % circular_data_len;
     }
-
-    return out_data;
+    circular_data_end = (circular_data_end + amnt) % circular_data_len;
   }
 }

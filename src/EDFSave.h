@@ -13,7 +13,7 @@ namespace CML {
   class EDFSave : public EEGFileSave {
     public:
     EDFSave(RC::Ptr<Handler> hndl, size_t sampling_rate)
-      : EEGFileSave(hndl), buffer(sampling_rate),
+      : EEGFileSave(hndl), buffer(sampling_rate, 0),
         sampling_rate(sampling_rate) {
       callback_ID = RC::RStr("EDFSave_") + RC::RStr(sampling_rate);
       buffer.sampling_rate = sampling_rate;

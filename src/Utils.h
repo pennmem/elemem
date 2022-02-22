@@ -6,6 +6,7 @@
 namespace CML {
   RC::RStr GetHomeDir();
   RC::RStr GetDesktop();
+  int CeilDiv(int dividend, int divisor);
 }
 
 #endif // UTILS_H

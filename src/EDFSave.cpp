@@ -154,12 +154,17 @@ namespace CML {
         if (buffer.data[c].size() < sampling_rate) {
           continue;
         }
-        buffer.data[c].CopyData(0, sampling_rate);
+        if (buffer.data[c].size() > sampling_rate) {
+          // Not else, can't copy if == sampling_rate.
+          buffer.data[c].CopyData(0, sampling_rate);
+        }
         buffer.data[c].Resize(buffer.data[c].size()-sampling_rate);
       }
       amount_buffered -= sampling_rate;
       amount_written += sampling_rate;
     }
+
+    buffer.sample_len = amount_buffered; // Keep the buffer sample_len in line with the manual editing
   }
 }
 

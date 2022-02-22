@@ -7,24 +7,22 @@
 
 namespace CML {
   TaskClassifierManager::TaskClassifierManager(RC::Ptr<Handler> hndl,
-    size_t sampling_rate, size_t circular_buffer_len, size_t bin_frequency)
-    : hndl(hndl), circular_data(sampling_rate, circular_buffer_len), sampling_rate(sampling_rate) {
-    callback_ID = RC::RStr("TaskClassifierManager_") + bin_frequency;
-    task_classifier_settings.binned_sampling_rate = bin_frequency;
-
+    size_t sampling_rate, size_t circ_buf_duration_ms)
+    : hndl(hndl), circular_data(sampling_rate, circ_buf_duration_ms), sampling_rate(sampling_rate) {
+    callback_ID = RC::RStr("TaskClassifierManager_") + sampling_rate;
     hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
   }
 
   void TaskClassifierManager::StartClassification() {
-	if (!callback.IsSet()) Throw_RC_Error("Start classification callback not set");
+    if (!callback.IsSet()) { Throw_RC_Error("Start classification callback not set"); }
 
     stim_event_waiting = false;
     num_eeg_events_before_stim = 0;
 
-    RC::APtr<const EEGData> data = circular_data.GetData().ExtractConst();
-    RC::APtr<const EEGData> binned_data = EEGCircularData::BinData(data, task_classifier_settings.binned_sampling_rate).ExtractConst();
+    size_t num_samples = task_classifier_settings.duration_ms * sampling_rate / 1000;
+    RC::APtr<const EEGData> data = circular_data.GetData(num_samples).ExtractConst();
 
-    callback(binned_data, task_classifier_settings);
+    callback(data, task_classifier_settings);
   }
 
   void TaskClassifierManager::ClassifyData_Handler(RC::APtr<const EEGData>& data) {
@@ -51,6 +49,12 @@ namespace CML {
   void TaskClassifierManager::ProcessClassifierEvent_Handler(
         const ClassificationType& cl_type, const uint64_t& duration_ms,
         const uint64_t& classif_id) {
+    if (duration_ms > circular_data.duration_ms) {
+      Throw_RC_Error(("Classification duration (" + RC::RStr(duration_ms) + ") " +
+            "is greater than the circular buffer duration " +
+            "(" + RC::RStr(circular_data.duration_ms) + ")").c_str());
+    }
+
     if (!stim_event_waiting) {
       stim_event_waiting = true;
       num_eeg_events_before_stim = duration_ms * sampling_rate / 1000;
@@ -62,37 +66,6 @@ namespace CML {
       hndl->event_log.Log("Skipping stim event, another stim event is already waiting (collecting EEGData)");
     }
   }
-
-  //void TaskClassifierManager::ClassifierDecision_Handler(const double& result,
-  //  const TaskClassifierSettings& task_classifier_settings) {
-  //  RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
-  //  bool stim = result < 0.5;
-  //  bool stim_type =
-  //    (task_classifier_settings.cl_type == ClassificationType::STIM);
-
-  //  JSONFile data;
-  //  data.Set(result, "result");
-  //  data.Set(stim, "decision");
-
-  //  const RC::RStr type = [&] {
-  //      switch (task_classifier_settings.cl_type) {
-  //        case ClassificationType::STIM: return "STIM_DECISON";
-  //        case ClassificationType::SHAM: return "SHAM_DECISON";
-          // case ClassificationType::NOSTIM: return "NOSTIM_DECISION";
-          // case ClassificationType::NORMALIZE: return "NORMALIZE_NOSTIM_DECISION";
-  //        default: Throw_RC_Error("Invalid classification type received.");
-  //      }
-  //  }();
-
-  //  auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
-  //  hndl->event_log.Log(resp.Line());
-  //  RC_DEBOUT(resp);
-
-  //  if (stim_type && stim) {
-  //    // TODO: JPB: (need) Temporarily remove call to stimulate
-  //    //hndl->stim_worker.Stimulate();
-  //  }
-  //}
 
   void TaskClassifierManager::SetCallback_Handler(const TaskClassifierCallback& new_callback) {
     callback = new_callback;

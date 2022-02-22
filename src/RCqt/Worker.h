@@ -153,8 +153,20 @@ namespace RCqt {
 
     typedef std::map< RC::Ptr<Worker>, RC::Ptr<Worker> > MapType;
     typedef std::pair< RC::Ptr<Worker>, RC::Ptr<Worker> > MapPair;
-    private:
 
+    public:
+
+    // Provides direct calling while within scope.
+    // To be used only before multithreading is started.
+    class DirectCallingScope {
+      public:
+      DirectCallingScope() { Worker::direct_calling++; }
+      ~DirectCallingScope() { Worker::direct_calling--; }
+    };
+
+    bool DirectCallingMode() { return direct_calling > 0; }
+
+    private:
 
     class AbortLevel {
       public:
@@ -259,6 +271,7 @@ namespace RCqt {
     static QMutex worker_map_mutex;
     static MapType worker_map;
     static bool terminate_when_done;
+    static uint64_t direct_calling;
     static WorkerQObject static_qobject;
   };
 

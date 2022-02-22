@@ -4,6 +4,7 @@
 #include "Cerebus.h" // TODO Remove after moving injection to Handler.
 #include "CerebusSim.h" // TODO Remove after moving injection to Handler.
 
+#include "FeatureFilters.h"
 
 namespace CML {
   EEGAcq::EEGAcq() {
@@ -23,15 +24,11 @@ namespace CML {
       return;
     }
 
-    if (eeg_source.IsNull()) {
+    if (eeg_source.IsNull() || !channels_initialized) {
       return;
     }
 
     try {
-      RC::APtr<EEGData> data_aptr = new EEGData(sampling_rate);
-      auto& data = data_aptr->data;
-      data.Resize(cbNUM_ANALOG_CHANS);
-
       auto& cereb_chandata = eeg_source->GetData();
 
       size_t max_len = 0;
@@ -42,6 +39,10 @@ namespace CML {
       if (max_len == 0) {
         return;
       }
+
+      RC::APtr<EEGData> data_aptr = new EEGData(sampling_rate, max_len);
+      auto& data = data_aptr->data;
+      data.Resize(cbNUM_ANALOG_CHANS);
 
       for(size_t i=0; i<cereb_chandata.size(); i++) {
         auto cereb_chan = cereb_chandata[i].chan;
@@ -60,10 +61,21 @@ namespace CML {
         }
       }
 
-
+      // Bin data
       auto data_captr = data_aptr.ExtractConst();
+      RC::APtr<BinnedData> binned_data = [&] {
+        if (rollover_data.IsSet()) {
+          return FeatureFilters::BinData(rollover_data, data_captr, binned_sampling_rate);
+        } else {
+          return FeatureFilters::BinData(data_captr, binned_sampling_rate);
+        }
+      }();
+      rollover_data = binned_data->leftover_data.ExtractConst();
+      RC::APtr<EEGData> out_data_aptr = binned_data->out_data;
+      RC::APtr<const EEGData> out_data_captr = out_data_aptr.ExtractConst();
+
       for (size_t i=0; i<data_callbacks.size(); i++) {
-        data_callbacks[i].callback(data_captr);
+        data_callbacks[i].callback(out_data_captr);
       }
     }
     catch (...) {
@@ -79,17 +91,20 @@ namespace CML {
   }
 
 
-  void EEGAcq::InitializeChannels_Handler(const size_t& new_sampling_rate) {
+  void EEGAcq::InitializeChannels_Handler(const size_t& new_sampling_rate,
+                                          const size_t& new_binned_sampling_rate) {
     if (eeg_source.IsNull()) {
       return;
     }
 
     sampling_rate = new_sampling_rate;
+    binned_sampling_rate = new_binned_sampling_rate;
 
     StopEverything();
 
     eeg_source->InitializeChannels(sampling_rate);
 
+    channels_initialized = true;
     BePollingIfCallbacks();
   }
 
@@ -122,6 +137,7 @@ namespace CML {
     if (eeg_source.IsSet()) {
       eeg_source->Close();
     }
+    channels_initialized = false;
     StopEverything();
   }
 
@@ -146,6 +162,9 @@ namespace CML {
 
 
   void EEGAcq::BePollingIfCallbacks() {
+    if (DirectCallingMode()) {
+      return;
+    }
     BeAllocatedTimer();
     if (!acq_timer->isActive() && data_callbacks.size() > 0) {
       acq_timer->start(polling_interval_ms);

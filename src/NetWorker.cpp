@@ -227,7 +227,6 @@ namespace CML {
     std::string host_subject;
 
     try {
-      RC_DEBOUT(inp);
       auto conf = hndl->GetConfig();
       inp.Get(task_stim_mode, "data", "stim_mode");
       inp.Get(task_experiment, "data", "experiment");

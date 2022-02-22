@@ -33,6 +33,7 @@
     "lnc_time_constant": 10,
     "dc_offset_correction": true,
     "plot_window_length": 6000,
+    "binned_sampling_rate": 1000,
     # "micro_sampling_rate": 30000,
     "macro_sampling_rate": 1000
   },
