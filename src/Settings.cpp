@@ -390,7 +390,7 @@ namespace CML {
     //       c, "duration");
     // }
 
-    exp_config->Get(cps_specs.num_sham_trials, "experiment",
+    exp_config->Get(cps_specs.experiment_duration_secs, "experiment",
         "experiment_specs", "experiment_duration_secs");
     exp_config->Get(cps_specs.intertrial_range_ms, "experiment",
         "experiment_specs", "intertrial_range_ms");
@@ -458,6 +458,7 @@ namespace CML {
   // TODO: RDD: sel_chan_json for selecting channels? loading available channels with ranges?
   void Settings::UpdateConfCPS(JSONFile& current_config) {
     for (size_t c=0; c<stimconf.size(); c++) {
+      // TODO: RDD: 
       current_config.Set(min_stimconf[c].params.amplitude*1e-3,
           "experiment", "stim_channels", c, "amplitude_range_mA", 0);
       current_config.Set(max_stimconf[c].params.amplitude*1e-3,

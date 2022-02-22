@@ -359,7 +359,7 @@ namespace CML {
       // from OPS-style configuration attempt
       // Data1D<CSStimProfile> discrete_stim_param_sets = CreateDiscreteStimProfiles();
 
-      // FR5-style configuration attempt
+      // FR5-style configuration
       // Count all approved.
       CSStimProfile cnt_profile;
       for (size_t c=0; c<settings.stimconf.size(); c++) {
@@ -391,8 +391,7 @@ namespace CML {
       }
 
       exper_cps.SetCPSSpecs(settings.cps_specs);
-      TODO need to input appropriate config parameters rather strictly using set stim param sets
-            instead only use discrete param sets for giving non-optimized stim parameters
+      // discrete stim param sets only give fixed (non-optimized) stim parameters
       exper_cps.SetStimProfiles(discrete_stim_param_sets);
     }
     else {

@@ -114,27 +114,27 @@ namespace CML {
     RC::Ptr<StatusPanel> status_panel;
     RC::RStr buffer;
 
-    // TODO will want to update this to an extenxible container or else ensure list is long enough for all possible events, e.g.,
-    // include all potential stim events as well, potentially being recorded as non-stim events if stim wasn't 
-    // ordered on basis of biomarkers
-    RC::Data1D<CSStimProfile> stim_profiles;
     // set of stimulation profiles used to indicate unique stim locations
     // ordered by testing priority (unknown number of stim events per experiment)
     RC::Data1D<CSStimProfile> stim_loc_profiles;
+    CPSSpecs cps_specs;
+    CSStimProfile best_stim_profile;
+
+    // logging
+    RC::Data1D<CSStimProfile> stim_profiles;
     RC::Data1D<double> classif_results;
     RC::Data1D<ExpEvent> exp_events;
     RC::Data1D<bool> stim_event_flags;
     RC::Data1D<TaskClassifierSettings> exper_classif_settings;
     RC::Data1D<double> abs_event_times;
+
+    // temp
     uint64_t event_time;
     f64 exp_start;
     size_t cur_ev;
     bool prev_sham;
     uint64_t next_min_event_time;
     uint64_t classif_id;
-
-    CPSSpecs cps_specs;
-    CSStimProfile best_stim_profile;
 
     RC::RND rng;
     RC::APtr<QTimer> timer;

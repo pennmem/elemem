@@ -7,6 +7,8 @@
 
 using namespace RC;
 
+#define DEBUG_EXPERCPS
+
 // TODO change name from CPS to something less easily mistaken for OPS
 
 namespace CML {
@@ -21,8 +23,9 @@ namespace CML {
     n_init_samples = 100;
     CMatrix bounds(n_var, 2);
     // amplitude bounds in mA
-    bounds(0, 0) = 0.1 if 0.1 < ;
+    bounds(0, 0) = 0.0;
     bounds(0, 1) = 0.0;
+
     int verbosity = 0;
 
     // cnpy::npz_t npz_dict;
@@ -33,7 +36,8 @@ namespace CML {
     whitek = new CWhiteKern(n_var);
     kern.addKern(whitek);
 
-    // TODO load parameters from config file - ask Ryan/James about how this is handled
+    // TODO: RDD: load parameters from config file - ask Ryan/James about how this is handled
+    // TODO: RDD: check values with design docs
     n_normalize_events = 25;
     poststim_classif_lockout_ms = 500;
     // TODO: RDD: replace with CPSSpecs.intertrial_range_ms
@@ -64,8 +68,9 @@ namespace CML {
       if (new_stim_loc_profiles[i].size() != 1) {
         Throw_RC_Error("ExperCPS::SetStimProfiles: Only stimulation events with stimulation profiles of length 1 are supported currently.");
       }
-      // TODO: RDD: fix this to allow for searching over arbitrary parameters
+      // TODO: LATER RDD: fix this to allow for searching over arbitrary parameters
       //            for now assume that the maximum amplitude is the amplitude in the given profiles
+      // TODO: RDD: bounds should be passed separately with min/max configuration
       search.bounds->setVal(0.1, 0);
       search.bounds->setVal(new_stim_loc_profiles[i][0].amplitude, 1);
     }
@@ -76,7 +81,7 @@ namespace CML {
     CMatrix* stim_pars = search.get_next_sample();
 
     // TODO: RDD: update to select between multiple stim sites
-    // TODO: all: currently assuming that stim parameters not being searched over are set separately in
+    // TODO: all: LATER currently assuming that stim parameters not being searched over are set separately in
     //            stim_loc_profiles, should ensure these are set in Settings.cpp
     if (stim_loc_profiles[0].size() != 1) {
       Throw_RC_Error("ExperCPS::GetNextEvent: Only stimulation events with stimulation profiles of length 1 are supported currently.");
@@ -84,7 +89,7 @@ namespace CML {
     CSStimChannel stim_chan((stim_loc_profiles[0][0]));
 
     // set stim parameter values for next search point
-    // TODO: RDD: may want to scale down into more desirable interval, e.g., [0, 1]
+    // TODO: RDD: LATER may want to scale down into more desirable interval, e.g., [0, 1]
 
     // convert to allowable discrete stim settings
     // stim_pars amplitude in mA
@@ -95,6 +100,7 @@ namespace CML {
     ExpEvent ev;
     ev.active_ms = stim_chan.duration/1000;
     // TODO: RDD: reevaluate ISI values
+    // TODO: RDD: choose whether to use ISIs or fixed lockouts
     // Add ISI
     ev.event_ms = ev.active_ms +
       rng.GetRange(cps_specs.intertrial_range_ms[0],
@@ -336,10 +342,10 @@ namespace CML {
     CSStimProfile stim_params = stim_profiles[cur_ev];
     ExpEvent cur_event = exp_events[cur_ev];
 
+    #ifdef DEBUG_EXPERCPS
+    RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler\n"));
+    #endif
 
-    // RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler\n\n"));
-
-    // TODO: RDD: separate Bayesian search objects for different stim locations
     // TODO: RDD: add code for computing final optimal parameters after experiment completed
     //      could be completed entirely off-line, probably simplest, but would be nice to simply compute live
     //      would then need to end experiment for subjet while continuing computation, more complicated...
@@ -356,6 +362,9 @@ namespace CML {
       // TODO ensure/confirm with James that <stim_event == classif_prob < 0.5> and not <stim_event == whether stim event actually occurred, which would filter out sham events in addition to high memory states>
       // this could be a tangible difference between the NOSTIM/SHAM events, that stim_event := false for NOSTIM, stim_event := classif_prob < 0.5 for SHAM
       if (stim_event) { // stim event occurred or would have occurred if the event were not a sham
+        #ifdef DEBUG_EXPERCPS
+        RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler: stim decision\n"));
+        #endif
         // TODO handle cases where say stim duration not equal between given and used params...
         //      use assert as a placeholder for initial testing
         // TODO: RDD/RC: when will CereStim change received stim parameters internally and will we receive that
@@ -386,6 +395,10 @@ namespace CML {
         next_min_event_time = cur_time_ms;
         next_classif_state = classif_state;
         ClassifyingPanel();
+
+        #ifdef DEBUG_EXPERCPS
+        RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler: sham decision\n"));
+        #endif
         // TODO always access results[], classif_results[], and any other event arrays with last event
       }
     }
@@ -399,7 +412,13 @@ namespace CML {
       double biomarker = result - classif_results[classif_results.size() - 1];
       // TODO add struct for storing everything related to a full pre-post event (i.e., pre-stim classifier event time, stim event time, post-stim classifier time, classifier results, biomarker, stim parameters, ideally Bayesian search hps? definitely should store those separately...)
       //      otherwise could just parse after the fact, this would prevent misparsing...
+      #ifdef DEBUG_EXPERCPS
+      RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler: nostim decision\n"));
+      #endif
       if (!prev_sham) {
+        #ifdef DEBUG_EXPERCPS
+        RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler: nostim decision with prev stim\n"));
+        #endif
         UpdateSearch(stim_params, cur_event, biomarker);
         GetNextEvent();
         cur_ev++;
@@ -429,6 +448,9 @@ namespace CML {
       status_panel->SetEvent("CLASSIFYING");
     }
     else if (classif_state == ClassificationType::NORMALIZE) {
+      #ifdef DEBUG_EXPERCPS
+      RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler: normalization decision\n"));
+      #endif
       ClassifyingPanel();
       next_min_event_time = cur_time_ms + normalize_lockout_ms;
       if (classif_results.size() < n_normalize_events) {
