@@ -27,7 +27,7 @@ namespace CML {
       deb_msg += "channel " + RC::RStr(c) + ": " + RC::RStr::Join(datar[c], ", ") + "\n";
     }
     deb_msg += "\n––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––\n";
-    RC_DEBOUT(deb_msg);
+    // RC_DEBOUT(deb_msg);
   }
 
   void PrintEEGDataPythonInput(const EEGData& data) {

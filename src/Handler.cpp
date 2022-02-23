@@ -480,6 +480,10 @@ namespace CML {
     if (settings.grid_exper) {
       exper_ops.Start();
     }
+    else if (!settings.task_driven) {  // CPS
+      RC_DEBOUT(RC::RStr("Handler.cpp::StartExperiment_Handler CPS\n"));
+      exper_cps.Start();
+    }
     else { // Network experiment.
       // Note:  Binding to a specific LAN address is a safety feature.
       std::string ipaddress = "192.168.137.1";
@@ -611,7 +615,12 @@ namespace CML {
         if (settings.exper.find("CPS") == 0) {
           settings.grid_exper = false;
           settings.task_driven = false;
+          RC_DEBOUT(RC::RStr("Handler.cpp::OpenConfig_Handler CPS"));
           classifier->RegisterCallback("CPSClassifierDecision", exper_cps.ClassifierDecision);
+          feature_filters->RegisterCallback("CPSHandleNormalization", exper_cps.HandleNormalization);
+
+          // task_classifier_manager->SetCallback(feature_filters->Process);
+
           task_stim_manager->SetCallback(exper_cps.StimDecision);
         }
       }
@@ -850,16 +859,16 @@ namespace CML {
     task_stim_manager = new TaskStimManager(this);
 
     task_classifier_manager->SetCallback(feature_filters->Process);
-    feature_filters->SetCallback(classifier->Classify);
-    classifier->RegisterCallback("ClassifierDecision", task_stim_manager->StimDecision);
+    feature_filters->RegisterCallback("Classification", classifier->Classify);
+    classifier->RegisterCallback("StimDecision", task_stim_manager->StimDecision);
 
     // TODO: JPB: (need) Remove testing classifier processing events in Handler::SetupClassifier
     // RC_DEBOUT(RC::RStr("TESTING\n"));
     // RC_DEBOUT(RC::RStr("freqs: ") + RC::RStr::Join(mor_set.frequencies, ", "));
     // task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
-    // sleep(7);
+    // sleep(2);
     // task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
-    // sleep(7);
+    // sleep(2);
     // task_classifier_manager->ProcessClassifierEvent(ClassificationType::STIM, 1000, 0);
   }
 

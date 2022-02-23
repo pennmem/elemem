@@ -25,8 +25,13 @@ namespace CML {
     RCqt::TaskCaller<const RC::RStr, const ClassifierCallback> RegisterCallback =
       TaskHandler(Classifier::RegisterCallback_Handler);
 
+    RCqt::TaskCaller<const RC::RStr> RemoveCallback =
+      TaskHandler(Classifier::RemoveCallback_Handler);
+
 
     protected:
+    void ExecuteCallbacks(const double& result, const TaskClassifierSettings& task_classifier_settings);
+
     virtual double Classification(RC::APtr<const EEGPowers>&) = 0;
     void Classifier_Handler(RC::APtr<const EEGPowers>&, const TaskClassifierSettings&);
 

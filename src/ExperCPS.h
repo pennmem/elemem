@@ -11,6 +11,7 @@
 #include "ExpEvent.h"
 #include "CPSSpecs.h"
 #include "TaskClassifierSettings.h"
+#include "EEGPowers.h"
 #include <QTimer>
 #include <QThread>
 #include "../../BayesGPc/CBayesianSearch.h"
@@ -21,6 +22,7 @@ namespace CML {
   class Handler;
   class StatusPanel;
 
+  using FeatureCallback = RCqt::TaskCaller<RC::APtr<const EEGPowers>, const TaskClassifierSettings>;
   using ClassifierCallback = RCqt::TaskCaller<const double, const TaskClassifierSettings>;
   using StimulationCallback = RCqt::TaskCaller<const bool, const TaskClassifierSettings, const f64>;
 
@@ -48,6 +50,9 @@ namespace CML {
 
     RCqt::TaskBlocker<> Stop =
       TaskHandler(ExperCPS::Stop_Handler);
+
+    FeatureCallback HandleNormalization =
+      TaskHandler(ExperCPS::HandleNormalization_Handler);
 
     ClassifierCallback ClassifierDecision =
       TaskHandler(ExperCPS::ClassifierDecision_Handler);
@@ -83,6 +88,7 @@ namespace CML {
     void Stop_Handler();
     void InternalStop();
 
+    void HandleNormalization_Handler(RC::APtr<const EEGPowers>& data, const TaskClassifierSettings& task_classifier_settings);
     void ClassifierDecision_Handler(const double& result, const TaskClassifierSettings& task_classifier_settings);
     void StimDecision_Handler(const bool& stim_event, const TaskClassifierSettings& task_classifier_settings, const f64& stim_time_from_start_sec);
     protected slots:
@@ -107,6 +113,7 @@ namespace CML {
     double obsNoise;
     double exp_bias;
     int n_init_samples;
+    int verbosity;
     CKern* k;
     CCmpndKern kern;
     CWhiteKern* whitek;

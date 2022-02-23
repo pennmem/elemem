@@ -37,11 +37,31 @@ namespace CML {
   void Classifier::Classifier_Handler(RC::APtr<const EEGPowers>& data, const TaskClassifierSettings& task_classifier_settings) {
     //RC_DEBOUT(RC::RStr("Classifier_Handler\n\n"));
     if ( data_callbacks.IsEmpty() ) {
-      Throw_RC_Error("Classification callback not set");
+      Throw_RC_Error("No Classification callbacks set");
     }
 
-    double result = Classification(data);
-    hndl->event_log.Log(RC::RStr(result));
+    switch (task_classifier_settings.cl_type) {
+      case ClassificationType::STIM:
+      case ClassificationType::SHAM:
+      case ClassificationType::NOSTIM:
+      {
+        double result = Classification(data);
+        hndl->event_log.Log(RC::RStr(result));
+
+        ExecuteCallbacks(result, task_classifier_settings);
+        break;
+      }
+      case ClassificationType::NORMALIZE:
+        // Do not classify or publish for these event types
+        break;
+      default: Throw_RC_Error("Invalid classification type received.");
+    }
+  }
+
+  void Classifier::ExecuteCallbacks(const double& result, const TaskClassifierSettings& task_classifier_settings) {
+    if ( data_callbacks.IsEmpty() ) {
+      Throw_RC_Error("No FeatureFilters callbacks set");
+    }
 
     for (size_t i=0; i<data_callbacks.size(); i++) {
       data_callbacks[i].callback(result, task_classifier_settings);

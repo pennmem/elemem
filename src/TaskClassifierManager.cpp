@@ -30,7 +30,7 @@ namespace CML {
     auto& datar = data->data;
 
     if (stim_event_waiting) {
-      RC_DEBOUT(num_eeg_events_before_stim);
+      // RC_DEBOUT(num_eeg_events_before_stim);
       if (num_eeg_events_before_stim <= datar[0].size()) { // TODO: JPB: (Need) How to handle if first channel is empty
         circular_data.Append(data, 0, num_eeg_events_before_stim);
         StartClassification();

@@ -17,12 +17,12 @@ namespace CML {
     obsNoise = 0.1;
     exp_bias = 0.25;
     n_init_samples = 100;
-    CMatrix bounds(n_var, 2);
+    bounds = CMatrix(n_var, 2);
     // amplitude bounds in mA
     bounds(0, 0) = 0.0;
     bounds(0, 1) = 0.0;
 
-    int verbosity = 0;
+    verbosity = 0;
 
     // cnpy::npz_t npz_dict;
     // CKern* k = getSklearnKernel((unsigned int)n_var, npz_dict, kernel, std::string(""), true);
@@ -41,12 +41,12 @@ namespace CML {
     normalize_lockout_ms = 3000; // should be stim_lockout_ms + stim duration, though duration may not be fixed
     // TODO: JPB: move to config file for setting classifier settings during initialization?
     // classification interval duration currently
-    classify_ms = 1350;
+    classify_ms = 1000;  // 1350;  // TODO: RDD/JPB: lengthen circular buffer?
 
     // classifier event counter
     classif_id = 0;
 
-    BayesianSearchModel search(kern, bounds, obsNoise * obsNoise, exp_bias, n_init_samples, seed, verbosity);
+    search = BayesianSearchModel(kern, bounds, obsNoise * obsNoise, exp_bias, n_init_samples, seed, verbosity);
   }
 
   ExperCPS::~ExperCPS() {
@@ -75,6 +75,9 @@ namespace CML {
   }
 
   void ExperCPS::GetNextEvent() {
+    #ifdef DEBUG_EXPERCPS
+    RC_DEBOUT(RC::RStr("ExperCPS::GetNextEvent"));
+    #endif
     CMatrix* stim_pars = search.get_next_sample();
 
     // TODO: RDD: update to select between multiple stim sites
@@ -195,6 +198,8 @@ namespace CML {
     // Total run time (ms), fixes experiment length for CPS.
     experiment_duration = cps_specs.experiment_duration_secs * 1000;
 
+    RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
+
     // Confirm window for run time.
     if (!ConfirmWin(RC::RStr("Total run time will be ") + experiment_duration / (60 * 1000) + " min. "
           + (experiment_duration * 1000) % 60 + " sec.", "Session Duration")) {
@@ -208,6 +213,7 @@ namespace CML {
     hndl->event_log.Log(startlog.Line());
 
     GetNextEvent();
+    RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler start ProcessClassifierEvent\n"));
     hndl->task_classifier_manager->ProcessClassifierEvent(
         ClassificationType::NORMALIZE, classify_ms, 0);
   }
@@ -298,9 +304,13 @@ namespace CML {
     }
   }
 
+  void ExperCPS::HandleNormalization_Handler(RC::APtr<const EEGPowers>& data, const TaskClassifierSettings& task_classifier_settings) {
+
+  }
 
   void ExperCPS::ClassifierDecision_Handler(const double& result,
         const TaskClassifierSettings& task_classifier_settings) {
+    RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler"));
     // record classifier outcomes
     classif_results += result;
     exper_classif_settings += task_classifier_settings;
@@ -309,6 +319,10 @@ namespace CML {
 
   void ExperCPS::StimDecision_Handler(const bool& stim_event, const TaskClassifierSettings& classif_settings, const f64& stim_time_from_start_sec) {
     // TODO: RDD: add docstrings for everything
+    #ifdef DEBUG_EXPERCPS
+    RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler"));
+    #endif
+
     uint64_t cur_time_ms = uint64_t(1000*(stim_time_from_start_sec - exp_start)+0.5);
 
     // TODO: RDD: ensure that last events in all saved event arrays can be disambiguated 
@@ -339,10 +353,6 @@ namespace CML {
     CSStimProfile stim_params = stim_profiles[cur_ev];
     ExpEvent cur_event = exp_events[cur_ev];
 
-    #ifdef DEBUG_EXPERCPS
-    RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler\n"));
-    #endif
-
     // TODO: RDD: add code for computing final optimal parameters after experiment completed
     //      could be completed entirely off-line, probably simplest, but would be nice to simply compute live
     //      would then need to end experiment for subjet while continuing computation, more complicated...
@@ -353,6 +363,7 @@ namespace CML {
     stim_event_flags += stim_event;
 
     ClassificationType next_classif_state;
+    RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler just before states"));
     // TODO logging
     if (classif_state == ClassificationType::STIM ||
         classif_state == ClassificationType::SHAM) {  // received pre-stim/pre-sham classification event

@@ -42,6 +42,6 @@ namespace CML {
       deb_msg += "\n";
     }
     deb_msg += "––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––\n";
-    RC_DEBOUT(deb_msg);
+    // RC_DEBOUT(deb_msg);
   }
 }

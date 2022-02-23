@@ -46,7 +46,7 @@ namespace CML {
   /** @param The new values to be added to the rolling statics
    */
   void NormalizePowers::Update(RC::APtr<const EEGPowers>& new_data) {
-    RC_DEBOUT(RC::RStr("NormalizePowers::Update\n\n"));
+    // RC_DEBOUT(RC::RStr("NormalizePowers::Update\n\n"));
     auto& new_datar = new_data->data;
     size_t freqlen = np_set.freqlen;
     size_t chanlen = np_set.chanlen;

@@ -438,7 +438,9 @@ namespace CML {
 
   void FeatureFilters::Process_Handler(RC::APtr<const EEGData>& data, const TaskClassifierSettings& task_classifier_settings) {
     RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
-    if (!callback.IsSet()) Throw_RC_Error("FeatureFilters callback not set");
+    if ( data_callbacks.IsEmpty() ) {
+      Throw_RC_Error("No FeatureFilters callbacks set");
+    }
 
     // This calculates the mirroring duration based on the minimum statistical morlet duration 
     size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
@@ -462,24 +464,52 @@ namespace CML {
       case ClassificationType::NORMALIZE:
         normalize_powers.Update(avg_data);
         normalize_powers.PrintStats(1, 10);
+        ExecuteCallbacks(avg_data, task_classifier_settings); // JPB: TODO: (feature)(optimization) Pass back null
         break;
       case ClassificationType::STIM:
       case ClassificationType::SHAM:
+      case ClassificationType::NOSTIM:
       {
         auto norm_data = normalize_powers.ZScore(avg_data, true).ExtractConst();
         RC_DEBOUT(RC::RStr("NORM POWERS"));
         PrintEEGPowers(*norm_data, 1, 20);
-        callback(norm_data, task_classifier_settings);
+        ExecuteCallbacks(norm_data, task_classifier_settings);
         break;
       }
       default: Throw_RC_Error("Invalid classification type received.");
     } 
   }
 
-  /// Handler that sets the callback on the feature generator results
-  /** @param The callback on the classifier results
+  /// Handler that registers a callback on the classifier results
+  /** @param A (preferably unique) tag/name for the callback
+   *  @param The callback on the classifier results
    */
-  void FeatureFilters::SetCallback_Handler(const FeatureCallback &new_callback) {
-    callback = new_callback;  
+  void FeatureFilters::RegisterCallback_Handler(const RC::RStr& tag,
+                                            const FeatureCallback& callback) {
+    RemoveCallback_Handler(tag);
+    data_callbacks += TaggedCallback{tag, callback};
+  }
+
+  /// Handler that removes a callback on the classifier results.
+  /** @param The tag to be removed from the list of callbacks
+   *  Note: All tags of the same name will be removed (even if there is more than one)
+   */
+  void FeatureFilters::RemoveCallback_Handler(const RC::RStr& tag) {
+    for (size_t i=0; i<data_callbacks.size(); i++) {
+      if (data_callbacks[i].tag == tag) {
+        data_callbacks.Remove(i);
+        i--;
+      }
+    }
+  }
+
+  void FeatureFilters::ExecuteCallbacks(RC::APtr<const EEGPowers> data, const TaskClassifierSettings& task_classifier_settings) {
+    if ( data_callbacks.IsEmpty() ) {
+      Throw_RC_Error("No FeatureFilters callbacks set");
+    }
+
+    for (size_t i=0; i<data_callbacks.size(); i++) {
+      data_callbacks[i].callback(data, task_classifier_settings);
+    }
   }
 }
