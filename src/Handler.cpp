@@ -63,6 +63,7 @@ namespace CML {
     net_worker.SetStatusPanel(main_window->GetStatusPanel());
     stim_worker.SetStatusPanel(main_window->GetStatusPanel());
     exper_ops.SetStatusPanel(main_window->GetStatusPanel());
+    exper_cps.SetStatusPanel(main_window->GetStatusPanel());
   }
 
   void Handler::LoadSysConfig_Handler() {
@@ -875,7 +876,9 @@ namespace CML {
 
   void Handler::CloseExperimentComponents() {
     net_worker.Close();
+    // TODO: RDD: should all experiment objects be stopped or only the one that was used?
     exper_ops.Stop();
+    exper_cps.Stop();
 
     eeg_save->StopSaving();
     event_log.CloseFile();

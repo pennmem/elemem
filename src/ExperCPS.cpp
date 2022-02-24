@@ -34,7 +34,7 @@ namespace CML {
 
     // TODO: RDD: load parameters from config file - ask Ryan/James about how this is handled
     // TODO: RDD: check values with design docs
-    n_normalize_events = 25;
+    n_normalize_events = 2;
     poststim_classif_lockout_ms = 500;
     // TODO: RDD: replace with CPSSpecs.intertrial_range_ms
     stim_lockout_ms = 2500;
@@ -46,7 +46,8 @@ namespace CML {
     // classifier event counter
     classif_id = 0;
 
-    search = BayesianSearchModel(kern, bounds, obsNoise * obsNoise, exp_bias, n_init_samples, seed, verbosity);
+    BayesianSearchModel search_temp(kern, bounds, obsNoise * obsNoise, exp_bias, n_init_samples, seed, verbosity);
+    search = search_temp;
   }
 
   ExperCPS::~ExperCPS() {
@@ -150,6 +151,13 @@ namespace CML {
   }
 
 
+  void ExperCPS::NormalizingPanel() {
+    JSONFile classif_event = MakeResp("NORMALIZING");
+    hndl->event_log.Log(classif_event.Line());
+    status_panel->SetEvent("NORMALIZING");
+  }
+
+
   void ExperCPS::ClassifyingPanel() {
     JSONFile classif_event = MakeResp("CLASSIFYING");
     hndl->event_log.Log(classif_event.Line());
@@ -167,16 +175,18 @@ namespace CML {
 
   JSONFile ExperCPS::JSONifyCSStimProfile(const CSStimProfile& profile) {
     JSONFile stim_event;
+    stim_event.Set(nlohmann::json::array(), "stim_profile");
     for (int i = 0; i < profile.size(); i++) {
+      stim_event.json["stim_profile"].push_back(nlohmann::json({}));
       CSStimChannel chan = profile[i];
-      stim_event.Set(chan.electrode_pos, i, "electrode_pos");
-      stim_event.Set(chan.electrode_neg, i, "electrode_neg");
-      stim_event.Set(chan.amplitude, i, "amplitude");
-      stim_event.Set(chan.frequency, i, "frequency");
-      stim_event.Set(chan.duration, i, "duration");
-      stim_event.Set(chan.area, i, "area");
-      stim_event.Set(chan.burst_frac, i, "burst_frac");
-      stim_event.Set(chan.burst_slow_freq, i, "burst_slow_freq");
+      stim_event.Set(chan.electrode_pos, "stim_profile", i, "electrode_pos");
+      stim_event.Set(chan.electrode_neg, "stim_profile", i, "electrode_neg");
+      stim_event.Set(chan.amplitude, "stim_profile", i, "amplitude");
+      stim_event.Set(chan.frequency, "stim_profile", i, "frequency");
+      stim_event.Set(chan.duration, "stim_profile", i, "duration");
+      stim_event.Set(chan.area, "stim_profile", i, "area");
+      stim_event.Set(chan.burst_frac, "stim_profile", i, "burst_frac");
+      stim_event.Set(chan.burst_slow_freq, "stim_profile", i, "burst_slow_freq");
     }
     return stim_event;
   }
@@ -198,7 +208,9 @@ namespace CML {
     // Total run time (ms), fixes experiment length for CPS.
     experiment_duration = cps_specs.experiment_duration_secs * 1000;
 
+    #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
+    #endif
 
     // Confirm window for run time.
     if (!ConfirmWin(RC::RStr("Total run time will be ") + experiment_duration / (60 * 1000) + " min. "
@@ -213,9 +225,10 @@ namespace CML {
     hndl->event_log.Log(startlog.Line());
 
     GetNextEvent();
+    #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler start ProcessClassifierEvent\n"));
-    hndl->task_classifier_manager->ProcessClassifierEvent(
-        ClassificationType::NORMALIZE, classify_ms, 0);
+    #endif
+    TriggerAt(0, ClassificationType::NORMALIZE);
   }
 
 
@@ -273,11 +286,11 @@ namespace CML {
   }
 
 
-  void ExperCPS::WaitUntil(uint64_t target_ms) {
+  uint64_t ExperCPS::WaitUntil(uint64_t target_ms) {
     // delays until target_ms milliseconds from the start of the experiment
     // breaks delay every 50 ms to allow for stopping the experiment
-    f64 cur_time = RC::Time::Get();
-    uint64_t current_time_ms = uint64_t(1000*(cur_time - exp_start)+0.5);
+    f64 cur_time_sec = RC::Time::Get();
+    uint64_t current_time_ms = uint64_t(1000*(cur_time_sec - exp_start)+0.5);
 
     event_time = target_ms;
 
@@ -298,22 +311,82 @@ namespace CML {
     uint64_t min_delay = 50;
     uint64_t delay_next = delay ? delay < min_delay : min_delay;
     while (delay > 0) {
-      delay_next = delay ? delay < min_delay : min_delay;
+      delay_next = (delay < min_delay ? delay : min_delay);
       delay -= delay_next;
       QThread::msleep(delay_next);
     }
+    // return time after delay (which could differ from target)
+    return uint64_t(1000*(RC::Time::Get() - exp_start)+0.5);
   }
+
+
+  // handles the timing of setting off the next event; handles pre-event general logging
+  void ExperCPS::TriggerAt(const uint64_t& next_min_event_time, const ClassificationType& next_classif_state) {
+    // run next classification result (which conditionally calls for stimulation events)
+    if (next_min_event_time > experiment_duration) {
+      // TODO: RDD/RC: preferred method for ending experiments?
+      InternalStop();
+    }
+    prev_sham = next_classif_state == ClassificationType::SHAM;
+    abs_EEG_collection_times += WaitUntil(next_min_event_time);
+    // TODO: RDD/JPB: use id = 0 for now, how much performance improvement would classifier queueing add?
+    // TODO: RDD: remove classify_ms
+    hndl->task_classifier_manager->ProcessClassifierEvent(
+        next_classif_state, classify_ms, classif_id);
+  }
+
 
   void ExperCPS::HandleNormalization_Handler(RC::APtr<const EEGPowers>& data, const TaskClassifierSettings& task_classifier_settings) {
+    #ifdef DEBUG_EXPERCPS
+    RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler"));
+    #endif
 
+    // TODO: RDD: ensure that last events in all saved event arrays can be disambiguated 
+    // (i.e., if any array is longer than another because the experiment stopped in some particular place, 
+    // ensure the odd element out can be identified)
+    ClassificationType classif_state = task_classifier_settings.cl_type;
+    exper_classif_settings += task_classifier_settings;
+
+    ClassificationType next_classif_state;
+    if (classif_state == ClassificationType::NORMALIZE) {
+      // record times for normalization events separately here
+      f64 cur_time_sec = RC::Time::Get();
+      uint64_t cur_time_ms = uint64_t(1000*(cur_time_sec - exp_start)+0.5);
+
+      NormalizingPanel();
+      next_min_event_time = cur_time_ms + normalize_lockout_ms;
+      if (abs_EEG_collection_times.size() < n_normalize_events) {
+        #ifdef DEBUG_EXPERCPS
+        RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler normalization event"));
+        #endif
+        // TODO log event info
+        // TODO add some jitter? add (explicit) jitter to timeouts in general?
+        next_classif_state = ClassificationType::NORMALIZE;
+      }
+      else if (abs_EEG_collection_times.size() == n_normalize_events) {
+        // TODO log event info
+        // TODO update to select between sham and stim events based on some criteria
+        #ifdef DEBUG_EXPERCPS
+        RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler stim event"));
+        #endif
+        next_classif_state = ClassificationType::STIM;
+      }
+      else {
+        Throw_RC_Error("Normalization event requested after n_normalize_events normalization events completed.");
+      }
+      TriggerAt(next_min_event_time, next_classif_state);
+    }
   }
+
 
   void ExperCPS::ClassifierDecision_Handler(const double& result,
         const TaskClassifierSettings& task_classifier_settings) {
+    #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler"));
+    #endif
     // record classifier outcomes
     classif_results += result;
-    exper_classif_settings += task_classifier_settings;
+    classif_id++;
   }
 
 
@@ -331,7 +404,7 @@ namespace CML {
     // TODO: RDD/JPB: ensure that stim events are set off as close as possible to this callback being called
     //                might be simplest to let this function control the stim?
     //                do/can we receive a callback when a stim event ends?
-    abs_event_times += cur_time_ms;
+    abs_stim_event_times += cur_time_ms;
     // TODO: RDD: setting off classification events in this function starts the data collection
     //            process (currently), meaning that the classification EEG collection interval is 
     //            bounded by the time at which ExperCPS calls for classification and that time
@@ -343,10 +416,9 @@ namespace CML {
     //                             also, return callback return times both for this handler, 
     //                             ClassifierDecision_Handler, and for the StimManager handler
 
-    // all classification requests indexed with classif_id (which will not align with pre-stim/post-stim event indices)
-    double result = classif_results[classif_id];
+    double result = classif_results[classif_results.size() - 1];
     // TODO: RDD/JPB: confirm whether StimManager event from current cycle will always return before next Classifier event does to ensure correct ordering.
-    TaskClassifierSettings task_classifier_settings = exper_classif_settings[classif_id];
+    TaskClassifierSettings task_classifier_settings = exper_classif_settings[exper_classif_settings.size() - 1];
     ClassificationType classif_state = task_classifier_settings.cl_type;
 
     // pre-stim/post-stim events indexed with cur_ev
@@ -371,7 +443,7 @@ namespace CML {
       // this could be a tangible difference between the NOSTIM/SHAM events, that stim_event := false for NOSTIM, stim_event := classif_prob < 0.5 for SHAM
       if (stim_event) { // stim event occurred or would have occurred if the event were not a sham
         #ifdef DEBUG_EXPERCPS
-        RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler: stim decision\n"));
+        RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: stim decision\n"));
         #endif
         // TODO handle cases where say stim duration not equal between given and used params...
         //      use assert as a placeholder for initial testing
@@ -389,13 +461,16 @@ namespace CML {
         // get post-stim classifier output
         // TODO: RDD/JPB: when will stim event offset be relative to this callback being called?
         //                can we get that info from CereStim? Or can we use nominal duration instead?
-        uint64_t stim_offset_ms = abs_event_times[abs_event_times.size()] + stim_params[0].duration;
+        uint64_t stim_offset_ms = abs_stim_event_times[abs_stim_event_times.size() - 1] + stim_params[0].duration;
         next_min_event_time = stim_offset_ms + poststim_classif_lockout_ms;
         next_classif_state = ClassificationType::NOSTIM;
         if (classif_state == ClassificationType::STIM) { DoStimEvent(stim_profiles[cur_ev]); }
         else { DoShamEvent(); }
       }
       else { // good memory state detected and stim event would not have occurred
+        #ifdef DEBUG_EXPERCPS
+        RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: sham decision\n"));
+        #endif
         // TODO: RDD/JPB: add some timing control? or maximize classification rate? in any case should record event times
         //                to analyze event time frequencies, may want to add some jitter if fairly low variance
         // TODO: RDD/RC: need to make separate handler for grabbing time interval of classification features from FeatureFilters class
@@ -404,16 +479,13 @@ namespace CML {
         next_classif_state = classif_state;
         ClassifyingPanel();
 
-        #ifdef DEBUG_EXPERCPS
-        RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler: sham decision\n"));
-        #endif
         // TODO always access results[], classif_results[], and any other event arrays with last event
       }
     }
     else if (classif_state == ClassificationType::NOSTIM) { // received post-stim/post-sham classification event
       // TODO: RDD/JPB: get stim_offset_ms from classifier or from CereStim handler class, don't compute here if possible
       // though errors wouldn't accumulate too much
-      uint64_t stim_offset_ms = abs_event_times[abs_event_times.size() - 1] + stim_params[0].duration;
+      uint64_t stim_offset_ms = abs_stim_event_times[abs_stim_event_times.size() - 2] + stim_params[0].duration;
       next_min_event_time = stim_offset_ms + stim_lockout_ms;
       status_panel->SetEvent("UPDATING");
 
@@ -421,11 +493,12 @@ namespace CML {
       // TODO add struct for storing everything related to a full pre-post event (i.e., pre-stim classifier event time, stim event time, post-stim classifier time, classifier results, biomarker, stim parameters, ideally Bayesian search hps? definitely should store those separately...)
       //      otherwise could just parse after the fact, this would prevent misparsing...
       #ifdef DEBUG_EXPERCPS
-      RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler: nostim decision\n"));
+      RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: nostim decision\n"));
       #endif
+
       if (!prev_sham) {
         #ifdef DEBUG_EXPERCPS
-        RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler: nostim decision with prev stim\n"));
+        RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: nostim decision with prev stim\n"));
         #endif
         UpdateSearch(stim_params, cur_event, biomarker);
         GetNextEvent();
@@ -456,42 +529,13 @@ namespace CML {
       status_panel->SetEvent("CLASSIFYING");
     }
     else if (classif_state == ClassificationType::NORMALIZE) {
-      #ifdef DEBUG_EXPERCPS
-      RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler: normalization decision\n"));
-      #endif
-      ClassifyingPanel();
-      next_min_event_time = cur_time_ms + normalize_lockout_ms;
-      if (classif_results.size() < n_normalize_events) {
-        // TODO log event info
-        // TODO add some jitter? add (explicit) jitter to timeouts in general?
-        next_classif_state = ClassificationType::NORMALIZE;
-      }
-      else if (classif_results.size() == n_normalize_events) {
-        // TODO log event info
-        // TODO update to select between sham and stim events based on some criteria
-        next_classif_state = ClassificationType::STIM;
-      }
-      else {
-        Throw_RC_Error("Normalization event requested after n_normalize_events normalization events completed.");
-      }
+      Throw_RC_Error("Normalization event requested after n_normalize_events normalization events completed.");
     }
     else {
       Throw_RC_Error("Invalid classification type received.");
     }
 
-    // run next classification result (which conditionally calls for stimulation events)
-    if (next_min_event_time > experiment_duration) {
-      // TODO: RDD/RC: preferred method for ending experiments?
-      InternalStop();
-    }
-    prev_sham = next_classif_state == ClassificationType::SHAM;
-    WaitUntil(next_min_event_time);
-    // TODO: RDD/JPB: use id = 0 for now, how much performance improvement would classifier queueing add?
-    // TODO: RDD: remove classify_ms
-    hndl->task_classifier_manager->ProcessClassifierEvent(
-        next_classif_state, classify_ms, classif_id);
-    classif_id++;
-
+    TriggerAt(next_min_event_time, next_classif_state);
     // TODO: RDD: add logging after each event
     //  JSONFile data;
     // data.Set(result, "result");

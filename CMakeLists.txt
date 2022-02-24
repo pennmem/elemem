@@ -8,7 +8,7 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 ######################
 # Compilation settings
 
-set(IS_RELEASE true)
+set(IS_RELEASE false)
 option(CEREBUS_HW "Use the Cerebus/Neuroport interface" OFF) # cmake -DCEREBUS_HW=OFF ..
 option(CERESTIM_STUB # cmake -DCERESTIM_STUB=ON ..
 	"Use the CereStim simulator (default ON for non-Windows)" ON)
@@ -45,7 +45,7 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRC_HAVE_QT")
 # FORTRAN
 enable_language(Fortran)
 SET(CMAKE_FC_COMPILER "/usr/local/bin/gfortran-7")
-set (CMAKE_Fortran_FLAGS "-funroll-all-loops -O3 -fPIC")
+set (CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
 #set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DVAR=2")
 #add_definitions(-DVAR=2)
 
@@ -59,7 +59,7 @@ if(APPLE)
 
   set (BAYES_DIR "/Users/rdehaan/projects/elemem/src/BayesGPc")
   set (OPTIMDIR "/Users/rdehaan/projects/dependencies/optim/header_only_version")
-  set (OPTIMFLAG "-O3 -march=native -ffp-contract=fast")
+  set (OPTIMFLAG "-march=native -ffp-contract=fast")
   set (EIGENDIR "/usr/local/include")
   set (NPYLINKFLAG "-L/usr/local/lib -lcnpy -lz")
   set (MATPLOT_INCLUDE_DIRS "matplot")
@@ -82,7 +82,7 @@ if(APPLE)
 
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMFLAG} -mmacosx-version-min=11.0 -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -ffp-contract=fast")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast")
 set (BAYES_FILES
   ${BAYES_DIR}/CBayesianSearch.cpp
   ${BAYES_DIR}/CBayesianSearch.h

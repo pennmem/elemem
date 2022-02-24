@@ -78,6 +78,7 @@ namespace CML {
     void ComputeBestStimProfile();
 
     void UpdateSearchPanel(const CSStimProfile& profile);
+    void NormalizingPanel();
     void ClassifyingPanel();
     void DoConfigEvent(const CSStimProfile& profile);
     void DoStimEvent(const CSStimProfile& profile);
@@ -94,8 +95,8 @@ namespace CML {
     protected slots:
     void RunEvent();
     protected:
-    void TriggerAt(uint64_t target_ms);
-    void WaitUntil(uint64_t target_ms);
+    uint64_t WaitUntil(uint64_t target_ms);
+    void TriggerAt(const uint64_t& next_min_event_time, const ClassificationType& next_classif_state);
     void BeAllocatedTimer();
 
     // experiment configuration variables
@@ -135,7 +136,9 @@ namespace CML {
     RC::Data1D<ExpEvent> exp_events;
     RC::Data1D<bool> stim_event_flags;
     RC::Data1D<TaskClassifierSettings> exper_classif_settings;
-    RC::Data1D<double> abs_event_times;
+    // absolute (relative to start of the experiment) times of EEG collection for each event in ms
+    RC::Data1D<uint64_t> abs_EEG_collection_times;
+    RC::Data1D<uint64_t> abs_stim_event_times;
 
     // temp
     uint64_t event_time;
