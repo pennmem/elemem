@@ -43,18 +43,28 @@ namespace CML {
    *  \endcode
    *  \nosubgrouping
    */
-  class EEGData {
+  template<typename T>
+  class EEGDataT {
     public:
-    EEGData(size_t sampling_rate, size_t sample_len)
+    EEGDataT(size_t sampling_rate, size_t sample_len)
       : sampling_rate(sampling_rate), sample_len(sample_len) {}
 
     size_t sampling_rate;
     // TODO - Encapsulate sample_len and data to preserve this invariant.
     size_t sample_len; // Internal Data1D size is either 0 or sample_len
-    RC::Data1D<RC::Data1D<int16_t>> data;
+    RC::Data1D<RC::Data1D<T>> data;
 
-    void EnableChan(size_t chan);
+    friend std::ostream& operator<<(std::ostream& os, const EEGDataT<T>& data);
+
+    void EnableChan(size_t chan) {
+      data[chan].Resize(sample_len);
+    }
+
   };
+
+  using EEGData = EEGDataT<int16_t>;
+  using EEGDataRaw = EEGDataT<int16_t>;
+  using EEGDataDouble = EEGDataT<double>;
 
   void PrintEEGData(const EEGData& data);
   void PrintEEGData(const EEGData& data, size_t num_chans);
