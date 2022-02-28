@@ -39,7 +39,9 @@ namespace CML {
     static RC::APtr<BinnedData> BinData(RC::APtr<const EEGData> rollover_data, RC::APtr<const EEGData> in_data, size_t new_sampling_rate);
     static RC::APtr<EEGData> BinDataAvgRollover(RC::APtr<const EEGData> in_data, size_t new_sampling_rate);
     static RC::APtr<EEGData> BipolarReference(RC::APtr<const EEGData>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels);
+    static RC::APtr<RC::Data1D<bool>> FindArtifactChannels(RC::APtr<const EEGData>& in_data, size_t threshold, size_t order);
     static RC::APtr<EEGData> MirrorEnds(RC::APtr<const EEGData>& in_data, size_t duration_ms);
+    static RC::APtr<EEGPowers> RemoveMirrorEnds(RC::APtr<const EEGPowers>& in_data, size_t mirrored_duration_ms);
     static RC::APtr<EEGPowers> Log10Transform(RC::APtr<const EEGPowers>& in_data, double epsilon);
     static RC::APtr<EEGPowers> AvgOverTime(RC::APtr<const EEGPowers>& in_data, bool ignore_inf_and_nan);
 

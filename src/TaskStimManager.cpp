@@ -35,11 +35,10 @@ namespace CML {
     RC_DEBOUT(resp);
 
     if (stim_type && stim) {
-      // TODO: JPB: (need) Temporarily remove call to stimulate
-      //hndl->stim_worker.Stimulate();
-	  if (callback.IsSet()) callback(true, task_classifier_settings);
+      hndl->stim_worker.Stimulate();
+      if (callback.IsSet()) { callback(true, task_classifier_settings); }
     } else {
-	  if (callback.IsSet()) callback(false, task_classifier_settings);
+      if (callback.IsSet()) { callback(false, task_classifier_settings); }
     }
   }
 

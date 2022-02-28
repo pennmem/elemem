@@ -211,6 +211,18 @@ namespace CML {
     PrintEEGData(*in_data);
     PrintEEGData(*out_data);
   }
+
+  void TestRemoveMirrorEnds() {
+    size_t sampling_rate = 1000;
+    RC::APtr<const EEGPowers> in_data = CreateTestingEEGPowers(sampling_rate, 10, 2, 2);
+    
+    RC::APtr<EEGPowers> out_data = FeatureFilters::RemoveMirrorEnds(in_data, 2);
+
+    RC_DEBOUT(in_data->data.size1());
+    RC_DEBOUT(out_data->data.size1());
+    PrintEEGPowers(*in_data);
+    PrintEEGPowers(*out_data);
+  }
   
   void TestAvgOverTime() {
     // TODO: JPB: Add test for inf, -inf, and nan
@@ -323,10 +335,43 @@ namespace CML {
     PrintEEGPowers(*out_powers);
   }
 
+  void TestProcess_Handler() {
+    size_t sampling_rate = 1000;
+    size_t chanlen = 1;
+    size_t eventlen = 50;
+    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, eventlen, chanlen); 
+
+    MorletSettings morlet_settings = {5, {500}, {{0,0}}, 1000, 2, true};
+    MorletTransformer morlet_transformer;
+    morlet_transformer.Setup(morlet_settings);
+    const double log_min_power_clamp = 1e-16;
+
+    size_t mirroring_duration_ms = 20; 
+    //size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
+
+    auto bipolar_ref_data = in_data;
+    //auto bipolar_ref_data = FeatureFilters::BipolarReference(data, bipolar_reference_channels).ExtractConst();
+    auto mirrored_data = FeatureFilters::MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
+    auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
+    auto unmirrored_data = FeatureFilters::RemoveMirrorEnds(morlet_data, mirroring_duration_ms).ExtractConst();
+    auto log_data = FeatureFilters::Log10Transform(unmirrored_data, log_min_power_clamp).ExtractConst();
+    auto avg_data = FeatureFilters::AvgOverTime(log_data, true).ExtractConst();
+
+    PrintEEGData(*in_data);
+    PrintEEGData(*bipolar_ref_data);
+    PrintEEGData(*mirrored_data);
+    PrintEEGPowers(*morlet_data);
+    PrintEEGPowers(*unmirrored_data);
+    PrintEEGPowers(*log_data);
+    PrintEEGPowers(*avg_data);
+  }
+
+
   void TestAllCode() {
     //TestLog10Transform();
     //TestAvgOverTime();
     //TestMirrorEnds();
+    //TestRemoveMirrorEnds();
     //TestBipolarReference();
     //TestMorletTransformer();
     //TestMorletTransformerRealData();
@@ -334,12 +379,13 @@ namespace CML {
     //TestEEGBinning1();
     //TestEEGBinning2();
     //TestEEGBinning3();
-    TestEEGBinningRollover1();
-    TestEEGBinningRollover2();
-    TestEEGBinningRollover3();
-    TestEEGBinningRollover4();
+    //TestEEGBinningRollover1();
+    //TestEEGBinningRollover2();
+    //TestEEGBinningRollover3();
+    //TestEEGBinningRollover4();
     //TestRollingStats();
     //TestNormalizePowers();
+    TestProcess_Handler();
   }
 }
 
