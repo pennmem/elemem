@@ -120,7 +120,8 @@ namespace CML {
     PopupManager::GetManager()->SetLogFile(error_log_file);
 
     NewEEGSave();
-
+  
+    #define TESTING
     #ifdef TESTING
     RC_DEBOUT(RC::RStr("TESTING"));
     TestAllCode();
@@ -851,6 +852,7 @@ namespace CML {
     np_set.eventlen = 1; // This is set to 1 because data is averaged first
     np_set.chanlen = chans.size();
     np_set.freqlen = freqs.size();
+
     feature_filters = new FeatureFilters(mor_set.channels, but_set, mor_set, np_set);
 
     ClassifierLogRegSettings classifier_settings;

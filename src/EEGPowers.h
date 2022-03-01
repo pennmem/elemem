@@ -27,11 +27,15 @@ namespace CML {
    *  #include "EEGPowers.h"
    *
    *  // Setup EEGPowers for example
-   *  // TODO: JPB: (need) Fix example code for EEGPowers
-   *  EEGPowers eegPowers(2, 3, 4);
-   *  eegPowers.data.Resize(2);
-   *  eegPowers.data[0] = RC::Data1D<short> {5,10,1};
-   *  eegPowers.data[1] = RC::Data1D<short> {6,11,2};
+   *  EEGPowers eegPowers(4, 3, 2);
+   *  size_t val = 0;
+   *  RC_ForRange(i, 0, eegPowers.size3()) { // Iterate over frequencies
+   *    RC_ForRange(j, 0, eegPowers.size2()) { // Iterate over channels
+   *      RC_ForRange(k, 0, eegPowers.size1()) { // Iterate over samples
+   *        eegPowers[i][j][k] = val++;
+   *      }
+   *    }
+   *  }
    *
    *  // Print EEGPowers
    *  PrintEEGPowers(eegPowers);
@@ -41,10 +45,10 @@ namespace CML {
   class EEGPowers {
     public:
     EEGPowers(size_t sampling_rate) : sampling_rate(sampling_rate) {}
-    EEGPowers(size_t sampling_rate, size_t d_size1, size_t d_size2, size_t d_size3)
-      : sampling_rate(sampling_rate), data(d_size1, d_size2, d_size3) {}
-    size_t sampling_rate;
-    RC::Data3D<double> data;
+    EEGPowers(size_t sampling_rate, size_t event_len, size_t chan_len, size_t freq_len)
+      : sampling_rate(sampling_rate), data(event_len, chan_len, freq_len) {}
+      size_t sampling_rate;
+      RC::Data3D<double> data;
   };
 
   void PrintEEGPowers(const EEGPowers& powers);

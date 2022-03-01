@@ -40,8 +40,10 @@ namespace CML {
 
     f64 stim_time_from_start_sec = RC::Time::Get();
     if (stim_type && stim) {
-      // TODO: JPB: (need) Temporarily remove call to stimulate
-      //hndl->stim_worker.Stimulate();
+      hndl->stim_worker.Stimulate();
+      if (callback.IsSet()) { callback(true, task_classifier_settings); }
+    } else {
+      if (callback.IsSet()) { callback(false, task_classifier_settings); }
     }
     // return whether or not a bad memory state was detected with <stim>, 
     // not whether a stim event actually occurred (that can be determined with task_classifier_settings).
