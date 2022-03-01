@@ -30,7 +30,7 @@ namespace CML {
 
     void Setup(const MorletSettings& morlet_settings);
     double CalcAvgMirroringDurationMs();
-    RC::APtr<EEGPowers> Filter(RC::APtr<const EEGData>& data);
+    RC::APtr<EEGPowers> Filter(RC::APtr<const EEGDataDouble>& data);
 
     protected:
     MorletSettings mor_set;

@@ -6,8 +6,8 @@
 
 namespace CML {
   BinnedData::BinnedData(size_t binned_sampling_rate, size_t binned_sample_len, size_t leftover_sampling_rate, size_t leftover_sample_len) {
-    out_data = new EEGData(binned_sampling_rate, binned_sample_len);
-    leftover_data = new EEGData(leftover_sampling_rate, leftover_sample_len);
+    out_data = new EEGDataRaw(binned_sampling_rate, binned_sample_len);
+    leftover_data = new EEGDataRaw(leftover_sampling_rate, leftover_sample_len);
   }
 
 
@@ -21,12 +21,12 @@ namespace CML {
     morlet_transformer.Setup(morlet_settings);
   }
 
-  /// Bins EEGData from one sampling rate to another
-  /** @param in_data the EEGData to be binned
+  /// Bins EEGDataRaw from one sampling rate to another
+  /** @param in_data the EEGDataRaw to be binned
     * @param new_sampling_rate the new sampling rate
-    * @return EEGData that has been binned to the new sampling rate
+    * @return EEGDataRaw that has been binned to the new sampling rate
   */
-  RC::APtr<BinnedData> FeatureFilters::BinData(RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
+  RC::APtr<BinnedData> FeatureFilters::BinData(RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate) {
     if (new_sampling_rate == 0)
       Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
 
@@ -74,12 +74,12 @@ namespace CML {
     return binned_data;
   }
 
-  /// Bins EEGData from one sampling rate to another
-  /** @param in_data the EEGData to be binned
+  /// Bins EEGDataRaw from one sampling rate to another
+  /** @param in_data the EEGDataRaw to be binned
     * @param new_sampling_rate the new sampling rate
-    * @return EEGData that has been binned to the new sampling rate
+    * @return EEGDataRaw that has been binned to the new sampling rate
   */
-  RC::APtr<BinnedData> FeatureFilters::BinData(RC::APtr<const EEGData> rollover_data, RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
+  RC::APtr<BinnedData> FeatureFilters::BinData(RC::APtr<const EEGDataRaw> rollover_data, RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate) {
     if (new_sampling_rate == 0)
       Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
 
@@ -89,7 +89,7 @@ namespace CML {
     }
 
     size_t total_in_sample_len = rollover_data->sample_len + in_data->sample_len;
-    EEGData total_in_data(in_data->sampling_rate, total_in_sample_len);
+    EEGDataRaw total_in_data(in_data->sampling_rate, total_in_sample_len);
 
     // Make total in data that is a appending of in_data to rollover_data
     // TODO: JPB: (feature)(optimization) There is a more efficient way to do this that doesn't involve all these copy operations
@@ -149,12 +149,12 @@ namespace CML {
     return binned_data;
   }
 
-  ///// Bins EEGData from one sampling rate to another
-  ///** @param in_data the EEGData to be binned
+  ///// Bins EEGDataRaw from one sampling rate to another
+  ///** @param in_data the EEGDataRaw to be binned
   //  * @param new_sampling_rate the new sampling rate
-  //  * @return EEGData that has been binned to the new sampling rate
+  //  * @return EEGDataRaw that has been binned to the new sampling rate
   //*/
-  //RC::APtr<EEGData> FeatureFilters::BinData(RC::APtr<const EEGData> leftover_data, RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
+  //RC::APtr<EEGDataRaw> FeatureFilters::BinData(RC::APtr<const EEGDataRaw> leftover_data, RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate) {
   //  if (new_sampling_rate == 0) {
   //    Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
   //  }
@@ -174,7 +174,7 @@ namespace CML {
   //  leftover_data_new_sample_len = 
   //  size_t in_data_total_sample_len = leftover_data->sample_len + in_data->sample_len;
   //  size_t new_sample_len = CeilDiv(in_data_total_sample_len, sampling_ratio);
-  //  RC::APtr<EEGData> out_data = new EEGData(new_sampling_rate, new_sample_len);
+  //  RC::APtr<EEGDataRaw> out_data = new EEGDataRaw(new_sampling_rate, new_sample_len);
 
   //  auto& leftover_datar = leftover_data->data;
   //  auto& in_datar = in_data->data;
@@ -225,12 +225,12 @@ namespace CML {
   //  return out_data;
   //}
 
-  /// Bins EEGData from one sampling rate to another
-  /** @param in_data the EEGData to be binned
+  /// Bins EEGDataRaw from one sampling rate to another
+  /** @param in_data the EEGDataRaw to be binned
     * @param new_sampling_rate the new sampling rate
-    * @return EEGData that has been binned to the new sampling rate
+    * @return EEGDataRaw that has been binned to the new sampling rate
   */
-  RC::APtr<EEGData> FeatureFilters::BinDataAvgRollover(RC::APtr<const EEGData> in_data, size_t new_sampling_rate) {
+  RC::APtr<EEGDataRaw> FeatureFilters::BinDataAvgRollover(RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate) {
     if (new_sampling_rate == 0)
       Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
 
@@ -238,7 +238,9 @@ namespace CML {
     size_t sampling_ratio = in_data->sampling_rate / new_sampling_rate;
     // This is integer division that returns the ceiling
     size_t new_sample_len = in_data->sample_len / sampling_ratio + (in_data->sample_len % sampling_ratio != 0);
-    RC::APtr<EEGData> out_data = new EEGData(new_sampling_rate, new_sample_len);
+    RC::APtr<EEGDataRaw> out_data = new EEGDataRaw(new_sampling_rate, new_sample_len);
+    // TODO: JPB: (refactor) Switch all new EEGDataRaw() to MakeAptr()
+    //auto out_data = RC::MakeAPtr<EEGDataRaw>(new_sampling_rate, new_sample_len);
 
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
@@ -273,13 +275,13 @@ namespace CML {
     return out_data;
   }
 
-  /// Converts an EEGData of electrode channels into EEGData of bipolar pair channels
-  /** @param EEGData of electrode channels
+  /// Converts an EEGDataRaw of electrode channels into EEGDataDouble of bipolar pair channels
+  /** @param EEGDataRaw of electrode channels
     * @param List of bipolar pairs
-    * @return EEGData of bipolar pair channels
+    * @return EEGDataDouble of bipolar pair channels
     */
-  RC::APtr<EEGData> FeatureFilters::BipolarReference(RC::APtr<const EEGData>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels) {
-    RC::APtr<EEGData> out_data = new EEGData(in_data->sampling_rate, in_data->sample_len);
+  RC::APtr<EEGDataDouble> FeatureFilters::BipolarReference(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels) {
+    RC::APtr<EEGDataDouble> out_data = new EEGDataDouble(in_data->sampling_rate, in_data->sample_len);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
     size_t chanlen = bipolar_reference_channels.size();
@@ -323,13 +325,13 @@ namespace CML {
     return out_data;
   }
 
-  RC::APtr<RC::Data1D<int16_t>> Differentiate(RC::APtr<const RC::Data1D<int16_t>>& in_data, size_t order) {
+  // Note: Watch out for overflow on smaller types
+  template<typename T>
+  RC::APtr<RC::Data1D<T>> Differentiate(RC::APtr<const RC::Data1D<T>>& in_data, size_t order) {
     if (order == 0) { Throw_RC_Error("The order cannot be 0."); }
 
     // Take derivative
-    // Note: Used a int64_t to avoid overflow when subtracting // TODO: JPB: Do this
-    //RC::APtr<RC::Data1D<int64_t>> out_data = new RC::Data1D<int64_t>();
-    auto out_data = RC::MakeAPtr<RC::Data1D<int16_t>>();
+    auto out_data = RC::MakeAPtr<RC::Data1D<T>>();
     auto& in_datar = *in_data;
     auto& out_datar = *out_data;
     out_datar.Resize(in_datar.size() - order);
@@ -350,7 +352,7 @@ namespace CML {
     * @param order The number of events to use in the derivative
     * @return A boolean mask over the channels which specifies which channels show artifacts
     */
-  RC::APtr<RC::Data1D<bool>> FeatureFilters::FindArtifactChannels(RC::APtr<const EEGData>& in_data, size_t threshold, size_t order) {
+  RC::APtr<RC::Data1D<bool>> FeatureFilters::FindArtifactChannels(RC::APtr<const EEGDataDouble>& in_data, size_t threshold, size_t order) {
     if (order >= in_data->sample_len) {
       Throw_RC_Error(("The order (" + RC::RStr(order) + ") " +
             "is greater than or equal to the number of samples in the data "
@@ -383,7 +385,7 @@ namespace CML {
 
       // Take the ordered derivative
       auto in_events_captr = RC::APtr(&in_events);
-      auto deriv_data = Differentiate(in_events_captr, order);
+      auto deriv_data = Differentiate<double>(in_events_captr, order);
       size_t eq_zero = std::accumulate(deriv_data->begin(), deriv_data->end(), 0, accum_eq_zero_plus);
       out_event = eq_zero > threshold;
     }
@@ -391,14 +393,14 @@ namespace CML {
     return out_data;
   }
 
-  /// Mirrors both ends of the EEGData for the provided number of seconds
+  /// Mirrors both ends of the EEGDataDouble for the provided number of seconds
   /** Note that when mirroring, you do not include the items bein mirror over
     * Ex: 0, 1, 2, 3 with a mirroring of 2 samples becomes 2, 1, 0, 1, 2, 3, 2, 1
     * @param The data to be mirrored
     * @param Duration to mirror each side for
-    * @return The mirrored EEGData
+    * @return The mirrored EEGDataDouble
     */
-  RC::APtr<EEGData> FeatureFilters::MirrorEnds(RC::APtr<const EEGData>& in_data, size_t mirrored_duration_ms) {
+  RC::APtr<EEGDataDouble> FeatureFilters::MirrorEnds(RC::APtr<const EEGDataDouble>& in_data, size_t mirrored_duration_ms) {
     size_t num_mirrored_samples = mirrored_duration_ms * in_data->sampling_rate / 1000;
     size_t in_sample_len = in_data->sample_len;
     size_t out_sample_len = in_sample_len + num_mirrored_samples * 2;
@@ -410,7 +412,7 @@ namespace CML {
             "(" + RC::RStr(in_sample_len) + ")").c_str());
     }
 
-    RC::APtr<EEGData> out_data = new EEGData(in_data->sampling_rate, out_sample_len);
+    RC::APtr<EEGDataDouble> out_data = new EEGDataDouble(in_data->sampling_rate, out_sample_len);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
     size_t chanlen = in_datar.size();
@@ -451,7 +453,7 @@ namespace CML {
   /// Remove mirrored data from both ends of the EEGPowers for the provided number of seconds
   /** @param The data to be un-mirrored
     * @param Duration to mirror each side for
-    * @return The un-mirrored EEGData
+    * @return The un-mirrored EEGDataDouble
     */
   RC::APtr<EEGPowers> FeatureFilters::RemoveMirrorEnds(RC::APtr<const EEGPowers>& in_data, size_t mirrored_duration_ms) {
     auto& in_datar = in_data->data;
@@ -544,10 +546,10 @@ namespace CML {
   }
 
   /// Average the EEGPowers over the time dimension (most inner dimension)
-  /** @param data The EEGData to be run through all the filters
+  /** @param data The EEGDataDouble to be run through all the filters
     * @param task_classifier_settings The settings for this classification chain
     */
-  void FeatureFilters::Process_Handler(RC::APtr<const EEGData>& data, const TaskClassifierSettings& task_classifier_settings) {
+  void FeatureFilters::Process_Handler(RC::APtr<const EEGDataRaw>& data, const TaskClassifierSettings& task_classifier_settings) {
     RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
     if (!callback.IsSet()) Throw_RC_Error("FeatureFilters callback not set");
 
@@ -562,13 +564,13 @@ namespace CML {
     auto avg_data = AvgOverTime(log_data, true).ExtractConst();
 
     // TODO: JPB (need) Remove debug code in FeatureFilters::Process_Handler
-    PrintEEGData(*data, 2);
-    PrintEEGData(*bipolar_ref_data, 2);
-    PrintEEGData(*mirrored_data, 2);
-    PrintEEGPowers(*morlet_data, 1, 2);
-    PrintEEGPowers(*unmirrored_data, 1, 2);
-    PrintEEGPowers(*log_data, 1, 2);
-    PrintEEGPowers(*avg_data, 1, 10);
+    data->Print(2);
+    bipolar_ref_data->Print(2);
+    mirrored_data->Print(2);
+    morlet_data->Print(1, 2);
+    unmirrored_data->Print(1, 2);
+    log_data->Print(1, 2);
+    avg_data->Print(1, 10);
 
     // Normalize Powers
     switch (task_classifier_settings.cl_type) {
@@ -581,7 +583,7 @@ namespace CML {
       {
         auto norm_data = normalize_powers.ZScore(avg_data, true).ExtractConst();
         RC_DEBOUT(RC::RStr("NORM POWERS"));
-        PrintEEGPowers(*norm_data, 1, 20);
+        norm_data->Print(1, 20);
         callback(norm_data, task_classifier_settings);
         break;
       }

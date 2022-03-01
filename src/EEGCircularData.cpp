@@ -67,13 +67,13 @@ namespace CML {
   void EEGCircularData::PrintData() {
     RC_DEBOUT(RC::RStr("circular_data_start: ") + circular_data_start + "\n");
     RC_DEBOUT(RC::RStr("circular_data_end: ") + circular_data_end + "\n");
-    PrintEEGData(*GetData());
+    GetData()->Print();
   }
 
   void EEGCircularData::PrintRawData() {
     RC_DEBOUT(RC::RStr("circular_data_start: ") + circular_data_start + "\n");
     RC_DEBOUT(RC::RStr("circular_data_end: ") + circular_data_end + "\n");
-    PrintEEGData(circular_data);
+    circular_data.Print();
   }
 
   void EEGCircularData::Append(RC::APtr<const EEGData>& new_data) {

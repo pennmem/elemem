@@ -8,20 +8,47 @@
 
 namespace CML {
   // Helper Functions
-  RC::APtr<const EEGData> CreateTestingEEGData() {
-    return CreateTestingEEGData(42);
+  RC::APtr<const EEGDataRaw> CreateTestingEEGDataRaw() {
+    return CreateTestingEEGDataRaw(42);
   }
 
-  RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate) {
-    return CreateTestingEEGData(sampling_rate, 4, 3);
+  RC::APtr<const EEGDataRaw> CreateTestingEEGDataRaw(size_t sampling_rate) {
+    return CreateTestingEEGDataRaw(sampling_rate, 4, 3);
   }
 
-  RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate, size_t eventlen, size_t chanlen) {
-    return CreateTestingEEGData(sampling_rate, eventlen, chanlen, 0); 
+  RC::APtr<const EEGDataRaw> CreateTestingEEGDataRaw(size_t sampling_rate, size_t eventlen, size_t chanlen) {
+    return CreateTestingEEGDataRaw(sampling_rate, eventlen, chanlen, 0); 
   }
   
-  RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate, size_t eventlen, size_t chanlen, int16_t offset) {
-    RC::APtr<EEGData> data = new EEGData(sampling_rate, eventlen);
+  RC::APtr<const EEGDataRaw> CreateTestingEEGDataRaw(size_t sampling_rate, size_t eventlen, size_t chanlen, int16_t offset) {
+    RC::APtr<EEGDataRaw> data = new EEGDataRaw(sampling_rate, eventlen);
+    auto& datar = data->data;
+  
+    datar.Resize(chanlen);
+    RC_ForIndex(i, datar) {
+      data->EnableChan(i);
+      RC_ForIndex(j, datar[i]) {
+        datar[i][j] = i*eventlen + j + offset;
+      }
+    }
+  
+    return data.ExtractConst();
+  }
+
+  RC::APtr<const EEGDataDouble> CreateTestingEEGDataDouble() {
+    return CreateTestingEEGDataDouble(42);
+  }
+
+  RC::APtr<const EEGDataDouble> CreateTestingEEGDataDouble(size_t sampling_rate) {
+    return CreateTestingEEGDataDouble(sampling_rate, 4, 3);
+  }
+
+  RC::APtr<const EEGDataDouble> CreateTestingEEGDataDouble(size_t sampling_rate, size_t eventlen, size_t chanlen) {
+    return CreateTestingEEGDataDouble(sampling_rate, eventlen, chanlen, 0); 
+  }
+  
+  RC::APtr<const EEGDataDouble> CreateTestingEEGDataDouble(size_t sampling_rate, size_t eventlen, size_t chanlen, int16_t offset) {
+    RC::APtr<EEGDataDouble> data = new EEGDataDouble(sampling_rate, eventlen);
     auto& datar = data->data;
   
     datar.Resize(chanlen);
@@ -65,126 +92,126 @@ namespace CML {
   // Data Storing and Binning
   void TestEEGCircularData() {
     size_t sampling_rate = 1000;
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 4, 5);
-    PrintEEGData(*in_data);
+    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 4, 5);
+    in_data->Print();
 
     EEGCircularData circular_data(sampling_rate, 10);
     circular_data.Append(in_data);
     circular_data.PrintData();
-    PrintEEGData(*circular_data.GetData(5));
-    PrintEEGData(*circular_data.GetDataAllAsTimeline());
+    circular_data.GetData(5)->Print();
+    circular_data.GetDataAllAsTimeline()->Print();
     //circular_data.PrintRawData();
     circular_data.Append(in_data);
     circular_data.PrintData();
-    PrintEEGData(*circular_data.GetData(5));
+    circular_data.GetData(5)->Print();
     //circular_data.PrintRawData();
     circular_data.Append(in_data);
     circular_data.PrintData();
-    PrintEEGData(*circular_data.GetData(5));
+    circular_data.GetData(5)->Print();
     //circular_data.PrintRawData();
 
-    //PrintEEGData(*circular_data.GetData());
-    //PrintEEGData(*circular_data.GetData(5));
+    //circular_data.GetData()->Print();
+    //circular_data.GetData(5)->Print();
   }
 
   //void TestEEGBinning() {
   //  size_t sampling_rate = 10;
-  //  RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 11, 3);
+  //  RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 11, 3);
 
-  //  RC::APtr<EEGData> out_data = FeatureFilters::BinData(in_data, 3);
+  //  RC::APtr<EEGDataRaw> out_data = FeatureFilters::BinData(in_data, 3);
 
-  //  PrintEEGData(*in_data);
-  //  PrintEEGData(*out_data);
+  //  in_data->Print();
+  //  out_data->Print();
   //}
 
   void TestEEGBinning1() {
     size_t sampling_rate = 10;
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 9, 3);
+    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 9, 3);
 
     RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(in_data, 3);
 
-    PrintEEGData(*in_data);
-    PrintEEGData(*binned_data->out_data);
-    PrintEEGData(*binned_data->leftover_data);
+    in_data->Print();
+    binned_data->out_data->Print();
+    binned_data->leftover_data->Print();
   }
   
   void TestEEGBinning2() {
     size_t sampling_rate = 10;
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 10, 3);
+    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 10, 3);
 
     RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(in_data, 3);
 
-    PrintEEGData(*in_data);
-    PrintEEGData(*binned_data->out_data);
-    PrintEEGData(*binned_data->leftover_data);
+    in_data->Print();
+    binned_data->out_data->Print();
+    binned_data->leftover_data->Print();
   }
 
   void TestEEGBinning3() {
     size_t sampling_rate = 10;
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 11, 3);
+    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 11, 3);
 
     RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(in_data, 3);
 
-    PrintEEGData(*in_data);
-    PrintEEGData(*binned_data->out_data);
-    PrintEEGData(*binned_data->leftover_data);
+    in_data->Print();
+    binned_data->out_data->Print();
+    binned_data->leftover_data->Print();
   }
 
   void TestEEGBinningRollover1() {
     size_t sampling_rate = 10;
-    RC::APtr<const EEGData> rollover_data = CreateTestingEEGData(sampling_rate, 0, 3);
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 9, 3);
+    RC::APtr<const EEGDataRaw> rollover_data = CreateTestingEEGDataRaw(sampling_rate, 0, 3);
+    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 9, 3);
 
     RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(rollover_data, in_data, 3);
 
-    PrintEEGData(*rollover_data);
-    PrintEEGData(*in_data);
-    PrintEEGData(*binned_data->out_data);
-    PrintEEGData(*binned_data->leftover_data);
+    rollover_data->Print();
+    in_data->Print();
+    binned_data->out_data->Print();
+    binned_data->leftover_data->Print();
   }
 
   void TestEEGBinningRollover2() {
     size_t sampling_rate = 10;
-    RC::APtr<const EEGData> rollover_data = CreateTestingEEGData(sampling_rate, 1, 3);
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 9, 3);
+    RC::APtr<const EEGDataRaw> rollover_data = CreateTestingEEGDataRaw(sampling_rate, 1, 3);
+    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 9, 3);
 
     RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(rollover_data, in_data, 3);
 
-    PrintEEGData(*rollover_data);
-    PrintEEGData(*in_data);
-    PrintEEGData(*binned_data->out_data);
-    PrintEEGData(*binned_data->leftover_data);
+    rollover_data->Print();
+    in_data->Print();
+    binned_data->out_data->Print();
+    binned_data->leftover_data->Print();
   }
 
   void TestEEGBinningRollover3() {
     size_t sampling_rate = 10;
-    RC::APtr<const EEGData> rollover_data = CreateTestingEEGData(sampling_rate, 2, 3);
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 9, 3);
+    RC::APtr<const EEGDataRaw> rollover_data = CreateTestingEEGDataRaw(sampling_rate, 2, 3);
+    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 9, 3);
 
     RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(rollover_data, in_data, 3);
 
-    PrintEEGData(*rollover_data);
-    PrintEEGData(*in_data);
-    PrintEEGData(*binned_data->out_data);
-    PrintEEGData(*binned_data->leftover_data);
+    rollover_data->Print();
+    in_data->Print();
+    binned_data->out_data->Print();
+    binned_data->leftover_data->Print();
   }
 
   void TestEEGBinningRollover4() {
     size_t sampling_rate = 10;
-    RC::APtr<const EEGData> rollover_data = CreateTestingEEGData(sampling_rate, 3, 3);
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, 9, 3);
+    RC::APtr<const EEGDataRaw> rollover_data = CreateTestingEEGDataRaw(sampling_rate, 3, 3);
+    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 9, 3);
 
     RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(rollover_data, in_data, 3);
 
-    PrintEEGData(*rollover_data);
-    PrintEEGData(*in_data);
-    PrintEEGData(*binned_data->out_data);
-    PrintEEGData(*binned_data->leftover_data);
+    rollover_data->Print();
+    in_data->Print();
+    binned_data->out_data->Print();
+    binned_data->leftover_data->Print();
   } 
 
   // Feature Filters
   void TestBipolarReference() {
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData();
+    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw();
   
     RC::Data1D<BipolarPair> bipolar_reference_channels = {BipolarPair{0,1}, BipolarPair{1,0}, BipolarPair{0,2}, BipolarPair{2,1}}; 
     RC::RStr deb_msg = "";
@@ -194,22 +221,32 @@ namespace CML {
     deb_msg += "\n";
     RC_DEBOUT(deb_msg);
 
-    RC::APtr<EEGData> out_data = FeatureFilters::BipolarReference(in_data, bipolar_reference_channels);
+    RC::APtr<EEGDataDouble> out_data = FeatureFilters::BipolarReference(in_data, bipolar_reference_channels);
   
-    PrintEEGData(*in_data);
-    PrintEEGData(*out_data);
+    in_data->Print();
+    out_data->Print();
   }
   
+  void TestFindArtifactChannels() {
+    size_t sampling_rate = 1000;
+    RC::APtr<const EEGDataDouble> in_data = CreateTestingEEGDataDouble(sampling_rate);
+    
+    RC::APtr<RC::Data1D<bool>> out_data = FeatureFilters::FindArtifactChannels(in_data, 10, 10);
+
+    in_data->Print();
+    RC_DEBOUT(RC::RStr::Join(*out_data, ", ") + "\n");
+  }
+
   void TestMirrorEnds() {
     size_t sampling_rate = 1000;
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate);
+    RC::APtr<const EEGDataDouble> in_data = CreateTestingEEGDataDouble(sampling_rate);
     
-    RC::APtr<EEGData> out_data = FeatureFilters::MirrorEnds(in_data, 2);
+    RC::APtr<EEGDataDouble> out_data = FeatureFilters::MirrorEnds(in_data, 2);
 
     RC_DEBOUT(in_data->data[0].size());
     RC_DEBOUT(out_data->data[0].size());
-    PrintEEGData(*in_data);
-    PrintEEGData(*out_data);
+    in_data->Print();
+    out_data->Print();
   }
 
   void TestRemoveMirrorEnds() {
@@ -220,8 +257,8 @@ namespace CML {
 
     RC_DEBOUT(in_data->data.size1());
     RC_DEBOUT(out_data->data.size1());
-    PrintEEGPowers(*in_data);
-    PrintEEGPowers(*out_data);
+    in_data->Print();
+    out_data->Print();
   }
   
   void TestAvgOverTime() {
@@ -230,8 +267,8 @@ namespace CML {
   
     RC::APtr<EEGPowers> out_powers = FeatureFilters::AvgOverTime(in_powers, false);
   
-    PrintEEGPowers(*in_powers);
-    PrintEEGPowers(*out_powers);
+    in_powers->Print();
+    out_powers->Print();
   }
 
   void TestLog10Transform() {
@@ -239,8 +276,8 @@ namespace CML {
 
     RC::APtr<EEGPowers> out_powers = FeatureFilters::Log10Transform(in_powers, 1e-16);
   
-    PrintEEGPowers(*in_powers);
-    PrintEEGPowers(*out_powers);
+    in_powers->Print();
+    out_powers->Print();
   }
 
   void TestMorletTransformer() {
@@ -248,7 +285,7 @@ namespace CML {
     size_t num_events = 10;
     RC::Data1D<BipolarPair> channels = {BipolarPair{0,1}, BipolarPair{1,0}, BipolarPair{0,2}};
     RC::Data1D<double> freqs = {1000, 500};
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, num_events, channels.size());
+    RC::APtr<const EEGDataDouble> in_data = CreateTestingEEGDataDouble(sampling_rate, num_events, channels.size());
     
     MorletSettings mor_set;
     mor_set.channels = channels;
@@ -259,8 +296,8 @@ namespace CML {
     morlet_transformer.Setup(mor_set);
     RC::APtr<EEGPowers> out_powers = morlet_transformer.Filter(in_data);
 
-    PrintEEGData(*in_data);
-    PrintEEGPowers(*out_powers);
+    in_data->Print();
+    out_powers->Print();
   }
 
   void TestMorletTransformerRealData() {
@@ -269,10 +306,9 @@ namespace CML {
     RC::Data1D<double> freqs = {6, 9.75368155833899, 15.8557173235803, 25.7752696088736, 41.900628640881, 68.1142314762286, 110.727420568354, 180};
     RC::Data1D real_data = {1715, 1685, 1652, 1617, 1580, 1540, 1499, 1456, 1411, 1365, 1316, 1266, 1216, 1164, 1110, 1056, 1002, 946, 890, 833, 777, 720, 662, 606, 550, 492, 550, 606, 662, 720, 777, 833, 890, 946, 1002, 1056, 1110, 1164, 1216, 1266, 1316, 1365, 1411, 1456, 1499, 1540, 1580, 1617, 1652, 1685, 1715, 1742, 1768, 1791, 1811, 1828, 1843, 1854, 1862, 1868, 1870, 1870, 1866, 1860, 1850, 1837, 1822, 1803, 1781, 1757, 1729, 1698, 1664, 1628, 1589, 1547, 1502, 1456, 1407, 1355, 1300, 1244, 1186, 1124, 1063, 999, 933, 866, 797, 728, 657, 585, 513, 439, 364, 290, 216, 142, 67, -8, -82, -157, -230, -303, -374, -444, -514, -583, -650, -716, -779, -842, -903, -962, -1018, -1072, -1124, -1174, -1222, -1267, -1311, -1351, -1388, -1422, -1455, -1483, -1509, -1533, -1553, -1571, -1586, -1598, -1607, -1613, -1617, -1617, -1615, -1610, -1602, -1592, -1579, -1563, -1546, -1525, -1503, -1479, -1452, -1423, -1392, -1359, -1325, -1288, -1251, -1213, -1172, -1130, -1088, -1045, -1001, -956, -911, -865, -819, -773, -727, -681, -633, -587, -542, -498, -453, -409, -366, -325, -284, -244, -207, -169, -134, -99, -66, -35, -6, 21, 47, 71, 93, 113, 131, 147, 161, 173, 184, 192, 199, 203, 204, 205, 203, 200, 194, 187, 179, 168, 156, 143, 127, 111, 93, 75, 55, 34, 11, -12, -35, -59, -83, -109, -135, -161, -186, -211, -236, -262, -287, -262, -236, -211, -186, -161, -135, -109, -83, -59, -35, -12, 11, 34, 55, 75, 93, 111, 127, 143, 156, 168, 179, 187, 194, 200};
     size_t num_events = real_data.size();
-    EEGData eeg_data(sampling_rate, num_events);
-    eeg_data.data.Resize(1);
-    eeg_data.data[0].CopyFrom(real_data);
-    RC::APtr<const EEGData> in_data = RC::MakeAPtr<const EEGData>(eeg_data);
+    RC::APtr<EEGDataDouble> in_data = RC::MakeAPtr<EEGDataDouble>(sampling_rate, num_events);
+    in_data->data.Resize(1);
+    in_data->data[0].CopyFrom(real_data);
     
     MorletSettings mor_set;
     mor_set.channels = channels;
@@ -281,10 +317,11 @@ namespace CML {
 
     MorletTransformer morlet_transformer;
     morlet_transformer.Setup(mor_set);
-    RC::APtr<EEGPowers> out_powers = morlet_transformer.Filter(in_data);
+    auto in_data_captr = in_data.ExtractConst();
+    RC::APtr<EEGPowers> out_powers = morlet_transformer.Filter(in_data_captr);
 
-    PrintEEGData(*in_data);
-    PrintEEGPowers(*out_powers);
+    in_data->Print();
+    out_powers->Print();
   }
 
   void TestRollingStats() {
@@ -293,7 +330,7 @@ namespace CML {
     size_t chanlen = 5;
     size_t freqlen = 1;
     RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers(sampling_rate, eventlen, chanlen, freqlen);
-    PrintEEGPowers(*in_powers);
+    in_powers->Print();
 
     RollingStats rolling_stats(eventlen);
     rolling_stats.Update(in_powers->data[0][0]);
@@ -318,11 +355,11 @@ namespace CML {
     size_t chanlen = 2;
     size_t freqlen = 2;
     RC::APtr<const EEGPowers> in_powers1 = CreateTestingEEGPowers(sampling_rate, eventlen, chanlen, freqlen, 0);
-    PrintEEGPowers(*in_powers1);
+    in_powers1->Print();
     RC::APtr<const EEGPowers> in_powers2 = CreateTestingEEGPowers(sampling_rate, eventlen, chanlen, freqlen, 20);
-    PrintEEGPowers(*in_powers2);
+    in_powers2->Print();
     RC::APtr<const EEGPowers> in_powers3 = CreateTestingEEGPowers(sampling_rate, eventlen, chanlen, freqlen, 40);
-    PrintEEGPowers(*in_powers3);
+    in_powers3->Print();
 
     NormalizePowersSettings np_set = { eventlen, chanlen, freqlen };
     NormalizePowers normalize_powers(np_set);
@@ -332,14 +369,14 @@ namespace CML {
     normalize_powers.PrintStats();
 
     RC::APtr<EEGPowers> out_powers = normalize_powers.ZScore(in_powers3, true);
-    PrintEEGPowers(*out_powers);
+    out_powers->Print();
   }
 
   void TestProcess_Handler() {
     size_t sampling_rate = 1000;
     size_t chanlen = 1;
     size_t eventlen = 50;
-    RC::APtr<const EEGData> in_data = CreateTestingEEGData(sampling_rate, eventlen, chanlen); 
+    RC::APtr<const EEGDataDouble> in_data = CreateTestingEEGDataDouble(sampling_rate, eventlen, chanlen); 
 
     MorletSettings morlet_settings = {5, {500}, {{0,0}}, 1000, 2, true};
     MorletTransformer morlet_transformer;
@@ -357,13 +394,13 @@ namespace CML {
     auto log_data = FeatureFilters::Log10Transform(unmirrored_data, log_min_power_clamp).ExtractConst();
     auto avg_data = FeatureFilters::AvgOverTime(log_data, true).ExtractConst();
 
-    PrintEEGData(*in_data);
-    PrintEEGData(*bipolar_ref_data);
-    PrintEEGData(*mirrored_data);
-    PrintEEGPowers(*morlet_data);
-    PrintEEGPowers(*unmirrored_data);
-    PrintEEGPowers(*log_data);
-    PrintEEGPowers(*avg_data);
+    in_data->Print();
+    bipolar_ref_data->Print();
+    mirrored_data->Print();
+    morlet_data->Print();
+    unmirrored_data->Print();
+    log_data->Print();
+    avg_data->Print();
   }
 
 
@@ -385,6 +422,7 @@ namespace CML {
     //TestEEGBinningRollover4();
     //TestRollingStats();
     //TestNormalizePowers();
+    //TestFindArtifactChannels();
     TestProcess_Handler();
   }
 }

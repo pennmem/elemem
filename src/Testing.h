@@ -6,10 +6,14 @@
 
 namespace CML {
   // Helper Functions
-  RC::APtr<const EEGData> CreateTestingEEGData();
-  RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate); 
-  RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate, size_t eventlen, size_t chanlen);
-  RC::APtr<const EEGData> CreateTestingEEGData(size_t sampling_rate, size_t eventlen, size_t chanlen, int16_t offset);
+  RC::APtr<const EEGDataRaw> CreateTestingEEGDataRaw();
+  RC::APtr<const EEGDataRaw> CreateTestingEEGDataRaw(size_t sampling_rate); 
+  RC::APtr<const EEGDataRaw> CreateTestingEEGDataRaw(size_t sampling_rate, size_t eventlen, size_t chanlen);
+  RC::APtr<const EEGDataRaw> CreateTestingEEGDataRaw(size_t sampling_rate, size_t eventlen, size_t chanlen, int16_t offset);
+  RC::APtr<const EEGDataDouble> CreateTestingEEGDataDouble();
+  RC::APtr<const EEGDataDouble> CreateTestingEEGDataDouble(size_t sampling_rate); 
+  RC::APtr<const EEGDataDouble> CreateTestingEEGDataDouble(size_t sampling_rate, size_t eventlen, size_t chanlen);
+  RC::APtr<const EEGDataDouble> CreateTestingEEGDataDouble(size_t sampling_rate, size_t eventlen, size_t chanlen, int16_t offset);
   RC::APtr<const EEGPowers> CreateTestingEEGPowers();
   RC::APtr<const EEGPowers> CreateTestingEEGPowers(size_t sampling_rate);
   RC::APtr<const EEGPowers> CreateTestingEEGPowers(size_t sampling_rate, size_t eventlen, size_t chanlen, size_t freqlen);

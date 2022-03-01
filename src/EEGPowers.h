@@ -2,6 +2,7 @@
 #define EEGPOWERS_H
 
 #include "RC/Data3D.h"
+#include "RC/RStr.h"
 
 namespace CML {
   /// This is a simple class that acts as a container for EEG Powers.
@@ -47,13 +48,54 @@ namespace CML {
     EEGPowers(size_t sampling_rate) : sampling_rate(sampling_rate) {}
     EEGPowers(size_t sampling_rate, size_t event_len, size_t chan_len, size_t freq_len)
       : sampling_rate(sampling_rate), data(event_len, chan_len, freq_len) {}
-      size_t sampling_rate;
-      RC::Data3D<double> data;
+    
+    size_t sampling_rate;
+    RC::Data3D<double> data;
+    
+    void Print(size_t num_freqs, size_t num_chans) const {
+      size_t freqlen = num_freqs;
+      size_t chanlen = num_chans;
+      //size_t eventlen = num_events;
+
+      if (freqlen > data.size3()) {
+        Throw_RC_Error((RC::RStr("The freqlen (") + freqlen +
+              ") is longer than then number of freqs in powers (" + data.size3() + ")").c_str());
+      } else if (chanlen > data.size2()) {
+        Throw_RC_Error((RC::RStr("The chanlen (") + chanlen +
+              ") is longer than then number of freqs in powers (" + data.size2() + ")").c_str());
+      }
+
+      RC::RStr deb_msg = RC::RStr("sampling_rate: ") + sampling_rate + "\n";
+      deb_msg += "data:\n\n";
+      RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
+        deb_msg += "frequency " + RC::RStr(i) + "\n";
+        RC_ForRange(j, 0, chanlen) { // Iterate over channels
+          deb_msg += "channel " + RC::RStr(j) + ": " + RC::RStr::Join(data[i][j], ", ") + "\n";
+        }
+        deb_msg += "\n";
+      }
+      deb_msg += "––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––\n";
+      RC_DEBOUT(deb_msg);
+    }
+
+    void Print(size_t num_freqs) const {
+      size_t freqlen = num_freqs;
+      size_t chanlen = data.size2();
+      //size_t eventlen = data.size1();
+      Print(freqlen, chanlen);
+    } 
+    
+    void Print() const {
+      size_t freqlen = data.size3();
+      size_t chanlen = data.size2();
+      //size_t eventlen = data.size1();
+      Print(freqlen, chanlen);
+    }
   };
 
-  void PrintEEGPowers(const EEGPowers& powers);
-  void PrintEEGPowers(const EEGPowers& powers, size_t num_freqs);
-  void PrintEEGPowers(const EEGPowers& powers, size_t num_freqs, size_t num_chans);
+  //void PrintEEGPowers(const EEGPowers& powers);
+  //void PrintEEGPowers(const EEGPowers& powers, size_t num_freqs);
+  //void PrintEEGPowers(const EEGPowers& powers, size_t num_freqs, size_t num_chans);
 }
 
 #endif // EEGPOWERS_H

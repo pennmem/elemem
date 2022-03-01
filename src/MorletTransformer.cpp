@@ -35,7 +35,7 @@ namespace CML {
     return 1.5 * 1000 * mor_set.cycle_count / 2 / min_freq;
   }
 
-  RC::APtr<EEGPowers> MorletTransformer::Filter(RC::APtr<const EEGData>& data) {
+  RC::APtr<EEGPowers> MorletTransformer::Filter(RC::APtr<const EEGDataDouble>& data) {
     auto& datar = data->data;
 
     if (mt == NULL) {
