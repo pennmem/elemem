@@ -45,6 +45,10 @@ namespace CML {
     static RC::APtr<EEGPowers> Log10Transform(RC::APtr<const EEGPowers>& in_data, double epsilon);
     static RC::APtr<EEGPowers> AvgOverTime(RC::APtr<const EEGPowers>& in_data, bool ignore_inf_and_nan);
 
+    // This is only public for testing purposes
+    template<typename T>
+    static RC::Data1D<T> Differentiate(const RC::Data1D<T>& in_data, size_t order);
+
 
     protected:
     void Process_Handler(RC::APtr<const EEGData>&, const TaskClassifierSettings&);

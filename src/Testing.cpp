@@ -227,10 +227,23 @@ namespace CML {
     out_data->Print();
   }
   
+  void TestDifferentiate() {
+    RC::Data1D<double> in_data = {2.0, 2, 4, 7, 0};
+    
+    RC::Data1D<double> out_data1 = FeatureFilters::Differentiate(in_data, 1);
+    RC::Data1D<double> out_data2 = FeatureFilters::Differentiate(in_data, 2);
+    RC::Data1D<double> out_data3 = FeatureFilters::Differentiate(in_data, 3);
+
+    RC_DEBOUT(RC::RStr::Join(in_data, ", ") + "\n");
+    RC_DEBOUT(RC::RStr::Join(out_data1, ", ") + "\n");
+    RC_DEBOUT(RC::RStr::Join(out_data2, ", ") + "\n");
+    RC_DEBOUT(RC::RStr::Join(out_data3, ", ") + "\n");
+  }
+
   void TestFindArtifactChannels() {
     size_t sampling_rate = 1000;
-    RC::APtr<const EEGDataDouble> in_data = CreateTestingEEGDataDouble(sampling_rate);
-    
+    RC::APtr<const EEGDataDouble> in_data = CreateTestingEEGDataDouble(sampling_rate, 50, 2);
+
     RC::APtr<RC::Data1D<bool>> out_data = FeatureFilters::FindArtifactChannels(in_data, 10, 10);
 
     in_data->Print();
@@ -422,8 +435,9 @@ namespace CML {
     //TestEEGBinningRollover4();
     //TestRollingStats();
     //TestNormalizePowers();
-    //TestFindArtifactChannels();
-    TestProcess_Handler();
+    TestFindArtifactChannels();
+    TestDifferentiate();
+    //TestProcess_Handler();
   }
 }
 

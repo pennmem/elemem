@@ -327,23 +327,26 @@ namespace CML {
 
   // Note: Watch out for overflow on smaller types
   template<typename T>
-  RC::APtr<RC::Data1D<T>> Differentiate(RC::APtr<const RC::Data1D<T>>& in_data, size_t order) {
+  RC::Data1D<T> FeatureFilters::Differentiate(const RC::Data1D<T>& in_data, size_t order) {
     if (order == 0) { Throw_RC_Error("The order cannot be 0."); }
 
+    if (order >= in_data.size()) {
+      Throw_RC_Error(("The order (" + RC::RStr(order) + ") " +
+            "is greater than or equal to the number of samples in the data "
+            "(" + RC::RStr(in_data.size()) + ")").c_str());
+    }
+
     // Take derivative
-    auto out_data = RC::MakeAPtr<RC::Data1D<T>>();
-    auto& in_datar = *in_data;
-    auto& out_datar = *out_data;
-    out_datar.Resize(in_datar.size() - order);
-    RC_ForRange(i, 0, in_datar.size()-1) { // Iterate over events (except last one)
-      out_datar[i] = in_datar[i+1] - in_datar[i];
+    auto out_data = RC::Data1D<T>();
+    out_data.Resize(in_data.size() - 1);
+    RC_ForRange(i, 0, out_data.size()) { // Iterate over events
+      out_data[i] = in_data[i+1] - in_data[i];
     }
 
     // Base case
     if (order == 1) { return out_data; }
     // Recurse for next order
-    auto out_data_captr = out_data.ExtractConst();
-    return Differentiate(out_data_captr, order-1);
+    return Differentiate(out_data, order-1);
   }
 
   /// Find the channels with artifacting using a ordered derivate test
@@ -384,9 +387,9 @@ namespace CML {
       }
 
       // Take the ordered derivative
-      auto in_events_captr = RC::APtr(&in_events);
-      auto deriv_data = Differentiate<double>(in_events_captr, order);
-      size_t eq_zero = std::accumulate(deriv_data->begin(), deriv_data->end(), 0, accum_eq_zero_plus);
+      auto deriv_data = Differentiate<double>(in_events, order);
+      // Threshold the data
+      size_t eq_zero = std::accumulate(deriv_data.begin(), deriv_data.end(), 0, accum_eq_zero_plus);
       out_event = eq_zero > threshold;
     }
 
