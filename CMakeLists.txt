@@ -57,10 +57,11 @@ if(APPLE)
   set (LAPACKLIBS "-llapack -lblas -lc")
   set (F2CLIB "-L/usr/local/lib/gcc/7/ -lgfortran")
 
-  set (BAYES_DIR "/Users/rdehaan/projects/elemem/src/BayesGPc")
-  set (OPTIMDIR "/Users/rdehaan/projects/dependencies/optim/header_only_version")
+  set (BAYES_DIR "include/BayesGPc")
+  set (OPTIMDIR "include/optim/header_only_version")
   set (OPTIMFLAG "-march=native -ffp-contract=fast")
-  set (EIGENDIR "/usr/local/include")
+  #set (EIGENDIR "include")
+  set (NPYINCLUDEDIR "include/cnpy")
   set (NPYLINKFLAG "-L/usr/local/lib -lcnpy -lz")
   set (MATPLOT_INCLUDE_DIRS "matplot")
   set (MATPLOTLINKFLAG "-lmatplot")
@@ -68,6 +69,7 @@ if(APPLE)
   include_directories(${BAYES_DIR}
                       ${OPTIMDIR}
                       ${EIGENDIR}
+                      ${NPYINCLUDEDIR}
                       ${MATPLOT_INCLUDE_DIRS}
                       )
   # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")

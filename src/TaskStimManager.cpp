@@ -36,7 +36,7 @@ namespace CML {
 
     auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
     hndl->event_log.Log(resp.Line());
-    RC_DEBOUT(resp);
+    // RC_DEBOUT(resp);
 
     f64 stim_time_from_start_sec = RC::Time::Get();
     if (stim_type && stim) {

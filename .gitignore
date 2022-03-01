@@ -17,3 +17,5 @@ dist/**
 nohup.out
 */nohup.out
 
+include/BayesGPc/results/**
+include/BayesGPc/debug_results/**

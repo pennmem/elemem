@@ -35,19 +35,25 @@ namespace CML {
     // TODO: RDD: load parameters from config file - ask Ryan/James about how this is handled
     // TODO: RDD: check values with design docs
     n_normalize_events = 2;
-    poststim_classif_lockout_ms = 500;
+    poststim_classif_lockout_ms = 250;  //500;
     // TODO: RDD: replace with CPSSpecs.intertrial_range_ms
-    stim_lockout_ms = 2500;
-    normalize_lockout_ms = 3000; // should be stim_lockout_ms + stim duration, though duration may not be fixed
+    stim_lockout_ms = 250; // 2500;
+    normalize_lockout_ms = 300; // 3000; // should be stim_lockout_ms + stim duration, though duration may not be fixed
     // TODO: JPB: move to config file for setting classifier settings during initialization?
     // classification interval duration currently
-    classify_ms = 1000;  // 1350;  // TODO: RDD/JPB: lengthen circular buffer?
+    classify_ms = 500;  // 1000 // 1350;  // TODO: RDD/JPB: lengthen circular buffer?
 
     // classifier event counter
     classif_id = 0;
 
-    BayesianSearchModel search_temp(kern, bounds, obsNoise * obsNoise, exp_bias, n_init_samples, seed, verbosity);
-    search = search_temp;
+    search = BayesianSearchModel(kern, bounds, obsNoise * obsNoise, exp_bias, n_init_samples, seed, verbosity);
+    // for some reason, CMatrix * x_samples/y_samples (on heap) seem to be deleted/inaccessible?
+    search.x_samples = new CMatrix(1, bounds.getRows());
+    search.y_samples = new CMatrix(1, 1);
+    // CMatrix x(0.0);
+    // CMatrix y(0.0);
+    // search.add_sample(x, y);
+    // std::cout << "test" << endl;
   }
 
   ExperCPS::~ExperCPS() {
@@ -68,8 +74,9 @@ namespace CML {
       // TODO: LATER RDD: fix this to allow for searching over arbitrary parameters
       //            for now assume that the maximum amplitude is the amplitude in the given profiles
       // TODO: RDD: bounds should be passed separately with min/max configuration
+      // amplitude bounds in mA
       bounds.setVal(0.1, 0);
-      bounds.setVal(new_stim_loc_profiles[i][0].amplitude, 1);
+      bounds.setVal(((double)new_stim_loc_profiles[i][0].amplitude)/1000, 1);
       search.bounds = bounds;
     }
     stim_loc_profiles = new_stim_loc_profiles;
@@ -119,6 +126,10 @@ namespace CML {
       Throw_RC_Error("ExperCPS::UpdateSearch: Only stimulation events with stimulation profiles of length 1 are supported currently.");
     }
 
+    #ifdef DEBUG_EXPERCPS
+    RC_DEBOUT(RC::RStr("ExperCPS::UpdateSearch"));
+    #endif
+
     // ExpEvent ev currently unused; API allows for future experiments in which stim duration is tuned
     CMatrix stim_pars(1, 1);
     // map stim parameters for search model
@@ -140,14 +151,9 @@ namespace CML {
 
   void ExperCPS::UpdateSearchPanel(const CSStimProfile& profile) {
     JSONFile update_event = MakeResp("UPDATE SEARCH");
-    // update_event.Set(JSONifyCSStimProfile(profile), "data");
-    for (int i = 0; i < profile.size(); i++) {
-      CSStimChannel chan = profile[i];
-      update_event.Set(chan.electrode_pos, "data", i, "electrode_pos");
-      update_event.Set(chan.electrode_neg, "data", i, "electrode_neg");
-      update_event.Set(chan.amplitude, "data", i, "amplitude");
-    }
+    update_event.Set(JSONifyCSStimProfile(profile), "data");
     hndl->event_log.Log(update_event.Line());
+    status_panel->SetEvent("UPDATE SEARCH");
   }
 
 
@@ -167,7 +173,7 @@ namespace CML {
 
   void ExperCPS::DoStimEvent(const CSStimProfile& profile) {
     JSONFile stim_event = MakeResp("STIM");
-    stim_event.Set(JSONifyCSStimProfile(profile), "data");
+    stim_event.Set(JSONifyCSStimProfile(profile).json, "data");
     hndl->event_log.Log(stim_event.Line());
     status_panel->SetEvent("STIM");
   }
@@ -309,7 +315,7 @@ namespace CML {
     //            James thinks this is overkill for precision of 10-15 ms
     //            https://stackoverflow.com/questions/12937963/get-local-time-in-nanoseconds
     uint64_t min_delay = 50;
-    uint64_t delay_next = delay ? delay < min_delay : min_delay;
+    uint64_t delay_next;
     while (delay > 0) {
       delay_next = (delay < min_delay ? delay : min_delay);
       delay -= delay_next;
@@ -392,9 +398,9 @@ namespace CML {
 
   void ExperCPS::StimDecision_Handler(const bool& stim_event, const TaskClassifierSettings& classif_settings, const f64& stim_time_from_start_sec) {
     // TODO: RDD: add docstrings for everything
-    #ifdef DEBUG_EXPERCPS
-    RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler"));
-    #endif
+    // #ifdef DEBUG_EXPERCPS
+    // RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler"));
+    // #endif
 
     uint64_t cur_time_ms = uint64_t(1000*(stim_time_from_start_sec - exp_start)+0.5);
 
@@ -435,7 +441,9 @@ namespace CML {
     stim_event_flags += stim_event;
 
     ClassificationType next_classif_state;
-    RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler just before states"));
+    // #ifdef DEBUG_EXPERCPS
+    // RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler just before states"));
+    // #endif
     // TODO logging
     if (classif_state == ClassificationType::STIM ||
         classif_state == ClassificationType::SHAM) {  // received pre-stim/pre-sham classification event
@@ -443,7 +451,9 @@ namespace CML {
       // this could be a tangible difference between the NOSTIM/SHAM events, that stim_event := false for NOSTIM, stim_event := classif_prob < 0.5 for SHAM
       if (stim_event) { // stim event occurred or would have occurred if the event were not a sham
         #ifdef DEBUG_EXPERCPS
-        RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: stim decision\n"));
+        if (classif_state == ClassificationType::STIM) 
+          { RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: stim decision\n")); }
+        else { RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: sham decision\n")); }
         #endif
         // TODO handle cases where say stim duration not equal between given and used params...
         //      use assert as a placeholder for initial testing
@@ -461,15 +471,21 @@ namespace CML {
         // get post-stim classifier output
         // TODO: RDD/JPB: when will stim event offset be relative to this callback being called?
         //                can we get that info from CereStim? Or can we use nominal duration instead?
-        uint64_t stim_offset_ms = abs_stim_event_times[abs_stim_event_times.size() - 1] + stim_params[0].duration;
+        uint64_t stim_offset_ms = abs_stim_event_times[abs_stim_event_times.size() - 1] + stim_params[0].duration / 1000;
         next_min_event_time = stim_offset_ms + poststim_classif_lockout_ms;
         next_classif_state = ClassificationType::NOSTIM;
-        if (classif_state == ClassificationType::STIM) { DoStimEvent(stim_profiles[cur_ev]); }
-        else { DoShamEvent(); }
+        if (classif_state == ClassificationType::STIM) {
+          prev_sham = false;
+          DoStimEvent(stim_profiles[cur_ev]);
+        }
+        else {
+          prev_sham = true;
+          DoShamEvent();
+        }
       }
       else { // good memory state detected and stim event would not have occurred
         #ifdef DEBUG_EXPERCPS
-        RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: sham decision\n"));
+        RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: good memory state\n"));
         #endif
         // TODO: RDD/JPB: add some timing control? or maximize classification rate? in any case should record event times
         //                to analyze event time frequencies, may want to add some jitter if fairly low variance
@@ -485,16 +501,16 @@ namespace CML {
     else if (classif_state == ClassificationType::NOSTIM) { // received post-stim/post-sham classification event
       // TODO: RDD/JPB: get stim_offset_ms from classifier or from CereStim handler class, don't compute here if possible
       // though errors wouldn't accumulate too much
-      uint64_t stim_offset_ms = abs_stim_event_times[abs_stim_event_times.size() - 2] + stim_params[0].duration;
+      uint64_t stim_offset_ms = abs_stim_event_times[abs_stim_event_times.size() - 2] + stim_params[0].duration / 1000;
       next_min_event_time = stim_offset_ms + stim_lockout_ms;
       status_panel->SetEvent("UPDATING");
 
       double biomarker = result - classif_results[classif_results.size() - 1];
       // TODO add struct for storing everything related to a full pre-post event (i.e., pre-stim classifier event time, stim event time, post-stim classifier time, classifier results, biomarker, stim parameters, ideally Bayesian search hps? definitely should store those separately...)
       //      otherwise could just parse after the fact, this would prevent misparsing...
-      #ifdef DEBUG_EXPERCPS
-      RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: nostim decision\n"));
-      #endif
+      // #ifdef DEBUG_EXPERCPS
+      // RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: nostim decision\n"));
+      // #endif
 
       if (!prev_sham) {
         #ifdef DEBUG_EXPERCPS

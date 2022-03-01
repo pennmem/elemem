@@ -437,7 +437,7 @@ namespace CML {
   }
 
   void FeatureFilters::Process_Handler(RC::APtr<const EEGData>& data, const TaskClassifierSettings& task_classifier_settings) {
-    RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
+    // RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
     if ( data_callbacks.IsEmpty() ) {
       Throw_RC_Error("No FeatureFilters callbacks set");
     }
@@ -471,7 +471,7 @@ namespace CML {
       case ClassificationType::NOSTIM:
       {
         auto norm_data = normalize_powers.ZScore(avg_data, true).ExtractConst();
-        RC_DEBOUT(RC::RStr("NORM POWERS"));
+        // RC_DEBOUT(RC::RStr("NORM POWERS"));
         PrintEEGPowers(*norm_data, 1, 20);
         ExecuteCallbacks(norm_data, task_classifier_settings);
         break;

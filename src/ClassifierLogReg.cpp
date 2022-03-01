@@ -20,7 +20,7 @@ namespace CML {
    *  @return The classifier result
    */
   double ClassifierLogReg::Classification(RC::APtr<const EEGPowers>& data) {
-    RC_DEBOUT(RC::RStr("Classification\n\n"));
+    // RC_DEBOUT(RC::RStr("Classification\n\n"));
     auto& intercept = weights->intercept;
     auto& coef = weights->coef;
     auto& datar = data->data;
