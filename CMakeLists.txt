@@ -86,6 +86,8 @@ if(APPLE)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast")
 set (BAYES_FILES
+  ${BAYES_DIR}/CSearchComparison.cpp
+  ${BAYES_DIR}/CSearchComparison.h
   ${BAYES_DIR}/CBayesianSearch.cpp
   ${BAYES_DIR}/CBayesianSearch.h
   ${BAYES_DIR}/CGp.cpp

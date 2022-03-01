@@ -14,7 +14,8 @@
 #include "EEGPowers.h"
 #include <QTimer>
 #include <QThread>
-#include "../../BayesGPc/CBayesianSearch.h"
+#include "../include/BayesGPc/CBayesianSearch.h"
+#include "../include/BayesGPc/CSearchComparison.h"
 
 #define DEBUG_EXPERCPS
 
@@ -73,8 +74,8 @@ namespace CML {
       status_panel = set_panel;
     }
 
-    void GetNextEvent();
-    void UpdateSearch(const CSStimProfile stim_info, const ExpEvent ev, const double biomarker);
+    void GetNextEvent(const unsigned int model_idx);
+    void UpdateSearch(const unsigned int model_idx, const CSStimProfile stim_info, const ExpEvent ev, const double biomarker);
     void ComputeBestStimProfile();
 
     void UpdateSearchPanel(const CSStimProfile& profile);
@@ -110,15 +111,17 @@ namespace CML {
     // TODO: RDD: link to general Elemem seed
     int seed;
     int n_var;
-    CMatrix bounds;
+    vector<CMatrix> param_bounds;
     double obsNoise;
     double exp_bias;
     int n_init_samples;
+    int n_searches;
+    double pval_threshold;
     int verbosity;
     CKern* k;
     CCmpndKern kern;
     CWhiteKern* whitek;
-    BayesianSearchModel search;
+    CSearchComparison search;
 
     RC::Ptr<Handler> hndl;
     RC::Ptr<StatusPanel> status_panel;
@@ -129,22 +132,28 @@ namespace CML {
     RC::Data1D<CSStimProfile> stim_loc_profiles;
     CPSSpecs cps_specs;
     CSStimProfile best_stim_profile;
+    bool beat_sham;
 
     // logging
     RC::Data1D<CSStimProfile> stim_profiles;
     RC::Data1D<double> classif_results;
+    vector<double> sham_results;
+
     RC::Data1D<ExpEvent> exp_events;
     RC::Data1D<bool> stim_event_flags;
     RC::Data1D<TaskClassifierSettings> exper_classif_settings;
     // absolute (relative to start of the experiment) times of EEG collection for each event in ms
     RC::Data1D<uint64_t> abs_EEG_collection_times;
     RC::Data1D<uint64_t> abs_stim_event_times;
+    RC::Data1D<unsigned int> model_idxs;
 
     // temp
     uint64_t event_time;
     f64 exp_start;
     size_t cur_ev;
     bool prev_sham;
+    RC::Data1D<size_t> search_order;
+    size_t search_order_idx;
     uint64_t next_min_event_time;
     uint64_t classif_id;
 
