@@ -88,11 +88,6 @@ namespace CML {
   using EEGData = EEGDataT<int16_t>;
   using EEGDataRaw = EEGDataT<int16_t>;
   using EEGDataDouble = EEGDataT<double>;
-
-  //void PrintEEGData(const EEGData& data);
-  //void PrintEEGData(const EEGData& data, size_t num_chans);
-  //void PrintEEGDataPythonInput(const EEGData& data);
-  //void PrintEEGDataPythonInput(const EEGData& data, size_t num_chans);
 }
 
 #endif // EEGDATA_H

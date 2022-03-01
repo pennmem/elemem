@@ -92,10 +92,6 @@ namespace CML {
       Print(freqlen, chanlen);
     }
   };
-
-  //void PrintEEGPowers(const EEGPowers& powers);
-  //void PrintEEGPowers(const EEGPowers& powers, size_t num_freqs);
-  //void PrintEEGPowers(const EEGPowers& powers, size_t num_freqs, size_t num_chans);
 }
 
 #endif // EEGPOWERS_H

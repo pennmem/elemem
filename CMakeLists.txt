@@ -130,7 +130,6 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/EEGFileSave.h
   src/EEGFileSave.cpp
   src/EEGPowers.h
-  src/EEGPowers.cpp
   src/EEGSource.h
   src/EventLog.h
   src/EventLog.cpp
