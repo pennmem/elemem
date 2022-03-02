@@ -428,7 +428,7 @@ namespace CML {
 
   void TestAllCode() {
     //TestLog10Transform();
-    TestLog10TransformWithEpsilon();
+    //TestLog10TransformWithEpsilon();
     //TestAvgOverTime();
     //TestMirrorEnds();
     //TestRemoveMirrorEnds();
@@ -447,7 +447,7 @@ namespace CML {
     //TestNormalizePowers();
     //TestFindArtifactChannels();
     //TestDifferentiate();
-    //TestProcess_Handler();
+    TestProcess_Handler();
   }
 }
 

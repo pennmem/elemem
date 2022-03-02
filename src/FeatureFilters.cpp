@@ -373,7 +373,6 @@ namespace CML {
     auto& in_datar = in_data->data;
     auto& out_datar = *out_data;
     size_t chanlen = in_datar.size();
-    size_t eventlen = in_data->sample_len;
     out_data->Resize(chanlen);
 
     auto accum_eq_zero_plus = [](size_t sum, int64_t val) { return std::move(sum) + static_cast<size_t>(val == 0); };
@@ -391,6 +390,40 @@ namespace CML {
       // Threshold the data
       size_t eq_zero = std::accumulate(deriv_data.begin(), deriv_data.end(), 0, accum_eq_zero_plus);
       out_event = eq_zero > threshold;
+    }
+
+    return out_data;
+  }
+
+  /// Zero the channels with artifacts using a privided artifact mask
+  /** @param in_data The data to be evaluated for artifacting
+    * @param artifact_channel_mask The indicator for each channel if it had artifacts or not
+    * @return The provided data with the artifact channels zeroed
+    */
+  RC::APtr<EEGPowers> FeatureFilters::ZeroArtifactChannels(RC::APtr<const EEGPowers>& in_data, RC::APtr<const RC::Data1D<bool>>& artifact_channel_mask) {
+
+    auto& in_datar = in_data->data;
+    size_t freqlen = in_datar.size3();
+    size_t chanlen = in_datar.size2();
+    size_t eventlen = in_datar.size1();
+
+    if (chanlen != artifact_channel_mask->size()) {
+      Throw_RC_Error(("The channel length of the in_data (" + RC::RStr(chanlen) + ") " +
+            "is not equal to the number of channels in the artifact_channel_mask "
+            "(" + RC::RStr(artifact_channel_mask->size()) + ")").c_str());
+    }
+
+    auto out_data = RC::MakeAPtr<EEGPowers>(in_data->sampling_rate, eventlen, chanlen, freqlen);
+    auto& out_datar = out_data->data;
+
+    RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
+      RC_ForRange(j, 0, chanlen) { // Iterate over channels
+        if ((*artifact_channel_mask)[j]) {
+          out_datar[i][j].Zero();
+        } else {
+          out_datar[i][j].CopyFrom(in_datar[i][j]);
+        }
+      }
     }
 
     return out_data;
@@ -479,8 +512,6 @@ namespace CML {
     RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
       RC_ForRange(j, 0, chanlen) { // Iterate over channels
         out_datar[i][j].CopyFrom(in_datar[i][j], num_mirrored_samples, out_eventlen);
-        //RC_DEBOUT(in_datar.size1(), num_mirrored_samples, in_eventlen);
-        //out_datar[i][j].CopyFrom(in_datar[i][j], num_mirrored_samples, in_eventlen);
       }
     }
 
@@ -598,9 +629,15 @@ namespace CML {
       case ClassificationType::SHAM:
       {
         auto norm_data = normalize_powers.ZScore(avg_data, true).ExtractConst();
-        RC_DEBOUT(RC::RStr("NORM POWERS"));
-        norm_data->Print(1, 20);
-        callback(norm_data, task_classifier_settings);
+        norm_data->Print(1, 10);
+
+        // Perform 10th derivative test to find and remove artifact channels
+        auto artifact_channel_mask = FindArtifactChannels(bipolar_ref_data, 10, 10).ExtractConst();
+        auto cleaned_data = ZeroArtifactChannels(norm_data, artifact_channel_mask).ExtractConst();
+        RC_DEBOUT(RC::RStr::Join(*artifact_channel_mask, ", ") + "\n");
+        cleaned_data->Print(2, 10);
+
+        callback(cleaned_data, task_classifier_settings);
         break;
       }
       default: Throw_RC_Error("Invalid classification type received.");
