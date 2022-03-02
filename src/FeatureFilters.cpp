@@ -6,8 +6,8 @@
 
 namespace CML {
   BinnedData::BinnedData(size_t binned_sampling_rate, size_t binned_sample_len, size_t leftover_sampling_rate, size_t leftover_sample_len) {
-    out_data = new EEGDataRaw(binned_sampling_rate, binned_sample_len);
-    leftover_data = new EEGDataRaw(leftover_sampling_rate, leftover_sample_len);
+    out_data = RC::MakeAPtr<EEGDataRaw>(binned_sampling_rate, binned_sample_len);
+    leftover_data = RC::MakeAPtr<EEGDataRaw>(leftover_sampling_rate, leftover_sample_len);
   }
 
 
@@ -34,7 +34,7 @@ namespace CML {
     size_t sampling_ratio = in_data->sampling_rate / new_sampling_rate;
     size_t out_sample_len = in_data->sample_len / sampling_ratio;
     size_t leftover_sample_len = in_data->sample_len % sampling_ratio;
-    RC::APtr<BinnedData> binned_data = new BinnedData(new_sampling_rate, out_sample_len, in_data->sampling_rate, leftover_sample_len);
+    auto binned_data = RC::MakeAPtr<BinnedData>(new_sampling_rate, out_sample_len, in_data->sampling_rate, leftover_sample_len);
 
     auto& in_datar = in_data->data;
     auto& out_datar = binned_data->out_data->data;
@@ -110,7 +110,7 @@ namespace CML {
     size_t sampling_ratio = total_in_data.sampling_rate / new_sampling_rate;
     size_t out_sample_len = total_in_data.sample_len / sampling_ratio;
     size_t leftover_sample_len = total_in_data.sample_len % sampling_ratio;
-    RC::APtr<BinnedData> binned_data = new BinnedData(new_sampling_rate, out_sample_len, total_in_data.sampling_rate, leftover_sample_len);
+    auto binned_data = RC::MakeAPtr<BinnedData>(new_sampling_rate, out_sample_len, total_in_data.sampling_rate, leftover_sample_len);
 
     auto& out_datar = binned_data->out_data->data;
     auto& leftover_datar = binned_data->leftover_data->data;
@@ -149,82 +149,6 @@ namespace CML {
     return binned_data;
   }
 
-  ///// Bins EEGDataRaw from one sampling rate to another
-  ///** @param in_data the EEGDataRaw to be binned
-  //  * @param new_sampling_rate the new sampling rate
-  //  * @return EEGDataRaw that has been binned to the new sampling rate
-  //*/
-  //RC::APtr<EEGDataRaw> FeatureFilters::BinData(RC::APtr<const EEGDataRaw> leftover_data, RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate) {
-  //  if (new_sampling_rate == 0) {
-  //    Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
-  //  }
-
-  //  if (leftover_data->sampling_rate != in_data->sampling_rate) {
-  //    Throw_RC_Error("The sampling rate of leftover_data (" + RC::RStr(leftover_data->sampling_rate) + ") " +
-  //        "and the sampling rate of in_data (" + RC::RStr(in_data->sampling_rate) + ") are not the same");
-  //  }
-
-  //  if (leftover_data->sample_len >= sampling_ratio) {
-  //    Throw_RC_Error("The leftover_data sample length (" + RC::RStr(leftover_data->sample_len) + ") " +
-  //        "is greater than or equal to the number of samples in one bin (" + RC::RStr(sampling_ratio) + ")");
-  //  }
-
-  //  // TODO: JPB: (feature) Add ability to handle sampling ratios that aren't true multiples
-  //  size_t sampling_ratio = in_data->sampling_rate / new_sampling_rate;
-  //  leftover_data_new_sample_len = 
-  //  size_t in_data_total_sample_len = leftover_data->sample_len + in_data->sample_len;
-  //  size_t new_sample_len = CeilDiv(in_data_total_sample_len, sampling_ratio);
-  //  RC::APtr<EEGDataRaw> out_data = new EEGDataRaw(new_sampling_rate, new_sample_len);
-
-  //  auto& leftover_datar = leftover_data->data;
-  //  auto& in_datar = in_data->data;
-  //  auto& out_datar = out_data->data;
-  //  out_datar.Resize(in_datar.size());
-
-  //  // Separate accum lambda created for move sematics optimization
-  //  auto accum_plus = [](u32 sum, size_t val) { return std::move(sum) + val; };
-  //  RC_ForIndex(i, out_datar) { // Iterate over channels
-  //    auto& leftover_events = leftover_datar[i];
-  //    auto& in_events = in_datar[i];
-  //    auto& out_events = out_datar[i];
-
-  //    if (in_events.IsEmpty()) { continue; }
-  //    out_data->EnableChan(i);
-
-  //    // TODO: JPB: (feature) bin leftover events
-  //    // Bin leftover events
-  //    out_events[0] = std::accumulate(leftover_events.begin(), leftover_events.end(),
-  //                      0, accum_plus);
-  //    size_t end = sampling_ratio - leftover_data->sample_len - 1;
-  //    if (in_events.sample_len < end) {
-  //      // TODO: JPB: 
-  //      // return leftover_data + in_data as leftover;
-  //    }
-  //    out_events[0] = std::accumulate(&in_events[0], &in_events[end]+1,
-  //                      out_events[0], accum_plus);
-
-  //    // TODO: JPB: (feature) bin remaining events
-  //    // Bin remaining events
-  //    RC_ForIndex(j, out_events) { // Iterate over events
-  //      if (j < out_events.size() - 1) {
-  //        size_t start = j * sampling_ratio;
-  //        size_t end = (j+1) * sampling_ratio - 1;
-  //        size_t items = sampling_ratio;
-  //        out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
-  //                          0, accum_plus) / items;
-  //      } else { // Last block could have leftover samples
-  //        size_t start = j * sampling_ratio;
-  //        size_t end = in_events.size() - 1;
-  //        size_t items = std::distance(&in_events[start], &in_events[end]+1);
-  //        out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
-  //                          0, accum_plus) / items;
-  //      }
-  //    }
-  //  }
-
-  //  return out_data;
-  //}
-
   /// Bins EEGDataRaw from one sampling rate to another
   /** @param in_data the EEGDataRaw to be binned
     * @param new_sampling_rate the new sampling rate
@@ -236,12 +160,9 @@ namespace CML {
 
     // TODO: JPB: (feature) Add ability to handle sampling ratios that aren't true multiples
     size_t sampling_ratio = in_data->sampling_rate / new_sampling_rate;
-    // This is integer division that returns the ceiling
-    size_t new_sample_len = in_data->sample_len / sampling_ratio + (in_data->sample_len % sampling_ratio != 0);
-    RC::APtr<EEGDataRaw> out_data = new EEGDataRaw(new_sampling_rate, new_sample_len);
-    // TODO: JPB: (refactor) Switch all new EEGDataRaw() to MakeAptr()
-    //auto out_data = RC::MakeAPtr<EEGDataRaw>(new_sampling_rate, new_sample_len);
+    size_t new_sample_len = CeilDiv(in_data->sample_len, sampling_ratio);
 
+    auto out_data = RC::MakeAPtr<EEGDataRaw>(new_sampling_rate, new_sample_len);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
     out_datar.Resize(in_datar.size());
@@ -281,7 +202,7 @@ namespace CML {
     * @return EEGDataDouble of bipolar pair channels
     */
   RC::APtr<EEGDataDouble> FeatureFilters::BipolarReference(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels) {
-    RC::APtr<EEGDataDouble> out_data = new EEGDataDouble(in_data->sampling_rate, in_data->sample_len);
+    auto out_data = RC::MakeAPtr<EEGDataDouble>(in_data->sampling_rate, in_data->sample_len);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
     size_t chanlen = bipolar_reference_channels.size();
@@ -448,7 +369,7 @@ namespace CML {
             "(" + RC::RStr(in_sample_len) + ")").c_str());
     }
 
-    RC::APtr<EEGDataDouble> out_data = new EEGDataDouble(in_data->sampling_rate, out_sample_len);
+    auto out_data = RC::MakeAPtr<EEGDataDouble>(in_data->sampling_rate, out_sample_len);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
     size_t chanlen = in_datar.size();
@@ -506,7 +427,7 @@ namespace CML {
             "(" + RC::RStr(out_eventlen) + ")").c_str());
     }
 
-    RC::APtr<EEGPowers> out_data = new EEGPowers(in_data->sampling_rate, out_eventlen, chanlen, freqlen);
+    auto out_data = RC::MakeAPtr<EEGPowers>(in_data->sampling_rate, out_eventlen, chanlen, freqlen);
     auto& out_datar = out_data->data;
 
     RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
@@ -541,7 +462,7 @@ namespace CML {
     size_t chanlen = in_datar.size2();
     size_t eventlen = in_datar.size1();
 
-    RC::APtr<EEGPowers> out_data = new EEGPowers(in_data->sampling_rate, eventlen, chanlen, freqlen);
+    auto out_data = RC::MakeAPtr<EEGPowers>(in_data->sampling_rate, eventlen, chanlen, freqlen);
     auto& out_datar = out_data->data;
 
     RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
@@ -570,7 +491,7 @@ namespace CML {
     size_t in_eventlen = in_datar.size1();
     size_t out_eventlen = 1;
 
-    RC::APtr<EEGPowers> out_data = new EEGPowers(in_data->sampling_rate, out_eventlen, chanlen, freqlen);
+    auto out_data = RC::MakeAPtr<EEGPowers>(in_data->sampling_rate, out_eventlen, chanlen, freqlen);
     auto& out_datar = out_data->data;
 
     // Separate accum lambda created for move sematics optimization

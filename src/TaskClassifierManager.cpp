@@ -27,17 +27,16 @@ namespace CML {
 
   void TaskClassifierManager::ClassifyData_Handler(RC::APtr<const EEGData>& data) {
     //RC_DEBOUT(RC::RStr("TaskClassifierManager_Handler\n"));
-    auto& datar = data->data;
 
     if (stim_event_waiting) {
       RC_DEBOUT(num_eeg_events_before_stim);
-      if (num_eeg_events_before_stim <= datar[0].size()) { // TODO: JPB: (Need) How to handle if first channel is empty
+      if (num_eeg_events_before_stim <= data->sample_len) {
         circular_data.Append(data, 0, num_eeg_events_before_stim);
         StartClassification();
         circular_data.Append(data, num_eeg_events_before_stim);
       } else { // num_eeg_events_before_stim > datar.size()
         circular_data.Append(data);
-        num_eeg_events_before_stim -= datar[0].size(); // TODO: JPB: (Need) How to handle if first channel is empty
+        num_eeg_events_before_stim -= data->sample_len;
       }
     } else {
       // TODO: JPB: (feature) This can likely be removed to reduce overhead

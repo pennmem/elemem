@@ -9,7 +9,7 @@ namespace CML {
   class EEGCircularData {
     public:
     EEGCircularData(size_t sampling_rate, size_t duration_ms) : sampling_rate(sampling_rate), duration_ms(duration_ms),
-                    circular_data_len(duration_ms * sampling_rate / 1000), circular_data(0, circular_data_len) {}
+                    circular_data_len(duration_ms * sampling_rate / 1000), circular_data(sampling_rate, circular_data_len) {}
 
     // TODO: JPB: (refactor) Reuse member variables of EEGData
     size_t sampling_rate = 0;

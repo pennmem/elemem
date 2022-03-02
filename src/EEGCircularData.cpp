@@ -8,11 +8,11 @@ namespace CML {
   }
 
   RC::APtr<EEGData> EEGCircularData::GetData(size_t amnt) {
-    if (amnt > circular_data.sampling_rate) {
+    if (amnt > circular_data.sample_len) {
       Throw_RC_Error(("The amount of data requested "
             "(" + RC::RStr(amnt) + ") " +
             "is greater than the number of samples in the ciruclar data "
-            "(" + RC::RStr(circular_data.sampling_rate) + ")").c_str());
+            "(" + RC::RStr(circular_data.sample_len) + ")").c_str());
     }
 
     RC::APtr<EEGData> out_data = new EEGData(circular_data.sampling_rate, amnt);
@@ -96,11 +96,10 @@ namespace CML {
     auto& new_datar = new_data->data;
     auto& circ_datar = circular_data.data;
 
-    // TODO: JPB: (refactor) Decide if this is how I should set the sampling_rate and data size in Append 
+    // TODO: JPB: (refactor) Decide if this is how I should set the data size
     //                       (or should I pass all the info in the constructor)
     // Setup the circular EEGData to match the incoming EEGData
-    if (circular_data.sampling_rate == 0) {
-      circular_data.sampling_rate = new_data->sampling_rate;
+    if (circ_datar.IsEmpty()) {
       circ_datar.Resize(new_datar.size());
       RC_ForIndex(i, circ_datar) { // Iterate over channels
         auto& new_events = new_datar[i];
@@ -111,12 +110,14 @@ namespace CML {
       }
     }
 
-    if (new_datar.size() > circ_datar.size())
+    if (new_data->sampling_rate != circular_data.sampling_rate)
+      Throw_RC_Type(Bounds, (RC::RStr("The sampling_rate of new_data (") + new_data->sampling_rate + ") and circular_data (" + circular_data.sampling_rate + ") do not match").c_str());
+    if (new_datar.size() != circ_datar.size())
       Throw_RC_Type(Bounds, (RC::RStr("The number of channels in new_data (") + new_datar.size() + ") and circular_data (" + circ_datar.size() + ") do not match").c_str());
-    if (start > new_datar.size() - 1)
-      Throw_RC_Type(Bounds, (RC::RStr("The \"start\" value (") + start + ") is larger than the number of items that new_data contains (" + (new_datar.size()-1) + ")").c_str());
-    if (start + amnt > new_datar[0].size()) // TODO: JPB: (Need) How to handle if first channel is empty
-      Throw_RC_Type(Bounds, (RC::RStr("The end value (") + (start+amnt) + ") is larger than the number of items that new_data contains (" + new_datar[0].size() + ")").c_str());
+    if (start >= new_datar.size())
+      Throw_RC_Type(Bounds, (RC::RStr("The \"start\" value (") + start + ") is greater than or equal to the number of items that new_data contains (" + new_datar.size() + ")").c_str());
+    if (start + amnt > new_data->sample_len)
+      Throw_RC_Type(Bounds, (RC::RStr("The end value (") + (start+amnt) + ") is greater than the number of items that new_data contains (" + new_datar[0].size() + ")").c_str());
     // TODO: JPB: (feature) Log error message and write only the last buffer length of data
     if (new_datar[0].size() > circular_data_len)
       Throw_RC_Type(Bounds, (RC::RStr("Trying to write more values (") + new_datar[0].size() + ") into the circular_data than the circular_data contains (" + circular_data_len + ")").c_str());

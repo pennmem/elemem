@@ -22,7 +22,12 @@ namespace CML {
   }
 
   // This is integer division that returns the ceiling
-  inline int CeilDiv(int dividend, int divisor) {
+  int CeilDiv(int dividend, int divisor) {
+    return dividend / divisor + (dividend % divisor != 0); 
+  }
+
+  // This is integer division that returns the ceiling
+  size_t CeilDiv(size_t dividend, size_t divisor) {
     return dividend / divisor + (dividend % divisor != 0); 
   }
 }
