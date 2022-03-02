@@ -43,6 +43,7 @@ namespace CML {
     static RC::APtr<EEGDataDouble> MirrorEnds(RC::APtr<const EEGDataDouble>& in_data, size_t duration_ms);
     static RC::APtr<EEGPowers> RemoveMirrorEnds(RC::APtr<const EEGPowers>& in_data, size_t mirrored_duration_ms);
     static RC::APtr<EEGPowers> Log10Transform(RC::APtr<const EEGPowers>& in_data, double epsilon);
+    static RC::APtr<EEGPowers> Log10Transform(RC::APtr<const EEGPowers>& in_data, double epsilon, bool min_clamp_as_epsilon);
     static RC::APtr<EEGPowers> AvgOverTime(RC::APtr<const EEGPowers>& in_data, bool ignore_inf_and_nan);
 
     // This is only public for testing purposes

@@ -494,6 +494,17 @@ namespace CML {
     * @return The log transformed data
     */
   RC::APtr<EEGPowers> FeatureFilters::Log10Transform(RC::APtr<const EEGPowers>& in_data, double min_power_clamp) {
+    return Log10Transform(in_data, min_power_clamp, false);
+  }
+
+  /// A log (base 10) transform of all powers in EEGPowers
+  /** Note: A power could be zero due to constant signal across two electrodes that are part of bipolar pair
+    * @param The data to be log transformed
+    * @param Minimum power clamp (just before taking log) to avoid log singularity in case we get zero power
+    * @param This flag cause the function to use the minimum power clamp as an epilon that is added to each value before taking the log (SYS3 reproducibility)
+    * @return The log transformed data
+    */
+  RC::APtr<EEGPowers> FeatureFilters::Log10Transform(RC::APtr<const EEGPowers>& in_data, double min_power_clamp, bool min_clamp_as_epsilon) {
     auto& in_datar = in_data->data;
     size_t freqlen = in_datar.size3();
     size_t chanlen = in_datar.size2();
@@ -505,7 +516,9 @@ namespace CML {
     RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
       RC_ForRange(j, 0, chanlen) { // Iterate over channels
         RC_ForRange(k, 0, eventlen) { // Iterate over events
-          double power = std::max(min_power_clamp, in_datar[i][j][k]);
+          double power = min_clamp_as_epsilon
+            ? (in_datar[i][j][k] + min_power_clamp)
+            : std::max(min_power_clamp, in_datar[i][j][k]);
           out_datar[i][j][k] = log10(power);
         }
       }   

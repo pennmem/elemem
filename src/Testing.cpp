@@ -293,6 +293,15 @@ namespace CML {
     out_powers->Print();
   }
 
+  void TestLog10TransformWithEpsilon() {
+    RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers();
+
+    RC::APtr<EEGPowers> out_powers = FeatureFilters::Log10Transform(in_powers, 1e-16, true);
+  
+    in_powers->Print();
+    out_powers->Print();
+  }
+
   void TestMorletTransformer() {
     size_t sampling_rate = 1000;
     size_t num_events = 10;
@@ -419,6 +428,7 @@ namespace CML {
 
   void TestAllCode() {
     //TestLog10Transform();
+    TestLog10TransformWithEpsilon();
     //TestAvgOverTime();
     //TestMirrorEnds();
     //TestRemoveMirrorEnds();
@@ -435,8 +445,8 @@ namespace CML {
     //TestEEGBinningRollover4();
     //TestRollingStats();
     //TestNormalizePowers();
-    TestFindArtifactChannels();
-    TestDifferentiate();
+    //TestFindArtifactChannels();
+    //TestDifferentiate();
     //TestProcess_Handler();
   }
 }
