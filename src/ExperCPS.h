@@ -135,7 +135,7 @@ namespace CML {
     bool beat_sham;
 
     // logging
-    RC::Data1D<CSStimProfile> stim_profiles;
+    RC::Data2D<CSStimProfile> stim_profiles;
     RC::Data1D<double> classif_results;
     vector<double> sham_results;
 

@@ -14,9 +14,10 @@ namespace CML {
     const TaskClassifierSettings& task_classifier_settings) {
     // TODO: JPB: what is the intention of these debug statements?
     //            Is this supposed to be the function driving the callback or the callback itself?
-    RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
+    RC_DEBOUT(RC::RStr("TaskStimManager::ClassifierDecision_Handler\n"));
 
     bool stim = result < 0.5;
+    RC_DEBOUT(RC::RStr(string("TaskStimManager::ClassifierDecision_Handler ") + to_string(result) + string(" ") + to_string(stim) + string("\n")));
     bool stim_type =
       (task_classifier_settings.cl_type == ClassificationType::STIM);
 
@@ -39,15 +40,15 @@ namespace CML {
     // RC_DEBOUT(resp);
 
     f64 stim_time_from_start_sec = RC::Time::Get();
-    if (stim_type && stim) {
-      hndl->stim_worker.Stimulate();
-      if (callback.IsSet()) { callback(true, task_classifier_settings); }
-    } else {
-      if (callback.IsSet()) { callback(false, task_classifier_settings); }
-    }
+    // JAMES: WHAT WAS PREVIOUSLY HERE WAS NOT CORRECT. SEE COMMENT BELOW. FOR SHAM EVENTS, WE STILL NEED TO KNOW WHETHER THE EVENT WAS DETECTED AS BEING IN A BAD/GOOD MEM STATE, NOT JUST WHETHER A STIM EVENT ACTUALLY OCCURRED
     // return whether or not a bad memory state was detected with <stim>, 
     // not whether a stim event actually occurred (that can be determined with task_classifier_settings).
-	  if (callback.IsSet()) { callback(stim, task_classifier_settings, stim_time_from_start_sec); }
+    if (callback.IsSet()) {
+      if (stim_type && stim) {
+        hndl->stim_worker.Stimulate();
+      }
+      callback(stim, task_classifier_settings, stim_time_from_start_sec);
+    }
   }
 
   void TaskStimManager::SetCallback_Handler(const TaskStimCallback& new_callback) {
