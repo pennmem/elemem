@@ -29,5 +29,5 @@ namespace CML {
   }
 }
 
-#endif // CHANNELCONF_G
+#endif // CHANNELCONF_H
 
