@@ -318,7 +318,7 @@ namespace CML {
 
       auto& out_events = out_datar[i];
       RC_ForIndex(j, out_events) {
-        out_events[j] = in_datar[pos][j] - in_datar[neg][j];
+        out_events[j] = static_cast<double>(in_datar[pos][j]) - static_cast<double>(in_datar[neg][j]);
       }
     }
 
