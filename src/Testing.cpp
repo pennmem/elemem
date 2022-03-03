@@ -125,7 +125,7 @@ namespace CML {
   //}
 
   void TestEEGBinning1() {
-    size_t sampling_rate = 10;
+    size_t sampling_rate = 9;
     RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 9, 3);
 
     RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(in_data, 3);
@@ -136,7 +136,7 @@ namespace CML {
   }
   
   void TestEEGBinning2() {
-    size_t sampling_rate = 10;
+    size_t sampling_rate = 9;
     RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 10, 3);
 
     RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(in_data, 3);
@@ -147,7 +147,7 @@ namespace CML {
   }
 
   void TestEEGBinning3() {
-    size_t sampling_rate = 10;
+    size_t sampling_rate = 9;
     RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 11, 3);
 
     RC::APtr<BinnedData> binned_data = FeatureFilters::BinData(in_data, 3);
@@ -158,7 +158,7 @@ namespace CML {
   }
 
   void TestEEGBinningRollover1() {
-    size_t sampling_rate = 10;
+    size_t sampling_rate = 9;
     RC::APtr<const EEGDataRaw> rollover_data = CreateTestingEEGDataRaw(sampling_rate, 0, 3);
     RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 9, 3);
 
@@ -171,7 +171,7 @@ namespace CML {
   }
 
   void TestEEGBinningRollover2() {
-    size_t sampling_rate = 10;
+    size_t sampling_rate = 9;
     RC::APtr<const EEGDataRaw> rollover_data = CreateTestingEEGDataRaw(sampling_rate, 1, 3);
     RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 9, 3);
 
@@ -184,7 +184,7 @@ namespace CML {
   }
 
   void TestEEGBinningRollover3() {
-    size_t sampling_rate = 10;
+    size_t sampling_rate = 9;
     RC::APtr<const EEGDataRaw> rollover_data = CreateTestingEEGDataRaw(sampling_rate, 2, 3);
     RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 9, 3);
 
@@ -197,7 +197,7 @@ namespace CML {
   }
 
   void TestEEGBinningRollover4() {
-    size_t sampling_rate = 10;
+    size_t sampling_rate = 9;
     RC::APtr<const EEGDataRaw> rollover_data = CreateTestingEEGDataRaw(sampling_rate, 3, 3);
     RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 9, 3);
 

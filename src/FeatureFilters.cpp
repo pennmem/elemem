@@ -22,7 +22,8 @@ namespace CML {
   }
 
   /// Bins EEGDataRaw from one sampling rate to another
-  /** @param in_data the EEGDataRaw to be binned
+  /** Note: new_sampling_rate must be a true multiple of in_data->sampling_rate
+    * @param in_data the EEGDataRaw to be binned
     * @param new_sampling_rate the new sampling rate
     * @return EEGDataRaw that has been binned to the new sampling rate
   */
@@ -32,7 +33,12 @@ namespace CML {
 
     if (new_sampling_rate > in_data->sampling_rate) {
       Throw_RC_Error(("The new sampling rate (" + RC::RStr(new_sampling_rate) + ") " +
-          "is greater than the sampling rate of in_data (" + RC::RStr(in_data->sampling_rate)).c_str());
+          "is greater than the in_data sampling rate (" + RC::RStr(in_data->sampling_rate) + ")").c_str());
+    }
+
+    if (in_data->sampling_rate % new_sampling_rate) {
+      Throw_RC_Error(("The new sampling rate (" + RC::RStr(new_sampling_rate) + ") " +
+          "is not a true multiple of in_data sampling rate (" + RC::RStr(in_data->sampling_rate) + ")").c_str());
     }
 
     // TODO: JPB: (feature) Add ability to handle sampling ratios that aren't true multiples
@@ -80,7 +86,8 @@ namespace CML {
   }
 
   /// Bins EEGDataRaw from one sampling rate to another
-  /** @param in_data the EEGDataRaw to be binned
+  /** Note: new_sampling_rate must be a true multiple of in_data->sampling_rate
+    * @param in_data the EEGDataRaw to be binned
     * @param new_sampling_rate the new sampling rate
     * @return EEGDataRaw that has been binned to the new sampling rate
   */
@@ -90,7 +97,12 @@ namespace CML {
 
     if (new_sampling_rate > in_data->sampling_rate) {
       Throw_RC_Error(("The new sampling rate (" + RC::RStr(new_sampling_rate) + ") " +
-          "is greater than the sampling rate of in_data (" + RC::RStr(in_data->sampling_rate)).c_str());
+          "is greater than the in_data sampling rate (" + RC::RStr(in_data->sampling_rate) + ")").c_str());
+    }
+
+    if (in_data->sampling_rate % new_sampling_rate) {
+      Throw_RC_Error(("The new sampling rate (" + RC::RStr(new_sampling_rate) + ") " +
+          "is not a true multiple of in_data sampling rate (" + RC::RStr(in_data->sampling_rate) + ")").c_str());
     }
 
     if (rollover_data->sampling_rate != in_data->sampling_rate) {
@@ -159,7 +171,8 @@ namespace CML {
   }
 
   /// Bins EEGDataRaw from one sampling rate to another
-  /** @param in_data the EEGDataRaw to be binned
+  /** Note: new_sampling_rate must be a true multiple of in_data->sampling_rate 
+    * @param in_data the EEGDataRaw to be binned
     * @param new_sampling_rate the new sampling rate
     * @return EEGDataRaw that has been binned to the new sampling rate
   */
@@ -169,7 +182,12 @@ namespace CML {
 
     if (new_sampling_rate > in_data->sampling_rate) {
       Throw_RC_Error(("The new sampling rate (" + RC::RStr(new_sampling_rate) + ") " +
-          "is greater than the sampling rate of in_data (" + RC::RStr(in_data->sampling_rate)).c_str());
+          "is greater than the in_data sampling rate (" + RC::RStr(in_data->sampling_rate) + ")").c_str());
+    }
+
+    if (in_data->sampling_rate % new_sampling_rate) {
+      Throw_RC_Error(("The new sampling rate (" + RC::RStr(new_sampling_rate) + ") " +
+          "is not a true multiple of in_data sampling rate (" + RC::RStr(in_data->sampling_rate) + ")").c_str());
     }
 
     // TODO: JPB: (feature) Add ability to handle sampling ratios that aren't true multiples
