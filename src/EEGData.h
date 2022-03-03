@@ -55,8 +55,6 @@ namespace CML {
     size_t sample_len; // Internal Data1D size is either 0 or sample_len
     RC::Data1D<RC::Data1D<T>> data;
 
-    friend std::ostream& operator<<(std::ostream& os, const EEGDataT<T>& data);
-
     void EnableChan(size_t chan) {
       data[chan].Resize(sample_len);
     }
