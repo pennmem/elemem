@@ -196,6 +196,25 @@ namespace CML {
     return out_data;
   }
 
+  /// Converts an EEGDataRaw of electrode channels into EEGDataDouble of electrode channels
+  /** @param EEGDataRaw of electrode channels
+    * @return EEGDataDouble of electrode channels
+    */
+  RC::APtr<EEGDataDouble> FeatureFilters::BipolarPassthrough(RC::APtr<const EEGDataRaw>& in_data) {
+    auto out_data = RC::MakeAPtr<EEGDataDouble>(in_data->sampling_rate, in_data->sample_len);
+    auto& in_datar = in_data->data;
+    auto& out_datar = out_data->data;
+    out_datar.Resize(in_datar.size());
+
+    RC_ForIndex(i, out_datar) { // Iterate over channels
+      if (in_datar[i].IsEmpty()) { continue; }
+      out_data->EnableChan(i);
+      out_datar[i].CopyFrom(in_datar[i]);
+    }
+
+    return out_data;
+  }
+
   /// Converts an EEGDataRaw of electrode channels into EEGDataDouble of bipolar pair channels
   /** @param EEGDataRaw of electrode channels
     * @param List of bipolar pairs
@@ -296,7 +315,8 @@ namespace CML {
     size_t chanlen = in_datar.size();
     out_data->Resize(chanlen);
 
-    auto accum_eq_zero_plus = [](size_t sum, int64_t val) { return std::move(sum) + static_cast<size_t>(val == 0); };
+    auto accum_eq_zero_plus = [](size_t sum, double val) { return std::move(sum) + static_cast<size_t>(val == 0); };
+    //auto accum_eq_zero_plus = [](size_t sum, double val) { RC_DEBOUT(val, static_cast<size_t>(val == 0), sum); return std::move(sum) + static_cast<size_t>(val == 0); };
     RC_ForIndex(i, in_datar) { // Iterate over channels
       auto& in_events = in_datar[i];
       auto& out_event = out_datar[i];
@@ -308,8 +328,13 @@ namespace CML {
 
       // Take the ordered derivative
       auto deriv_data = Differentiate<double>(in_events, order);
-      // Threshold the data
-      size_t eq_zero = std::accumulate(deriv_data.begin(), deriv_data.end(), 0, accum_eq_zero_plus);
+      //RC_DEBOUT(RC::RStr::Join(deriv_data, ", ") + "\n");
+
+      // Sum and threshold the data
+      // TODO: JPB: (refactor) Figure out why the line below this comment doesn't work
+      //size_t eq_zero = std::accumulate(deriv_data.begin(), deriv_data.end(), 0, accum_eq_zero_plus);
+      size_t eq_zero = std::accumulate(&deriv_data[0], &deriv_data[deriv_data.size()-1]+1, 0, accum_eq_zero_plus);
+      //RC_DEBOUT(eq_zero);
       out_event = eq_zero > threshold;
     }
 
@@ -525,6 +550,7 @@ namespace CML {
     size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
 
     auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
+    //auto bipolar_ref_data = BipolarPassthrough(data).ExtractConst();
     auto mirrored_data = MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
     auto unmirrored_data = RemoveMirrorEnds(morlet_data, mirroring_duration_ms).ExtractConst();

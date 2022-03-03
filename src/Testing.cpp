@@ -250,6 +250,22 @@ namespace CML {
     RC_DEBOUT(RC::RStr::Join(*out_data, ", ") + "\n");
   }
 
+  void TestFindArtifactChannelsRandomData() {
+    RC::Data1D real_data = {23397, 18883, -2134, 6578, 11249, -19618, -6910, 31186, 9828, -8683, -20091, 1888, 17429, -31006, -20021, 16368, -28820, -15500, -29240, 20544, -30586, 14159, -31452, 27411, -21918, -20790, 22078, 10876, 10224, -3028, -30190, -22670, -8015, -17617, 26520, 27338, -25771, -15178, -9305, -24992, -5502, -26735, 483, 716, 30799, -27442, 18557, -14319, -6563, -8249};
+    size_t sampling_rate = 1000;
+    size_t eventlen = real_data.size();
+    size_t chanlen = 1;
+    RC::APtr<EEGDataDouble> in_data = RC::MakeAPtr<EEGDataDouble>(sampling_rate, eventlen);
+    in_data->data.Resize(chanlen);
+    in_data->data[0].CopyFrom(real_data);
+    auto in_data_captr = in_data.ExtractConst();
+
+    RC::APtr<RC::Data1D<bool>> out_data = FeatureFilters::FindArtifactChannels(in_data_captr, 10, 10);
+
+    in_data_captr->Print();
+    RC_DEBOUT(RC::RStr::Join(*out_data, ", ") + "\n");
+  }
+
   void TestMirrorEnds() {
     size_t sampling_rate = 1000;
     RC::APtr<const EEGDataDouble> in_data = CreateTestingEEGDataDouble(sampling_rate);
@@ -323,10 +339,10 @@ namespace CML {
   }
 
   void TestMorletTransformerRealData() {
-    size_t sampling_rate = 1000;
     RC::Data1D<BipolarPair> channels = {BipolarPair{0,1}}; // This means nothing
     RC::Data1D<double> freqs = {6, 9.75368155833899, 15.8557173235803, 25.7752696088736, 41.900628640881, 68.1142314762286, 110.727420568354, 180};
     RC::Data1D real_data = {1715, 1685, 1652, 1617, 1580, 1540, 1499, 1456, 1411, 1365, 1316, 1266, 1216, 1164, 1110, 1056, 1002, 946, 890, 833, 777, 720, 662, 606, 550, 492, 550, 606, 662, 720, 777, 833, 890, 946, 1002, 1056, 1110, 1164, 1216, 1266, 1316, 1365, 1411, 1456, 1499, 1540, 1580, 1617, 1652, 1685, 1715, 1742, 1768, 1791, 1811, 1828, 1843, 1854, 1862, 1868, 1870, 1870, 1866, 1860, 1850, 1837, 1822, 1803, 1781, 1757, 1729, 1698, 1664, 1628, 1589, 1547, 1502, 1456, 1407, 1355, 1300, 1244, 1186, 1124, 1063, 999, 933, 866, 797, 728, 657, 585, 513, 439, 364, 290, 216, 142, 67, -8, -82, -157, -230, -303, -374, -444, -514, -583, -650, -716, -779, -842, -903, -962, -1018, -1072, -1124, -1174, -1222, -1267, -1311, -1351, -1388, -1422, -1455, -1483, -1509, -1533, -1553, -1571, -1586, -1598, -1607, -1613, -1617, -1617, -1615, -1610, -1602, -1592, -1579, -1563, -1546, -1525, -1503, -1479, -1452, -1423, -1392, -1359, -1325, -1288, -1251, -1213, -1172, -1130, -1088, -1045, -1001, -956, -911, -865, -819, -773, -727, -681, -633, -587, -542, -498, -453, -409, -366, -325, -284, -244, -207, -169, -134, -99, -66, -35, -6, 21, 47, 71, 93, 113, 131, 147, 161, 173, 184, 192, 199, 203, 204, 205, 203, 200, 194, 187, 179, 168, 156, 143, 127, 111, 93, 75, 55, 34, 11, -12, -35, -59, -83, -109, -135, -161, -186, -211, -236, -262, -287, -262, -236, -211, -186, -161, -135, -109, -83, -59, -35, -12, 11, 34, 55, 75, 93, 111, 127, 143, 156, 168, 179, 187, 194, 200};
+    size_t sampling_rate = 1000;
     size_t num_events = real_data.size();
     RC::APtr<EEGDataDouble> in_data = RC::MakeAPtr<EEGDataDouble>(sampling_rate, num_events);
     in_data->data.Resize(1);
@@ -398,7 +414,7 @@ namespace CML {
     size_t sampling_rate = 1000;
     size_t chanlen = 1;
     size_t eventlen = 50;
-    RC::APtr<const EEGDataDouble> in_data = CreateTestingEEGDataDouble(sampling_rate, eventlen, chanlen); 
+    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, eventlen, chanlen); 
 
     MorletSettings morlet_settings = {5, {500}, {{0,0}}, 1000, 2, true};
     MorletTransformer morlet_transformer;
@@ -408,7 +424,7 @@ namespace CML {
     size_t mirroring_duration_ms = 20; 
     //size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
 
-    auto bipolar_ref_data = in_data;
+    auto bipolar_ref_data = FeatureFilters::BipolarPassthrough(in_data).ExtractConst();
     //auto bipolar_ref_data = FeatureFilters::BipolarReference(data, bipolar_reference_channels).ExtractConst();
     auto mirrored_data = FeatureFilters::MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
@@ -425,6 +441,40 @@ namespace CML {
     avg_data->Print();
   }
 
+  void TestProcess_HandlerRandomData() {
+    RC::Data1D real_data = {23397, 18883, -2134, 6578, 11249, -19618, -6910, 31186, 9828, -8683, -20091, 1888, 17429, -31006, -20021, 16368, -28820, -15500, -29240, 20544, -30586, 14159, -31452, 27411, -21918, -20790, 22078, 10876, 10224, -3028, -30190, -22670, -8015, -17617, 26520, 27338, -25771, -15178, -9305, -24992, -5502, -26735, 483, 716, 30799, -27442, 18557, -14319, -6563, -8249};
+    size_t sampling_rate = 1000;
+    size_t eventlen = real_data.size();
+    size_t chanlen = 1;
+    RC::APtr<EEGDataRaw> in_data = RC::MakeAPtr<EEGDataRaw>(sampling_rate, eventlen);
+    in_data->data.Resize(chanlen);
+    in_data->data[0].CopyFrom(real_data);
+    auto in_data_captr = in_data.ExtractConst();
+
+    MorletSettings morlet_settings = {5, {500}, {{0,0}}, 1000, 2, true};
+    MorletTransformer morlet_transformer;
+    morlet_transformer.Setup(morlet_settings);
+    const double log_min_power_clamp = 1e-16;
+
+    size_t mirroring_duration_ms = 20; 
+    //size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
+
+    auto bipolar_ref_data = FeatureFilters::BipolarPassthrough(in_data_captr).ExtractConst();
+    //auto bipolar_ref_data = FeatureFilters::BipolarReference(data, bipolar_reference_channels).ExtractConst();
+    auto mirrored_data = FeatureFilters::MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
+    auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
+    auto unmirrored_data = FeatureFilters::RemoveMirrorEnds(morlet_data, mirroring_duration_ms).ExtractConst();
+    auto log_data = FeatureFilters::Log10Transform(unmirrored_data, log_min_power_clamp).ExtractConst();
+    auto avg_data = FeatureFilters::AvgOverTime(log_data, true).ExtractConst();
+
+    in_data_captr->Print();
+    bipolar_ref_data->Print();
+    mirrored_data->Print();
+    morlet_data->Print();
+    unmirrored_data->Print();
+    log_data->Print();
+    avg_data->Print();
+  }
 
   void TestAllCode() {
     //TestLog10Transform();
@@ -446,8 +496,10 @@ namespace CML {
     //TestRollingStats();
     //TestNormalizePowers();
     //TestFindArtifactChannels();
+    TestFindArtifactChannelsRandomData();
     //TestDifferentiate();
-    TestProcess_Handler();
+    //TestProcess_Handler();
+    //TestProcess_HandlerRandomData();
   }
 }
 
