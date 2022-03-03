@@ -30,6 +30,11 @@ namespace CML {
     if (new_sampling_rate == 0)
       Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
 
+    if (new_sampling_rate > in_data->sampling_rate) {
+      Throw_RC_Error(("The new sampling rate (" + RC::RStr(new_sampling_rate) + ") " +
+          "is greater than the sampling rate of in_data (" + RC::RStr(in_data->sampling_rate)).c_str());
+    }
+
     // TODO: JPB: (feature) Add ability to handle sampling ratios that aren't true multiples
     size_t sampling_ratio = in_data->sampling_rate / new_sampling_rate;
     size_t out_sample_len = in_data->sample_len / sampling_ratio;
@@ -83,6 +88,11 @@ namespace CML {
     if (new_sampling_rate == 0)
       Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
 
+    if (new_sampling_rate > in_data->sampling_rate) {
+      Throw_RC_Error(("The new sampling rate (" + RC::RStr(new_sampling_rate) + ") " +
+          "is greater than the sampling rate of in_data (" + RC::RStr(in_data->sampling_rate)).c_str());
+    }
+
     if (rollover_data->sampling_rate != in_data->sampling_rate) {
       Throw_RC_Error(("The sampling rate of rollover_data (" + RC::RStr(rollover_data->sampling_rate) + ") " +
           "and the sampling rate of in_data (" + RC::RStr(in_data->sampling_rate) + ") are not the same").c_str());
@@ -93,7 +103,6 @@ namespace CML {
 
     // Make total in data that is a appending of in_data to rollover_data
     // TODO: JPB: (feature)(optimization) There is a more efficient way to do this that doesn't involve all these copy operations
-    //                                    This was started and commented out below
     auto& rollover_datar = rollover_data->data;
     auto& in_datar = in_data->data;
     auto& total_in_datar = total_in_data.data;
@@ -157,6 +166,11 @@ namespace CML {
   RC::APtr<EEGDataRaw> FeatureFilters::BinDataAvgRollover(RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate) {
     if (new_sampling_rate == 0)
       Throw_RC_Type(Bounds, "New binned sampling rate cannot be 0");
+
+    if (new_sampling_rate > in_data->sampling_rate) {
+      Throw_RC_Error(("The new sampling rate (" + RC::RStr(new_sampling_rate) + ") " +
+          "is greater than the sampling rate of in_data (" + RC::RStr(in_data->sampling_rate)).c_str());
+    }
 
     // TODO: JPB: (feature) Add ability to handle sampling ratios that aren't true multiples
     size_t sampling_ratio = in_data->sampling_rate / new_sampling_rate;
