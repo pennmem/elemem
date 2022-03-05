@@ -22,6 +22,14 @@ namespace CML {
     mt->initialize_wavelet_props(mor_set.cycle_count,
         mor_set.frequencies.Raw(), mor_set.frequencies.size(),
         mor_set.complete);
+
+    // TODO: JPB: (need) Make this a setting in mor_set that only changes when this setup is called
+    //                   This will also require a new network packet for classifier setup (duration)
+    //                   This will also require a new check in filter to make sure it is the right length
+    // This is currently an optimization to make future prepare_run() calls take less time
+    size_t temp_eventlen = 1750; // This magic number was chosen becuase the expected duration is 1000ms + 750ms of mirroring
+    mt->set_signal_array(nullptr, mor_set.channels.size(), temp_eventlen);
+    mt->prepare_run();
   }
 
   // This calculates the minimum statistical buffer duration for the MorletTransform,
@@ -36,12 +44,11 @@ namespace CML {
   }
 
   RC::APtr<EEGPowers> MorletTransformer::Filter(RC::APtr<const EEGDataDouble>& data) {
-    auto& datar = data->data;
-
     if (mt == NULL) {
       Throw_RC_Error("MorletTransformer Setup() was not called before Filter() was called.");
     }
 
+    auto& datar = data->data;
     size_t freqlen = mor_set.frequencies.size();
     size_t chanlen = mor_set.channels.size();
     size_t eventlen = data->sample_len;
