@@ -39,7 +39,7 @@ namespace CML {
     static RC::APtr<BinnedData> BinData(RC::APtr<const EEGDataRaw> rollover_data, RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate);
     static RC::APtr<EEGDataRaw> BinDataAvgRollover(RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate);
 
-    static RC::APtr<EEGDataDouble> BipolarPassthrough(RC::APtr<const EEGDataRaw>& in_data);
+    static RC::APtr<EEGDataDouble> BipolarSelector(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<size_t> indices={});
     static RC::APtr<EEGDataDouble> BipolarReference(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels);
 
     static RC::APtr<EEGDataDouble> MirrorEnds(RC::APtr<const EEGDataDouble>& in_data, size_t duration_ms);

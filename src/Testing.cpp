@@ -424,7 +424,7 @@ namespace CML {
     size_t mirroring_duration_ms = 20; 
     //size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
 
-    auto bipolar_ref_data = FeatureFilters::BipolarPassthrough(in_data).ExtractConst();
+    auto bipolar_ref_data = FeatureFilters::BipolarSelector(in_data).ExtractConst();
     //auto bipolar_ref_data = FeatureFilters::BipolarReference(data, bipolar_reference_channels).ExtractConst();
     auto mirrored_data = FeatureFilters::MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
@@ -459,7 +459,7 @@ namespace CML {
     size_t mirroring_duration_ms = 20; 
     //size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
 
-    auto bipolar_ref_data = FeatureFilters::BipolarPassthrough(in_data_captr).ExtractConst();
+    auto bipolar_ref_data = FeatureFilters::BipolarSelector(in_data_captr).ExtractConst();
     //auto bipolar_ref_data = FeatureFilters::BipolarReference(data, bipolar_reference_channels).ExtractConst();
     auto mirrored_data = FeatureFilters::MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
