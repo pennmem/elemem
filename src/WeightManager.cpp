@@ -8,11 +8,13 @@ namespace CML {
     auto weights_mut = RC::MakeAPtr<FeatureWeights>();
     RC::Data1D<double> coef1d;
     RC::Data1D<RC::RStr> chanstr;
+    RC::Data1D<RC::RStr> dims;
 
     jf.Get(weights_mut->intercept, "intercept_", 0);
     jf.Get(coef1d, "coef_", 0);
     jf.Get(weights_mut->freqs, "coords", "frequency");
     jf.Get(chanstr, "coords", "channel");
+    jf.Get(dims, "dims");
 
     auto& chansr = weights_mut->chans;
     chansr.Resize(chanstr.size());
@@ -74,8 +76,17 @@ namespace CML {
             "incorrect length for the number of frequencies and "
             "channels.").c_str());
     }
-    for (size_t i=0; i<coef1d.size(); i++) {
-      coefr[i/chancnt][i%chancnt] = coef1d[i];
+    
+    if (!dims[0].compare("frequency")) {
+      for (size_t i=0; i<coef1d.size(); i++) {
+        coefr[i/chancnt][i%chancnt] = coef1d[i];
+      }
+    } else if (!dims[0].compare("channel") || !dims[0].compare("pair")) {
+      for (size_t i=0; i<coef1d.size(); i++) {
+        coefr[i%freqcnt][i/freqcnt] = coef1d[i];
+      }
+    } else {
+      Throw_RC_Error(("Unknown outer dimension for coefficients: " + dims[0]).c_str());
     }
 
     weights = weights_mut.ExtractConst();
