@@ -141,6 +141,7 @@ namespace CML {
         return;
       }
       if (type == "READY") {
+        hndl->eeg_acq.StartingExperiment();  // notify, replay needs this.
         JSONFile resp = MakeResp("START");
         Respond(resp);
       }
