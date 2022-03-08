@@ -375,6 +375,12 @@ namespace CML {
     rolling_stats.PrintStats();
     rolling_stats.Update(in_powers->data[0][2]);
     rolling_stats.PrintStats();
+    rolling_stats.Update(in_powers->data[0][3]);
+    rolling_stats.PrintStats();
+    rolling_stats.Update(in_powers->data[0][3]);
+    rolling_stats.PrintStats();
+    rolling_stats.Update(in_powers->data[0][3]);
+    rolling_stats.PrintStats();
 
     auto out_data = rolling_stats.ZScore(in_powers->data[0][4], true);
     RC_DEBOUT(RC::RStr::Join(out_data, ", ") + "\n");
@@ -493,10 +499,10 @@ namespace CML {
     //TestEEGBinningRollover2();
     //TestEEGBinningRollover3();
     //TestEEGBinningRollover4();
-    //TestRollingStats();
+    TestRollingStats();
     //TestNormalizePowers();
     //TestFindArtifactChannels();
-    TestFindArtifactChannelsRandomData();
+    //TestFindArtifactChannelsRandomData();
     //TestDifferentiate();
     //TestProcess_Handler();
     //TestProcess_HandlerRandomData();
