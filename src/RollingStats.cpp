@@ -67,6 +67,10 @@ namespace CML {
   /** @return The current statistics
    */
   StatsData RollingStats::GetStats() {
+    if (count <= 1) {
+      Throw_RC_Type(Bounds, "Cannot calculate statistics on fewer than 2 "
+          "elements");
+    }
     RC::Data1D<double> sample_std_dev(m2s.size());
     RC_ForIndex(i, m2s) {
       sample_std_dev[i] = std::sqrt(m2s[i] / (count - 1));

@@ -372,7 +372,13 @@ namespace CML {
 
     RollingStats rolling_stats(eventlen);
     rolling_stats.Update(in_powers->data[0][0]);
-    rolling_stats.PrintStats();
+    try {
+      rolling_stats.PrintStats();
+      Throw_RC_Error("Failed to trigger exception on nan stddev.");
+    }
+    catch (RC::ErrorMsgBounds& ex) {
+      // Expected test exception.
+    }
     rolling_stats.Update(in_powers->data[0][2]);
     rolling_stats.PrintStats();
     auto out_data1 = rolling_stats.ZScore(in_powers->data[0][4], true);
@@ -389,8 +395,6 @@ namespace CML {
 
     auto out_data2 = rolling_stats.ZScore(in_powers->data[0][4], true);
     RC_DEBOUT(RC::RStr::Join(out_data2, ", ") + "\n");
-
-    // TODO: JPB: (test) Add test for std_dev = 0, inf, -inf, nan
   }
 
   void TestNormalizePowers() {
