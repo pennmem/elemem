@@ -375,6 +375,11 @@ namespace CML {
     rolling_stats.PrintStats();
     rolling_stats.Update(in_powers->data[0][2]);
     rolling_stats.PrintStats();
+    auto out_data1 = rolling_stats.ZScore(in_powers->data[0][4], true);
+    RC_DEBOUT(RC::RStr::Join(out_data1, ", ") + "\n");
+    std::cout << "means should be 10 through 19, sample_std_devs "
+          "should be 14.1421, zscores should be 2.1213\n" << std::endl;
+
     rolling_stats.Update(in_powers->data[0][3]);
     rolling_stats.PrintStats();
     rolling_stats.Update(in_powers->data[0][3]);
@@ -382,13 +387,8 @@ namespace CML {
     rolling_stats.Update(in_powers->data[0][3]);
     rolling_stats.PrintStats();
 
-    auto out_data = rolling_stats.ZScore(in_powers->data[0][4], true);
-    RC_DEBOUT(RC::RStr::Join(out_data, ", ") + "\n");
-
-    // means should be 10 through 19
-    // std_devs should be 10
-    // sample_std_devs should be 14.1421...
-    // zscores should be 2.1213...
+    auto out_data2 = rolling_stats.ZScore(in_powers->data[0][4], true);
+    RC_DEBOUT(RC::RStr::Join(out_data2, ", ") + "\n");
 
     // TODO: JPB: (test) Add test for std_dev = 0, inf, -inf, nan
   }

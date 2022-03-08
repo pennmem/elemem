@@ -7,13 +7,11 @@ namespace CML {
   class StatsData {
     public:
     RC::Data1D<double> means = {};
-    RC::Data1D<double> std_devs = {};
     RC::Data1D<double> sample_std_devs = {};
     StatsData(size_t num_values)
-      : means(num_values), std_devs(num_values), sample_std_devs(num_values) {}
-    StatsData(RC::Data1D<double> means, RC::Data1D<double> std_devs, 
-              RC::Data1D<double> sample_std_devs)
-      : means(means), std_devs(std_devs), sample_std_devs(sample_std_devs) {}
+      : means(num_values), sample_std_devs(num_values) {}
+    StatsData(RC::Data1D<double> means, RC::Data1D<double> sample_std_devs)
+      : means(means), sample_std_devs(sample_std_devs) {}
   };
 
   class RollingStats {

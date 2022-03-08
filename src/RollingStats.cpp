@@ -67,19 +67,16 @@ namespace CML {
   /** @return The current statistics
    */
   StatsData RollingStats::GetStats() {
-    RC::Data1D<double> std_dev(m2s.size());
     RC::Data1D<double> sample_std_dev(m2s.size());
     RC_ForIndex(i, m2s) {
-      std_dev[i] = std::sqrt(m2s[i] / count);
       sample_std_dev[i] = std::sqrt(m2s[i] / (count - 1));
     }
-    return StatsData {means, std_dev, sample_std_dev};
+    return StatsData {means, sample_std_dev};
   }
 
   void RollingStats::PrintStats() {
     StatsData stats_data = GetStats();
     auto rstr = "\nmeans: " + RC::RStr::Join(stats_data.means, ", ") + "\n";
-    //rstr += "std_devs: " + RC::RStr::Join(stats_data.std_devs, ", ") + "\n";
     rstr += "sample_std_devs: " + RC::RStr::Join(stats_data.sample_std_devs, ", ") + "\n";
     RC_DEBOUT(rstr);
   }
