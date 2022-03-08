@@ -126,7 +126,8 @@ namespace CML {
 
     size_t circ_remaining_events = circular_data_len - circular_data_end;
     size_t frst_amnt = std::min(circ_remaining_events, amnt);
-    size_t scnd_amnt = std::max(0, int64_t(amnt) - int64_t(frst_amnt));
+    size_t scnd_amnt = std::max(int64_t(0),
+        int64_t(amnt) - int64_t(frst_amnt));
 
     RC_ForIndex(i, circ_datar) { // Iterate over channels
       auto& new_events = new_datar[i];
