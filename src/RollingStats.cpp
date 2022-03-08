@@ -72,10 +72,10 @@ namespace CML {
   }
 
   void RollingStats::PrintStats() {
-	StatsData stats_data = GetStats();
-	auto rstr = "\nmeans: " + RC::RStr::Join(stats_data.means, ", ") + "\n";
-	rstr += "std_devs: " + RC::RStr::Join(stats_data.std_devs, ", ") + "\n";
-	rstr += "sample_std_devs: " + RC::RStr::Join(stats_data.sample_std_devs, ", ") + "\n";
-	RC_DEBOUT(rstr);
+    StatsData stats_data = GetStats();
+    auto rstr = "\nmeans: " + RC::RStr::Join(stats_data.means, ", ") + "\n";
+    rstr += "std_devs: " + RC::RStr::Join(stats_data.std_devs, ", ") + "\n";
+    rstr += "sample_std_devs: " + RC::RStr::Join(stats_data.sample_std_devs, ", ") + "\n";
+    RC_DEBOUT(rstr);
   }
 }

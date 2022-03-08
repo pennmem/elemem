@@ -20,12 +20,12 @@ namespace CML {
     public:
     RollingStats(size_t num_values);
 
-	size_t size();
+    size_t size();
     void Reset();
     void Update(const RC::Data1D<double>& new_values);
     RC::Data1D<double> ZScore(const RC::Data1D<double>& data, bool div_by_zero_eq_zero);
     StatsData GetStats();
-	void PrintStats();
+    void PrintStats();
 
 
     protected:
