@@ -516,9 +516,7 @@ namespace CML {
     auto in_powers = RC::MakeAPtr<EEGPowers>(sampling_rate);
     in_powers->data = in_data;
     auto in_powers_captr = in_powers.ExtractConst();
-    in_powers_captr->Print();
-    //auto in_powers = CreateTestingEEGPowers(sampling_rate, eventlen, chanlen, freqlen, 0);
-    //in_powers->Print(2, 3);
+    in_powers_captr->Print(2, 3);
 
     // Run classifier
     double result = classifier.TestClassification(in_powers_captr);
@@ -549,7 +547,7 @@ namespace CML {
     //TestDifferentiate();
     //TestProcess_Handler();
     //TestProcess_HandlerRandomData();
-    TestClassification();
+    //TestClassification();
   }
 }
 
