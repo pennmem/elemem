@@ -19,11 +19,11 @@ namespace CML {
     return means.size();
   }
 
-  /// Reset all of the values back to 0 
+  /// Reset all of the values back to 0
   void RollingStats::Reset() {
     count = 0;
-    RC_ForEach(mean, means) { mean = 0; }
-    RC_ForEach(m2, m2s) { m2 = 0; }
+    means.Zero();
+    m2s.Zero();
   }
 
   /// Update the rolling statistics with a new set of values
