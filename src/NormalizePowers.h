@@ -19,11 +19,6 @@ namespace CML {
   class NormalizePowers {
     public:
     NormalizePowers(const NormalizePowersSettings& np_set);
-    ~NormalizePowers();
-
-    // Rule of 3.
-    NormalizePowers(const NormalizePowers& other) = delete;
-    NormalizePowers& operator=(const NormalizePowers& other) = delete;
 
     void Reset();
     void Update(RC::APtr<const EEGPowers>& new_data);
@@ -36,7 +31,7 @@ namespace CML {
 
     protected:
     NormalizePowersSettings np_set;
-    RC::Data2D<RollingStats *> rolling_powers;
+    RC::Data2D<RollingStats> rolling_powers;
   };
 }
 

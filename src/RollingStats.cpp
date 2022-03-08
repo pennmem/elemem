@@ -3,13 +3,11 @@
 #include "RC/RStr.h"
 
 namespace CML {
-  /// Default constructor that initializes and resets the internal lists
+  /// Constructor that initializes and resets the internal lists
   /** @param the number of values in each list
    */
   RollingStats::RollingStats(size_t num_values) {
-    means.Resize(num_values);
-    m2s.Resize(num_values);
-    Reset();
+    SetSize(num_values);
   }
 
   /// Get the size of the internal Data1Ds
@@ -17,6 +15,13 @@ namespace CML {
    */
   size_t RollingStats::size() {
     return means.size();
+  }
+
+  /// Set the count of means and stddevs to track and reset.
+  void RollingStats::SetSize(size_t num_values) {
+    means.Resize(num_values);
+    m2s.Resize(num_values);
+    Reset();
   }
 
   /// Reset all of the values back to 0
@@ -74,7 +79,7 @@ namespace CML {
   void RollingStats::PrintStats() {
     StatsData stats_data = GetStats();
     auto rstr = "\nmeans: " + RC::RStr::Join(stats_data.means, ", ") + "\n";
-    rstr += "std_devs: " + RC::RStr::Join(stats_data.std_devs, ", ") + "\n";
+    //rstr += "std_devs: " + RC::RStr::Join(stats_data.std_devs, ", ") + "\n";
     rstr += "sample_std_devs: " + RC::RStr::Join(stats_data.sample_std_devs, ", ") + "\n";
     RC_DEBOUT(rstr);
   }
