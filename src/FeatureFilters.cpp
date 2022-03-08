@@ -611,7 +611,8 @@ namespace CML {
     auto mirrored_data = MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
     auto unmirrored_data = RemoveMirrorEnds(morlet_data, mirroring_duration_ms).ExtractConst();
-    auto log_data = Log10Transform(unmirrored_data, log_min_power_clamp).ExtractConst();
+    // TODO: JPB (need) true back to false after validation
+    auto log_data = Log10Transform(unmirrored_data, log_min_power_clamp, true).ExtractConst();
     auto avg_data = AvgOverTime(log_data, true).ExtractConst();
 
     // TODO: JPB (need) Remove debug code in FeatureFilters::Process_Handler
@@ -627,7 +628,7 @@ namespace CML {
     switch (task_classifier_settings.cl_type) {
       case ClassificationType::NORMALIZE:
         normalize_powers.Update(avg_data);
-        normalize_powers.PrintStats(1, 10);
+        //normalize_powers.PrintStats(1, 10);
         break;
       case ClassificationType::STIM:
       case ClassificationType::SHAM:
@@ -638,8 +639,8 @@ namespace CML {
         // Perform 10th derivative test to find and remove artifact channels
         auto artifact_channel_mask = FindArtifactChannels(bipolar_ref_data, 10, 10).ExtractConst();
         auto cleaned_data = ZeroArtifactChannels(norm_data, artifact_channel_mask).ExtractConst();
-        RC_DEBOUT(RC::RStr::Join(*artifact_channel_mask, ", ") + "\n");
-        cleaned_data->Print(2, 10);
+        //RC_DEBOUT(RC::RStr::Join(*artifact_channel_mask, ", ") + "\n");
+        //cleaned_data->Print(2, 10);
 
         callback(cleaned_data, task_classifier_settings);
         break;
