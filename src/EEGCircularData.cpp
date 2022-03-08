@@ -60,7 +60,7 @@ namespace CML {
       size_t amnt = circ_events.size() - circular_data_end;
       out_events.CopyAt(0, circ_events, circular_data_end, amnt);
       out_events.CopyAt(amnt, circ_events, 0, circular_data_end);
-    }   
+    }
     return out_data;
   }
 
@@ -126,8 +126,8 @@ namespace CML {
 
     size_t circ_remaining_events = circular_data_len - circular_data_end;
     size_t frst_amnt = std::min(circ_remaining_events, amnt);
-    size_t scnd_amnt = std::max(0, (int)amnt - (int)frst_amnt);
-    
+    size_t scnd_amnt = std::max(0, int64_t(amnt) - int64_t(frst_amnt));
+
     RC_ForIndex(i, circ_datar) { // Iterate over channels
       auto& new_events = new_datar[i];
       auto& circ_events = circ_datar[i];
@@ -141,7 +141,7 @@ namespace CML {
       if (scnd_amnt)
         circ_events.CopyAt(0, new_events, start+frst_amnt, scnd_amnt);
     }
-    
+
     if (!has_wrapped && (circular_data_end + amnt >= circular_data_len)) {
       has_wrapped = true;
       if (scnd_amnt) {
