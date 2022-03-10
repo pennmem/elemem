@@ -394,7 +394,7 @@ namespace CML {
       // Sum and threshold the data
       // TODO: JPB: (refactor) Figure out why the line below this comment doesn't work
       //size_t eq_zero = std::accumulate(deriv_data.begin(), deriv_data.end(), 0, accum_eq_zero_plus);
-      size_t eq_zero = std::accumulate(&deriv_data[0], &deriv_data[deriv_data.size()-1]+1, 0, accum_eq_zero_plus);
+      size_t eq_zero = std::accumulate(&deriv_data[0], &deriv_data[deriv_data.size()-1]+1, size_t(0), accum_eq_zero_plus);
       //RC_DEBOUT(eq_zero);
       out_event = eq_zero > threshold;
     }
