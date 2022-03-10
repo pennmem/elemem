@@ -268,6 +268,9 @@ else (WIN32)
   set(FFTW_LIB PkgConfig::FFTW)
 endif (WIN32)
 
+add_subdirectory(${PROJECT_SOURCE_DIR}/pybind11)
+set(PYBIND11_LIB pybind11::embed)
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 set(PTHREAD_LIB Threads::Threads pthread)
@@ -292,6 +295,10 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ptsa/ptsa/extensions/morlet/morlet.cpp")
   message(FATAL_ERROR "The ptsa submodule was not able to successfully download.  Unable to build.")
 endif()
 
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/pybind11/include/pybind11/pybind11.h")
+  message(FATAL_ERROR "The pybind11 submodule was not able to successfully download.  Unable to build.")
+endif()
+
 
 ############################
 # Set includes and libraries
@@ -313,11 +320,13 @@ target_link_libraries (${PROJECT_NAME}
   ${HDF5_LIBRARIES}
   ${FFTW_LIB}
   ${PTHREAD_LIB}
+  ${PYBIND11_LIB}
 )
 
 target_compile_definitions (${PROJECT_NAME} PUBLIC
   ${ELEMEM_DEFINES}
 )
+
 
 ########################################################
 # Update build date-stamp in About window on each build.

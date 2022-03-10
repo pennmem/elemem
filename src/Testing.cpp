@@ -1,3 +1,8 @@
+#include <pybind11/embed.h>
+// https://stackoverflow.com/questions/15078060/embedding-python-in-qt-5
+#undef B0 // This causes a conflict with Qt5
+namespace py = pybind11;
+
 #include "Testing.h"
 #include "FeatureFilters.h"
 #include "ChannelConf.h"
@@ -8,7 +13,7 @@
 #include "ClassifierLogReg.h"
 #include "WeightManager.h"
 #include "Handler.h"
-//#include "ConfigFile.h"
+
 
 namespace CML {
   // Helper Functions
@@ -523,6 +528,11 @@ namespace CML {
     RC_DEBOUT(result);
   }
 
+  void TestPyBind11() {
+    py::scoped_interpreter guard{}; // start the interpreter and keep it alive
+    py::print("Hello, World!"); // use the Python API
+  }
+
   void TestAllCode() {
     //TestLog10Transform();
     //TestLog10TransformWithEpsilon();
@@ -549,6 +559,7 @@ namespace CML {
     //TestProcess_Handler();
     //TestProcess_HandlerRandomData();
     //TestClassification();
+    TestPyBind11();
   }
 }
 
