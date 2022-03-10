@@ -540,7 +540,7 @@ namespace CML {
     //TestEEGBinningRollover2();
     //TestEEGBinningRollover3();
     //TestEEGBinningRollover4();
-    TestRollingStats();
+    //TestRollingStats();
     //TestNormalizePowers();
     //TestFindArtifactChannels();
     //TestFindArtifactChannelsRandomData();
