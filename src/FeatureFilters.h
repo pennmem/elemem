@@ -19,7 +19,6 @@ namespace CML {
 
   struct BinnedData {
     BinnedData(size_t binned_sampling_rate, size_t binned_sample_len, size_t leftover_sampling_rate, size_t leftover_sample_len);
-    // TODO: JPB: (need) Upgrade these to EEGDataBinned
     RC::APtr<EEGDataRaw> out_data;
     RC::APtr<EEGDataRaw> leftover_data;
   };
@@ -27,12 +26,12 @@ namespace CML {
   class FeatureFilters : public RCqt::WorkerThread {
     public:
     FeatureFilters(RC::Data1D<BipolarPair> bipolar_reference_channels,
-	  ButterworthSettings butterworth_settings, MorletSettings morlet_settings,
+    ButterworthSettings butterworth_settings, MorletSettings morlet_settings,
       NormalizePowersSettings np_set);
 
     TaskClassifierCallback Process =
       TaskHandler(FeatureFilters::Process_Handler);
-      
+
     RCqt::TaskCaller<const FeatureCallback> SetCallback =
       TaskHandler(FeatureFilters::SetCallback_Handler);
 
@@ -61,7 +60,7 @@ namespace CML {
     protected:
     void Process_Handler(RC::APtr<const EEGData>&, const TaskClassifierSettings&);
     void SetCallback_Handler(const FeatureCallback &new_callback);
-    
+
     MorletTransformer morlet_transformer;
     ButterworthTransformer butterworth_transformer;
     RC::Data1D<BipolarPair> bipolar_reference_channels;
