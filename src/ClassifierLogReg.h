@@ -14,6 +14,8 @@ namespace CML {
         ClassifierLogRegSettings classifierSettings,
         RC::APtr<const FeatureWeights> weights);
 
+    // TODO: JPB: (refactor) Remove this Test code
+    double TestClassification(RC::APtr<const EEGPowers>& data) {return Classification(data);}
 
     protected:
     double Classification(RC::APtr<const EEGPowers>& data);

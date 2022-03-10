@@ -117,10 +117,10 @@ namespace CML {
     if (start >= new_datar.size())
       Throw_RC_Type(Bounds, (RC::RStr("The \"start\" value (") + start + ") is greater than or equal to the number of items that new_data contains (" + new_datar.size() + ")").c_str());
     if (start + amnt > new_data->sample_len)
-      Throw_RC_Type(Bounds, (RC::RStr("The end value (") + (start+amnt) + ") is greater than the number of items that new_data contains (" + new_datar[0].size() + ")").c_str());
+      Throw_RC_Type(Bounds, (RC::RStr("The end value (") + (start + amnt) + ") is greater than the number of items that new_data contains (" + new_datar[0].size() + ")").c_str());
     // TODO: JPB: (feature) Log error message and write only the last buffer length of data
-    if (new_datar[0].size() > circular_data_len)
-      Throw_RC_Type(Bounds, (RC::RStr("Trying to write more values (") + new_datar[0].size() + ") into the circular_data than the circular_data contains (" + circular_data_len + ")").c_str());
+    if (amnt-start > circular_data_len)
+      Throw_RC_Type(Bounds, (RC::RStr("Trying to write more values (") + (amnt - start) + ") into the circular_data than the circular_data contains (" + circular_data_len + ")").c_str());
 
     if (amnt ==  0) { return; } // Not writing any data, so skip
 

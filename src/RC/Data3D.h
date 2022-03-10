@@ -77,6 +77,20 @@ namespace RC {
       data = copy.data;
     }
 
+#ifdef CPP11
+    /// Initializer list constructor, initializes with nested brackets.
+    inline Data3D(const std::initializer_list<Data2D<T>>& new_data)
+      : d_size1(0),
+        d_size2(0),
+        d_size3(new_data.size()),
+        data(new_data.size()) {
+        std::copy(new_data.begin(), new_data.end(), data.Raw());
+        if (data.size()) {
+          d_size2 = data[0].size2();
+          d_size1 = data[0].size1();
+        }
+      }
+#endif
 
     /// Deletes all contents upon destruction.
     ~Data3D() {
