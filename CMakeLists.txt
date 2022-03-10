@@ -268,9 +268,6 @@ else (WIN32)
   set(FFTW_LIB PkgConfig::FFTW)
 endif (WIN32)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/pybind11)
-set(PYBIND11_LIB pybind11::embed)
-
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 set(PTHREAD_LIB Threads::Threads pthread)
@@ -298,6 +295,9 @@ endif()
 if(NOT EXISTS "${PROJECT_SOURCE_DIR}/pybind11/include/pybind11/pybind11.h")
   message(FATAL_ERROR "The pybind11 submodule was not able to successfully download.  Unable to build.")
 endif()
+
+add_subdirectory(${PROJECT_SOURCE_DIR}/pybind11)
+set(PYBIND11_LIB pybind11::embed)
 
 
 ############################
