@@ -21,6 +21,8 @@ namespace CML {
     morlet_transformer.Setup(morlet_settings);
   }
 
+
+  // TODO: JPB: (maint) Consolidate BinData implementations under DRY principle.
   /// Bins EEGDataRaw from one sampling rate to another
   /** Note: new_sampling_rate must be a true multiple of in_data->sampling_rate
     * @param in_data the EEGDataRaw to be binned
@@ -54,7 +56,9 @@ namespace CML {
     leftover_datar.Resize(in_datar.size());
 
     // Separate accum lambda created for move sematics optimization
-    auto accum_plus = [](u32 sum, size_t val) { return std::move(sum) + val; };
+    auto accum_plus = [](double sum, decltype(in_datar[0][0]) val) {
+      return std::move(sum) + val;
+    };
     RC_ForIndex(i, out_datar) { // Iterate over channels
       auto& in_events = in_datar[i];
       auto& out_events = out_datar[i];
@@ -69,8 +73,10 @@ namespace CML {
         size_t start = j * sampling_ratio;
         size_t end = (j+1) * sampling_ratio - 1;
         size_t items = sampling_ratio;
-        out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
-                          0, accum_plus) / items;
+        out_events[j] = std::lround(
+            std::accumulate(&in_events[start], &in_events[end]+1, 0.0,
+              accum_plus) / items
+        );
       }
 
       // Get the leftover events
@@ -85,6 +91,7 @@ namespace CML {
     return binned_data;
   }
 
+  // TODO: JPB: (maint) Consolidate BinData implementations under DRY principle.
   /// Bins EEGDataRaw from one sampling rate to another
   /** Note: new_sampling_rate must be a true multiple of in_data->sampling_rate
     * @param in_data the EEGDataRaw to be binned
@@ -139,7 +146,9 @@ namespace CML {
     leftover_datar.Resize(total_in_datar.size());
 
     // Separate accum lambda created for move sematics optimization
-    auto accum_plus = [](u32 sum, size_t val) { return std::move(sum) + val; };
+    auto accum_plus = [](double sum, decltype(total_in_datar[0][0]) val) {
+      return std::move(sum) + val;
+    };
     RC_ForIndex(i, out_datar) { // Iterate over channels
       auto& total_in_events = total_in_datar[i];
       auto& out_events = out_datar[i];
@@ -154,8 +163,10 @@ namespace CML {
         size_t start = j * sampling_ratio;
         size_t end = (j+1) * sampling_ratio - 1;
         size_t items = sampling_ratio;
-        out_events[j] = std::accumulate(&total_in_events[start], &total_in_events[end]+1,
-                          0, accum_plus) / items;
+        out_events[j] = std::lround(
+            std::accumulate(&total_in_events[start], &total_in_events[end]+1,
+              0.0, accum_plus) / items
+        );
       }
 
       // Get the leftover events
@@ -170,6 +181,7 @@ namespace CML {
     return binned_data;
   }
 
+  // TODO: JPB: (maint) Consolidate BinData implementations under DRY principle.
   /// Bins EEGDataRaw from one sampling rate to another
   /** Note: new_sampling_rate must be a true multiple of in_data->sampling_rate 
     * @param in_data the EEGDataRaw to be binned
@@ -200,7 +212,9 @@ namespace CML {
     out_datar.Resize(in_datar.size());
 
     // Separate accum lambda created for move sematics optimization
-    auto accum_plus = [](u32 sum, size_t val) { return std::move(sum) + val; };
+    auto accum_plus = [](double sum, decltype(in_datar[0][0]) val) {
+      return std::move(sum) + val;
+    };
     RC_ForIndex(i, out_datar) { // Iterate over channels
       auto& in_events = in_datar[i];
       auto& out_events = out_datar[i];
@@ -213,14 +227,18 @@ namespace CML {
           size_t start = j * sampling_ratio;
           size_t end = (j+1) * sampling_ratio - 1;
           size_t items = sampling_ratio;
-          out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
-                            0, accum_plus) / items;
+          out_events[j] = std::lround(
+              std::accumulate(&in_events[start], &in_events[end]+1,
+                0.0, accum_plus) / items
+          );
         } else { // Last block could have leftover samples
           size_t start = j * sampling_ratio;
           size_t end = in_events.size() - 1;
           size_t items = end - start + 1;
-          out_events[j] = std::accumulate(&in_events[start], &in_events[end]+1,
-                            0, accum_plus) / items;
+          out_events[j] = std::lround(
+              std::accumulate(&in_events[start], &in_events[end]+1,
+                0.0, accum_plus) / items
+          );
         }
       }
     }
@@ -563,7 +581,9 @@ namespace CML {
     auto& out_datar = out_data->data;
 
     // Separate accum lambda created for move sematics optimization
-    auto accum_plus = [](double sum, double val) { return std::move(sum) + val; };
+    auto accum_plus = [](double sum, double val) {
+      return std::move(sum) + val;
+    };
     RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
       RC_ForRange(j, 0, chanlen) { // Iterate over channels
         auto& in_events = in_datar[i][j];
@@ -593,20 +613,33 @@ namespace CML {
     size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
 
     auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
-    // For R1384J testing only:
-    //RC::Data1D<size_t> indices{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-    //  14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-    //  32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
-    //  50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
-    //  68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85,
-    //  86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102,
-    //  103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
-    //  117, 118, 119, 120, 121, 122, 123, 125, 126, 127, 128, 129, 130, 131,
-    //  132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145,
-    //  146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
-    //  160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
-    //  174, 175, 176, 177};
-    //auto bipolar_ref_data = BipolarSelector(data, indices).ExtractConst();
+    // For R1384J retrained testing only:
+//    RC::Data1D<size_t> indices{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+//      14, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+//      32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+//      50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
+//      68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85,
+//      86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102,
+//      103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
+//      117, 118, 119, 120, 121, 125, 126, 127, 128, 129, 130, 131,
+//      132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145,
+//      146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
+//      160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
+//      174, 175, 176, 177};
+    // Un-retrained R1384J testing.
+//    RC::Data1D<size_t> indices{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+//      14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+//      32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+//      50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
+//      68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85,
+//      86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102,
+//      103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
+//      117, 118, 119, 120, 121, 122, 123, 125, 126, 127, 128, 129, 130, 131,
+//      132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145,
+//      146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
+//      160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
+//      174, 175, 176, 177};
+//    auto bipolar_ref_data = BipolarSelector(data, indices).ExtractConst();
 
     auto mirrored_data = MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();

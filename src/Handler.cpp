@@ -118,7 +118,7 @@ namespace CML {
     PopupManager::GetManager()->SetLogFile(error_log_file);
 
     NewEEGSave();
-  
+
     #define TESTING
     #ifdef TESTING
     RC_DEBOUT(RC::RStr("TESTING"));

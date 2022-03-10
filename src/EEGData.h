@@ -85,6 +85,7 @@ namespace CML {
 
   using EEGData = EEGDataT<int16_t>;
   using EEGDataRaw = EEGDataT<int16_t>;
+  using EEGDataBinned = EEGDataT<int32_t>;
   using EEGDataDouble = EEGDataT<double>;
 }
 

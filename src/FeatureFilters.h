@@ -19,6 +19,7 @@ namespace CML {
 
   struct BinnedData {
     BinnedData(size_t binned_sampling_rate, size_t binned_sample_len, size_t leftover_sampling_rate, size_t leftover_sample_len);
+    // TODO: JPB: (need) Upgrade these to EEGDataBinned
     RC::APtr<EEGDataRaw> out_data;
     RC::APtr<EEGDataRaw> leftover_data;
   };
