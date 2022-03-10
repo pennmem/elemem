@@ -533,6 +533,7 @@ namespace CML {
     //TestMorletTransformer();
     //TestMorletTransformerRealData();
     //TestEEGCircularData();
+    // TODO: JPB: (need) test binning with negative values too
     //TestEEGBinning1();
     //TestEEGBinning2();
     //TestEEGBinning3();
