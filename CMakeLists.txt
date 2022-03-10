@@ -164,6 +164,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Palette.cpp
   src/Popup.h
   src/Popup.cpp
+  src/PythonInterface.h
   src/QtFileFunctions.h
   src/QtStyle.h
   src/QtStyle.cpp

@@ -1,8 +1,4 @@
-#include <pybind11/embed.h>
-// https://stackoverflow.com/questions/15078060/embedding-python-in-qt-5
-#undef B0 // This causes a conflict with Qt5
-namespace py = pybind11;
-
+#include "PythonInterface.h"
 #include "Testing.h"
 #include "FeatureFilters.h"
 #include "ChannelConf.h"
@@ -529,8 +525,8 @@ namespace CML {
   }
 
   void TestPyBind11() {
-    py::scoped_interpreter guard{}; // start the interpreter and keep it alive
-    py::print("Hello, World!"); // use the Python API
+    auto& pythonInterface = PythonInterface::GetInstance();
+    RC_DEBOUT(pythonInterface.Sqrt(2.0));
   }
 
   void TestAllCode() {
