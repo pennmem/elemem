@@ -24,6 +24,8 @@ namespace CML {
     size_t circular_data_end = 0;
     bool has_wrapped = false;
 
+    RC::APtr<EEGData> GetRecentData(size_t amnt);
+
     RC::APtr<EEGData> GetData();
     RC::APtr<EEGData> GetData(size_t amnt);
     RC::APtr<EEGData> GetDataAll();

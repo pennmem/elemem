@@ -75,7 +75,7 @@ namespace CML {
     RC::Data1D<double> flat_data(in_flat_size);
     flat_data.Zero();
     RC_ForIndex(i, datar) { // Iterate over channels
-      size_t flat_pos = i * eventlen; 
+      size_t flat_pos = i * eventlen;
       flat_data.CopyAt(flat_pos, datar[i]);
     }
 
@@ -87,11 +87,11 @@ namespace CML {
     // UnflattenData
     // The implicit pow_arr dimensions from outer to inner are: channel->frequency->time/event
     // This is just a part of the MorletWaveletTransformMP API in PTSA...
-    // It is converted back to the standard frequency->channel->time/event when unflattened 
+    // It is converted back to the standard frequency->channel->time/event when unflattened
     RC::APtr<EEGPowers> powers = new EEGPowers(data->sampling_rate, eventlen, chanlen, freqlen);
     RC_ForRange(i, 0, chanlen) { // Iterate over channels
       RC_ForRange(j, 0, freqlen) { // Iterate over frequencies
-        size_t flat_pos = (i * freqlen * eventlen) + (j * eventlen); 
+        size_t flat_pos = (i * freqlen * eventlen) + (j * eventlen);
         powers->data[j][i].CopyFrom(pow_arr, flat_pos, eventlen);
       }
     }

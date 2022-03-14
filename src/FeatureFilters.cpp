@@ -14,9 +14,9 @@ namespace CML {
   // TODO: JPB: (refactor) Make this take const refs
   FeatureFilters::FeatureFilters(RC::Data1D<BipolarPair> bipolar_reference_channels,
       ButterworthSettings butterworth_settings, MorletSettings morlet_settings,
-      NormalizePowersSettings np_set) 
-	  : bipolar_reference_channels(bipolar_reference_channels),
-	  normalize_powers(np_set) {
+      NormalizePowersSettings np_set)
+    : bipolar_reference_channels(bipolar_reference_channels),
+    normalize_powers(np_set) {
     butterworth_transformer.Setup(butterworth_settings);
     morlet_transformer.Setup(morlet_settings);
   }
@@ -346,6 +346,7 @@ namespace CML {
 
     // Base case
     if (order == 1) { return out_data; }
+    // TODO: JPB: (perf) out_data(in_data.size()-order) and nested loop, 10 allocs saved per epoch + cache efficiency
     // Recurse for next order
     return Differentiate(out_data, order-1);
   }
@@ -559,8 +560,8 @@ namespace CML {
             : std::max(min_power_clamp, in_datar[i][j][k]);
           out_datar[i][j][k] = log10(power);
         }
-      }   
-    } 
+      }
+    }
 
     return out_data;
   }
@@ -642,6 +643,8 @@ namespace CML {
 //    auto bipolar_ref_data = BipolarSelector(data, indices).ExtractConst();
 
     auto mirrored_data = MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
+    // TODO - Remove debug output
+    DEBLOG_OUT(mirrored_data->data);
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
     auto unmirrored_data = RemoveMirrorEnds(morlet_data, mirroring_duration_ms).ExtractConst();
     // TODO: JPB (need) true back to false after validation
@@ -686,6 +689,6 @@ namespace CML {
   /** @param The callback on the classifier results
    */
   void FeatureFilters::SetCallback_Handler(const FeatureCallback &new_callback) {
-    callback = new_callback;  
+    callback = new_callback;
   }
 }

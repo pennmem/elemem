@@ -3,6 +3,42 @@
 #include "RC/RStr.h"
 
 namespace CML {
+  RC::APtr<EEGData> EEGCircularData::GetRecentData(size_t amnt) {
+    if (amnt > circular_data.sample_len) {
+      Throw_RC_Error(("The amount of data requested "
+            "(" + RC::RStr(amnt) + ") " +
+            "is greater than the number of samples in the circular data "
+            "(" + RC::RStr(circular_data.sample_len) + ")").c_str());
+    }
+
+    RC::APtr<EEGData> out_data = new EEGData(circular_data.sampling_rate, amnt);
+    auto& circ_datar = circular_data.data;
+    auto& out_datar = out_data->data;
+    out_datar.Resize(circ_datar.size());
+
+    RC_ForIndex(i, circ_datar) { // Iterate over channels
+      auto& circ_events = circ_datar[i];
+      auto& out_events = out_datar[i];
+
+      if (circ_events.IsEmpty()) { continue; } // Skip empty channels
+      out_data->EnableChan(i);
+
+      size_t recent_start = (circular_data_start + circular_data.sample_len -
+        amnt) % circular_data_len;
+
+      size_t amnt_to_end = circular_data_len - recent_start;
+      if (amnt <= amnt_to_end) {
+        out_events.CopyAt(0, circ_events, recent_start, amnt);
+      } else {
+        out_events.CopyAt(0, circ_events, recent_start, amnt_to_end);
+        size_t amnt_from_start = amnt - amnt_to_end;
+        out_events.CopyAt(amnt_to_end, circ_events, 0, amnt_from_start);
+      }
+    }
+    return out_data;
+  }
+
+  // TODO: JPB: (cruft) Should these old GetData entries even exist?
   RC::APtr<EEGData> EEGCircularData::GetData() {
     return GetData(circular_data_end);
   }
@@ -11,7 +47,7 @@ namespace CML {
     if (amnt > circular_data.sample_len) {
       Throw_RC_Error(("The amount of data requested "
             "(" + RC::RStr(amnt) + ") " +
-            "is greater than the number of samples in the ciruclar data "
+            "is greater than the number of samples in the circular data "
             "(" + RC::RStr(circular_data.sample_len) + ")").c_str());
     }
 
