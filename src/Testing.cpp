@@ -529,6 +529,11 @@ namespace CML {
     RC_DEBOUT(pythonInterface.Sqrt(2.0));
   }
 
+  void TestPyButtfilt() {
+    auto& pythonInterface = PythonInterface::GetInstance();
+    pythonInterface.Buttfilt();
+  }
+
   void TestAllCode() {
     //TestLog10Transform();
     //TestLog10TransformWithEpsilon();
@@ -555,7 +560,8 @@ namespace CML {
     //TestProcess_Handler();
     //TestProcess_HandlerRandomData();
     //TestClassification();
-    TestPyBind11();
+    //TestPyBind11();
+    //TestPyButtfilt();
   }
 }
 
