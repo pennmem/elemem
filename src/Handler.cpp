@@ -750,9 +750,9 @@ namespace CML {
     RC_DEBOUT(RC::RStr("TESTING\n"));
     RC_DEBOUT(RC::RStr("freqs: ") + RC::RStr::Join(mor_set.frequencies, ", "));
     task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
-    sleep(7);
+    Sleep(7);
     task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
-    sleep(7);
+    Sleep(7);
     task_classifier_manager->ProcessClassifierEvent(ClassificationType::STIM, 1000, 0);
   }
 

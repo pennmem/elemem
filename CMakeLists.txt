@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0.0)
+cmake_minimum_required (VERSION 3.10.0)
 
 ##################
 # Project settings
@@ -8,10 +8,10 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 ######################
 # Compilation settings
 
-set(IS_RELEASE true)
-option(CEREBUS_HW "Use the Cerebus/Neuroport interface" ON) # cmake -DCEREBUS_HW=OFF ..
+set(IS_RELEASE false)
+option(CEREBUS_HW "Use the Cerebus/Neuroport interface" OFF) # cmake -DCEREBUS_HW=OFF ..
 option(CERESTIM_STUB # cmake -DCERESTIM_STUB=ON ..
-	"Use the CereStim simulator (default ON for non-Windows)" OFF)
+        "Use the CereStim simulator (default ON for non-Windows)" ON)
 option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake -DHDF5_EXPORT=ON ..
 
 if (IS_RELEASE)
@@ -21,6 +21,13 @@ else (IS_RELEASE)
   set(CMAKE_BUILD_TYPE Debug)
   set(BUILD_TYPE "")
 endif (IS_RELEASE)
+
+# Windows task laptop
+#set(Qt5_DIR "C:/Qt/Qt5.12.12/5.12.12/mingw73_64/lib/cmake")
+set(CMAKE_PREFIX_PATH "C:/Qt/Qt5.12.12/5.12.12/mingw73_64/lib/cmake/Qt5")
+list(APPEND CMAKE_FIND_ROOT_PATH "C:/Qt/Qt5.12.12/5.12.12/mingw73_64")
+
+set(CMAKE_CXX_COMPILER "C:/Qt/Qt5.12.12/Tools/mingw730_64/bin/g++.exe")
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
@@ -250,12 +257,15 @@ if (NOT CBSDK_LIB)
 endif ()
 
 if (WIN32)
-  find_library (CSTIM_LIB "CereStimDLL" PATHS ${PROJECT_SOURCE_DIR}/dll)
-  if (NOT CSTIM_LIB)
-    message (FATAL_ERROR
-      "CereStimDLL library missing from ${PROJECT_SOURCE_DIR}/dll"
-    )
-  endif ()
+# find_library was failing on task laptop while explicitly setting CSTIM_LIB worked.
+#  find_library (CSTIM_LIB "CereStimDLL" PATHS ${PROJECT_SOURCE_DIR}/dll)
+#  if (NOT CSTIM_LIB)
+#    message (FATAL_ERROR
+#      "CereStimDLL library missing from ${PROJECT_SOURCE_DIR}/dll"
+#    )
+#  endif ()
+  set (CSTIM_LIB "${PROJECT_SOURCE_DIR}/dll/CereStimDLL.dll")
+#  set (CSTIM_LIB "")
 else (WIN32)
   set (CSTIM_LIB "")
 endif (WIN32)
@@ -352,5 +362,6 @@ if (WIN32)
     COMMAND ${CMAKE_COMMAND} -E copy ${CSTIM_LIB}
       ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
   )
+# had to also copy libfftw3-3.dll into dist
 endif (WIN32)
 
