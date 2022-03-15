@@ -67,14 +67,14 @@ namespace CML {
               ") is longer than then number of freqs in powers (" + data.size() + ")").c_str());
       }
 
-      RC::RStr deb_msg = RC::RStr("sampling_rate: ") + sampling_rate + "\n";
-      deb_msg += RC::RStr("sample_len: ") + sample_len + "\n";
-      deb_msg += "data: \n";
+      RC::RStr deb_msg = RC::RStr("EEGDataT:\n  sampling_rate: ") + sampling_rate + "\n";
+      deb_msg += RC::RStr("  sample_len: ") + sample_len + "\n";
+      deb_msg += "  data: \n";
       RC_ForRange(c, 0, chanlen) { // Iterate over channels
-        deb_msg += "channel " + RC::RStr(c) + ": " + RC::RStr::Join(data[c], ", ") + "\n";
+        deb_msg += "    channel " + RC::RStr(c) + ": " + RC::RStr::Join(data[c], ", ") + "\n";
       }
       deb_msg += "\n––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––\n";
-      RC_DEBOUT(deb_msg);
+      std::cerr << deb_msg << std::endl;
     }
 
     void Print() const {

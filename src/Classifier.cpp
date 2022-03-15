@@ -35,7 +35,6 @@ namespace CML {
   /** @param data The input data to the classifier
    */
   void Classifier::Classifier_Handler(RC::APtr<const EEGPowers>& data, const TaskClassifierSettings& task_classifier_settings) {
-    //RC_DEBOUT(RC::RStr("Classifier_Handler\n\n"));
     if ( data_callbacks.IsEmpty() ) {
       Throw_RC_Error("Classification callback not set");
     }

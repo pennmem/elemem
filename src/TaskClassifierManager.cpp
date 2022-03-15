@@ -32,10 +32,8 @@ namespace CML {
 
   void TaskClassifierManager::ClassifyData_Handler(
       RC::APtr<const EEGData>& data) {
-    //RC_DEBOUT(RC::RStr("TaskClassifierManager_Handler\n"));
 
     if (stim_event_waiting) {
-      //RC_DEBOUT(num_eeg_events_before_stim);
       if (num_eeg_events_before_stim <= data->sample_len) {
         circular_data.Append(data, 0, num_eeg_events_before_stim);
         StartClassification();

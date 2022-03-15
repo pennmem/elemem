@@ -48,10 +48,10 @@ namespace CML {
     EEGPowers(size_t sampling_rate) : sampling_rate(sampling_rate) {}
     EEGPowers(size_t sampling_rate, size_t event_len, size_t chan_len, size_t freq_len)
       : sampling_rate(sampling_rate), data(event_len, chan_len, freq_len) {}
-    
+
     size_t sampling_rate;
     RC::Data3D<double> data;
-    
+
     void Print(size_t num_freqs, size_t num_chans) const {
       size_t freqlen = num_freqs;
       size_t chanlen = num_chans;
@@ -65,17 +65,17 @@ namespace CML {
               ") is longer than then number of freqs in powers (" + data.size2() + ")").c_str());
       }
 
-      RC::RStr deb_msg = RC::RStr("sampling_rate: ") + sampling_rate + "\n";
-      deb_msg += "data:\n\n";
+      RC::RStr deb_msg = RC::RStr("EEGPowers:\n  sampling_rate: ") + sampling_rate + "\n";
+      deb_msg += "  data:\n\n";
       RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
-        deb_msg += "frequency " + RC::RStr(i) + "\n";
+        deb_msg += "    frequency " + RC::RStr(i) + "\n";
         RC_ForRange(j, 0, chanlen) { // Iterate over channels
-          deb_msg += "channel " + RC::RStr(j) + ": " + RC::RStr::Join(data[i][j], ", ") + "\n";
+          deb_msg += "    channel " + RC::RStr(j) + ": " + RC::RStr::Join(data[i][j], ", ") + "\n";
         }
         deb_msg += "\n";
       }
       deb_msg += "––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––\n";
-      RC_DEBOUT(deb_msg);
+      std::cerr << deb_msg << std::endl;
     }
 
     void Print(size_t num_freqs) const {
@@ -83,8 +83,8 @@ namespace CML {
       size_t chanlen = data.size2();
       //size_t eventlen = data.size1();
       Print(freqlen, chanlen);
-    } 
-    
+    }
+
     void Print() const {
       size_t freqlen = data.size3();
       size_t chanlen = data.size2();

@@ -12,7 +12,6 @@ namespace CML {
 
   void TaskStimManager::StimDecision_Handler(const double& result,
     const TaskClassifierSettings& task_classifier_settings) {
-    RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
 
     bool stim = result < 0.5;
     bool stim_type =
@@ -32,7 +31,6 @@ namespace CML {
 
     auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
     hndl->event_log.Log(resp.Line());
-    RC_DEBOUT(resp);
 
     if (stim_type && stim) {
       hndl->stim_worker.Stimulate();

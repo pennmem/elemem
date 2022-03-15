@@ -101,14 +101,18 @@ namespace CML {
   }
 
   void EEGCircularData::PrintData() {
-    RC_DEBOUT(RC::RStr("circular_data_start: ") + circular_data_start + "\n");
-    RC_DEBOUT(RC::RStr("circular_data_end: ") + circular_data_end + "\n");
+    std::cerr << (RC::RStr("circular_data_start: ") + circular_data_start +
+        "\n");
+    std::cerr << (RC::RStr("circular_data_end: ") + circular_data_end +
+        "\n");
     GetData()->Print();
   }
 
   void EEGCircularData::PrintRawData() {
-    RC_DEBOUT(RC::RStr("circular_data_start: ") + circular_data_start + "\n");
-    RC_DEBOUT(RC::RStr("circular_data_end: ") + circular_data_end + "\n");
+    std::cerr << (RC::RStr("circular_data_start: ") + circular_data_start +
+        "\n");
+    std::cerr << (RC::RStr("circular_data_end: ") + circular_data_end +
+        "\n");
     circular_data.Print();
   }
 

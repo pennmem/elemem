@@ -18,8 +18,6 @@ namespace CML {
    *  @return The classifier result
    */
   double ClassifierEvenOdd::Classification(RC::APtr<const EEGPowers>& data) {
-    //RC_DEBOUT(RC::RStr("Classification\n\n"));
-
     auto& datar = data->data;
     return F2I(datar[0][0][0]) % 2;
   }

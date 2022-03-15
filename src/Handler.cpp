@@ -119,9 +119,9 @@ namespace CML {
 
     NewEEGSave();
 
-    #define TESTING
+    //#define TESTING
     #ifdef TESTING
-    RC_DEBOUT(RC::RStr("TESTING"));
+    std::cerr << "TESTING ENABLED:" << std::endl;
     TestAllCode();
     #endif
   }

@@ -24,11 +24,11 @@ namespace CML {
   RC::APtr<const EEGDataRaw> CreateTestingEEGDataRaw(size_t sampling_rate, size_t eventlen, size_t chanlen) {
     return CreateTestingEEGDataRaw(sampling_rate, eventlen, chanlen, 0); 
   }
-  
+
   RC::APtr<const EEGDataRaw> CreateTestingEEGDataRaw(size_t sampling_rate, size_t eventlen, size_t chanlen, int16_t offset) {
     RC::APtr<EEGDataRaw> data = new EEGDataRaw(sampling_rate, eventlen);
     auto& datar = data->data;
-  
+
     datar.Resize(chanlen);
     RC_ForIndex(i, datar) {
       data->EnableChan(i);
@@ -36,7 +36,7 @@ namespace CML {
         datar[i][j] = i*eventlen + j + offset;
       }
     }
-  
+
     return data.ExtractConst();
   }
 
@@ -51,11 +51,11 @@ namespace CML {
   RC::APtr<const EEGDataDouble> CreateTestingEEGDataDouble(size_t sampling_rate, size_t eventlen, size_t chanlen) {
     return CreateTestingEEGDataDouble(sampling_rate, eventlen, chanlen, 0); 
   }
-  
+
   RC::APtr<const EEGDataDouble> CreateTestingEEGDataDouble(size_t sampling_rate, size_t eventlen, size_t chanlen, int16_t offset) {
     RC::APtr<EEGDataDouble> data = new EEGDataDouble(sampling_rate, eventlen);
     auto& datar = data->data;
-  
+
     datar.Resize(chanlen);
     RC_ForIndex(i, datar) {
       data->EnableChan(i);
@@ -63,10 +63,10 @@ namespace CML {
         datar[i][j] = i*eventlen + j + offset;
       }
     }
-  
+
     return data.ExtractConst();
   }
-  
+
   RC::APtr<const EEGPowers> CreateTestingEEGPowers() {
     return CreateTestingEEGPowers(42);
   }
@@ -82,7 +82,7 @@ namespace CML {
   RC::APtr<const EEGPowers> CreateTestingEEGPowers(size_t sampling_rate, size_t eventlen, size_t chanlen, size_t freqlen, int16_t offset) {
     RC::APtr<EEGPowers> powers = new EEGPowers(sampling_rate, eventlen, chanlen, freqlen);
     auto& datar = powers->data;
-  
+
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
         RC_ForRange(k, 0, eventlen) { // Iterate over eventlen
@@ -90,7 +90,7 @@ namespace CML {
         }
       }
     }
-  
+
     return powers.ExtractConst();
   }
 
@@ -139,7 +139,7 @@ namespace CML {
     binned_data->out_data->Print();
     binned_data->leftover_data->Print();
   }
-  
+
   void TestEEGBinning2() {
     size_t sampling_rate = 9;
     RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 10, 3);
@@ -212,7 +212,7 @@ namespace CML {
     in_data->Print();
     binned_data->out_data->Print();
     binned_data->leftover_data->Print();
-  } 
+  }
 
   // Feature Filters
   void TestBipolarReference() {
@@ -227,14 +227,14 @@ namespace CML {
     RC_DEBOUT(deb_msg);
 
     RC::APtr<EEGDataDouble> out_data = FeatureFilters::BipolarReference(in_data, bipolar_reference_channels);
-  
+
     in_data->Print();
     out_data->Print();
   }
-  
+
   void TestDifferentiate() {
     RC::Data1D<double> in_data = {2.0, 2, 4, 7, 0};
-    
+
     RC::Data1D<double> out_data1 = FeatureFilters::Differentiate(in_data, 1);
     RC::Data1D<double> out_data2 = FeatureFilters::Differentiate(in_data, 2);
     RC::Data1D<double> out_data3 = FeatureFilters::Differentiate(in_data, 3);
@@ -274,7 +274,7 @@ namespace CML {
   void TestMirrorEnds() {
     size_t sampling_rate = 1000;
     RC::APtr<const EEGDataDouble> in_data = CreateTestingEEGDataDouble(sampling_rate);
-    
+
     RC::APtr<EEGDataDouble> out_data = FeatureFilters::MirrorEnds(in_data, 2);
 
     RC_DEBOUT(in_data->data[0].size());
@@ -286,7 +286,7 @@ namespace CML {
   void TestRemoveMirrorEnds() {
     size_t sampling_rate = 1000;
     RC::APtr<const EEGPowers> in_data = CreateTestingEEGPowers(sampling_rate, 10, 2, 2);
-    
+
     RC::APtr<EEGPowers> out_data = FeatureFilters::RemoveMirrorEnds(in_data, 2);
 
     RC_DEBOUT(in_data->data.size1());
@@ -294,13 +294,13 @@ namespace CML {
     in_data->Print();
     out_data->Print();
   }
-  
+
   void TestAvgOverTime() {
     // TODO: JPB: Add test for inf, -inf, and nan
     RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers();
-  
+
     RC::APtr<EEGPowers> out_powers = FeatureFilters::AvgOverTime(in_powers, false);
-  
+
     in_powers->Print();
     out_powers->Print();
   }
@@ -309,7 +309,7 @@ namespace CML {
     RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers();
 
     RC::APtr<EEGPowers> out_powers = FeatureFilters::Log10Transform(in_powers, 1e-16);
-  
+
     in_powers->Print();
     out_powers->Print();
   }
@@ -318,7 +318,7 @@ namespace CML {
     RC::APtr<const EEGPowers> in_powers = CreateTestingEEGPowers();
 
     RC::APtr<EEGPowers> out_powers = FeatureFilters::Log10Transform(in_powers, 1e-16, true);
-  
+
     in_powers->Print();
     out_powers->Print();
   }
@@ -329,7 +329,7 @@ namespace CML {
     RC::Data1D<BipolarPair> channels = {BipolarPair{0,1}, BipolarPair{1,0}, BipolarPair{0,2}};
     RC::Data1D<double> freqs = {1000, 500};
     RC::APtr<const EEGDataDouble> in_data = CreateTestingEEGDataDouble(sampling_rate, num_events, channels.size());
-    
+
     MorletSettings mor_set;
     mor_set.channels = channels;
     mor_set.frequencies = freqs;
@@ -352,7 +352,7 @@ namespace CML {
     RC::APtr<EEGDataDouble> in_data = RC::MakeAPtr<EEGDataDouble>(sampling_rate, num_events);
     in_data->data.Resize(1);
     in_data->data[0].CopyFrom(real_data);
-    
+
     MorletSettings mor_set;
     mor_set.channels = channels;
     mor_set.frequencies = freqs;
@@ -429,14 +429,14 @@ namespace CML {
     size_t sampling_rate = 1000;
     size_t chanlen = 1;
     size_t eventlen = 50;
-    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, eventlen, chanlen); 
+    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, eventlen, chanlen);
 
     MorletSettings morlet_settings = {5, {500}, {{0,0}}, 1000, 2, true};
     MorletTransformer morlet_transformer;
     morlet_transformer.Setup(morlet_settings);
     const double log_min_power_clamp = 1e-16;
 
-    size_t mirroring_duration_ms = 20; 
+    size_t mirroring_duration_ms = 20;
     //size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
 
     auto bipolar_ref_data = FeatureFilters::BipolarSelector(in_data).ExtractConst();

@@ -378,7 +378,7 @@ namespace CML {
     out_data->Resize(chanlen);
 
     auto accum_eq_zero_plus = [](size_t sum, double val) { return std::move(sum) + static_cast<size_t>(val == 0); };
-    //auto accum_eq_zero_plus = [](size_t sum, double val) { RC_DEBOUT(val, static_cast<size_t>(val == 0), sum); return std::move(sum) + static_cast<size_t>(val == 0); };
+
     RC_ForIndex(i, in_datar) { // Iterate over channels
       auto& in_events = in_datar[i];
       auto& out_event = out_datar[i];
@@ -390,13 +390,11 @@ namespace CML {
 
       // Take the ordered derivative
       auto deriv_data = Differentiate<double>(in_events, order);
-      //RC_DEBOUT(RC::RStr::Join(deriv_data, ", ") + "\n");
 
       // Sum and threshold the data
       // TODO: JPB: (refactor) Figure out why the line below this comment doesn't work
       //size_t eq_zero = std::accumulate(deriv_data.begin(), deriv_data.end(), 0, accum_eq_zero_plus);
       size_t eq_zero = std::accumulate(&deriv_data[0], &deriv_data[deriv_data.size()-1]+1, size_t(0), accum_eq_zero_plus);
-      //RC_DEBOUT(eq_zero);
       out_event = eq_zero > threshold;
     }
 
@@ -607,7 +605,6 @@ namespace CML {
     * @param task_classifier_settings The settings for this classification chain
     */
   void FeatureFilters::Process_Handler(RC::APtr<const EEGDataRaw>& data, const TaskClassifierSettings& task_classifier_settings) {
-    RC_DEBOUT(RC::RStr("FeatureFilters_Handler\n\n"));
     if (!callback.IsSet()) Throw_RC_Error("FeatureFilters callback not set");
 
     // This calculates the mirroring duration based on the minimum statistical morlet duration 
@@ -643,22 +640,20 @@ namespace CML {
 //    auto bipolar_ref_data = BipolarSelector(data, indices).ExtractConst();
 
     auto mirrored_data = MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
-    // TODO - Remove debug output
-    DEBLOG_OUT(mirrored_data->data);
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
     auto unmirrored_data = RemoveMirrorEnds(morlet_data, mirroring_duration_ms).ExtractConst();
+
     // TODO: JPB (need) true back to false after validation
     auto log_data = Log10Transform(unmirrored_data, log_min_power_clamp, true).ExtractConst();
     auto avg_data = AvgOverTime(log_data, true).ExtractConst();
 
-    // TODO: JPB (need) Remove debug code in FeatureFilters::Process_Handler
-    data->Print(2);
-    bipolar_ref_data->Print(2);
-    mirrored_data->Print(2);
-    morlet_data->Print(1, 2);
-    unmirrored_data->Print(1, 2);
-    log_data->Print(1, 2);
-    avg_data->Print(1, 10);
+    //data->Print(2);
+    //bipolar_ref_data->Print(2);
+    //mirrored_data->Print(2);
+    //morlet_data->Print(1, 2);
+    //unmirrored_data->Print(1, 2);
+    //log_data->Print(1, 2);
+    //avg_data->Print(1, 10);
 
     // Normalize Powers
     switch (task_classifier_settings.cl_type) {
@@ -670,19 +665,18 @@ namespace CML {
       case ClassificationType::SHAM:
       {
         auto norm_data = normalize_powers.ZScore(avg_data, true).ExtractConst();
-        norm_data->Print(1, 10);
+        //norm_data->Print(1, 10);
 
         // Perform 10th derivative test to find and remove artifact channels
         auto artifact_channel_mask = FindArtifactChannels(bipolar_ref_data, 10, 10).ExtractConst();
         auto cleaned_data = ZeroArtifactChannels(norm_data, artifact_channel_mask).ExtractConst();
-        //RC_DEBOUT(RC::RStr::Join(*artifact_channel_mask, ", ") + "\n");
         //cleaned_data->Print(2, 10);
 
         callback(cleaned_data, task_classifier_settings);
         break;
       }
       default: Throw_RC_Error("Invalid classification type received.");
-    } 
+    }
   }
 
   /// Handler that sets the callback on the feature generator results
