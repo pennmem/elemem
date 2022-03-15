@@ -9,7 +9,7 @@ namespace CML {
   /** @param sampling_rate The sampling rate of the incoming data
    */
   ClassifierLogReg::ClassifierLogReg(RC::Ptr<Handler> hndl,
-      ClassifierLogRegSettings classifier_settings,
+      ClassifierLogRegSettings /* classifier_settings*/,  // TODO: JPB: Do we need this?
       RC::APtr<const FeatureWeights> weights)
     : Classifier(hndl, weights){
     //callback_ID = RC::RStr("ClassifierLogReg_") + RC::RStr(classifier_settings);

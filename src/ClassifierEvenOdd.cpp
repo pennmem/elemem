@@ -7,7 +7,7 @@ namespace CML {
   /** @param sampling_rate The sampling rate of the incoming data
    */
   ClassifierEvenOdd::ClassifierEvenOdd(RC::Ptr<Handler> hndl,
-      ClassifierEvenOddSettings classifier_settings,
+      ClassifierEvenOddSettings /*classifier_settings*/,
       RC::APtr<const FeatureWeights> weights)
     : Classifier(hndl, weights){
     //callback_ID = RC::RStr("ClassifierEvenOdd_") + RC::RStr(classifier_settings);
