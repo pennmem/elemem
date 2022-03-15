@@ -176,7 +176,7 @@ namespace CML {
       }
       else if (type == "CLNORMALIZE") {
         uint64_t duration;
-        inp.Get(duration, "data", "duration");
+        inp.Get(duration, "data", "classifyms");
         hndl->task_classifier_manager->ProcessClassifierEvent(
             ClassificationType::NORMALIZE, duration, id);
       }

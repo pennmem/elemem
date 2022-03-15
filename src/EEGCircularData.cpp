@@ -38,7 +38,7 @@ namespace CML {
     return out_data;
   }
 
-  // TODO: JPB: (cruft) Should these old GetData entries even exist?
+  // TODO: JPB: (refactor) Should these old GetData entries even exist?
   RC::APtr<EEGData> EEGCircularData::GetData() {
     return GetData(circular_data_end);
   }
