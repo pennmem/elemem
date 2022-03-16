@@ -38,7 +38,7 @@ namespace CML {
       RegisterCallback =
       TaskHandler(EEGAcq::RegisterCallback_Handler);
 
-    RCqt::TaskCaller<const RC::RStr> RemoveCallback =
+    RCqt::TaskBlocker<const RC::RStr> RemoveCallback =
       TaskHandler(EEGAcq::RemoveCallback_Handler);
 
     RCqt::TaskBlocker<> CloseSource =

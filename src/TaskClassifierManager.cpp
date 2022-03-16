@@ -14,6 +14,17 @@ namespace CML {
     hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
   }
 
+  TaskClassifierManager::~TaskClassifierManager() {
+    Shutdown_Handler();
+  }
+
+  void TaskClassifierManager::Shutdown_Handler() {
+    if (callback_ID.size() > 0) {
+      hndl->eeg_acq.RemoveCallback(callback_ID);
+      callback_ID = "";
+    }
+  }
+
   void TaskClassifierManager::StartClassification() {
     if (!callback.IsSet()) {
       Throw_RC_Error("Start classification callback not set");

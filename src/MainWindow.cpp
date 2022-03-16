@@ -40,11 +40,6 @@ namespace CML {
   }
 
 
-  MainWindow::~MainWindow() {
-    hndl->eeg_acq.RemoveCallback("EEGDisplay");
-  }
-
-
   template<class T>
   void MainWindow::SubMenuEntry(Ptr<QMenu> menu_entry,
       const RStr &title, const RStr &tip, T qt_slot,
@@ -232,6 +227,7 @@ namespace CML {
   void MainWindow::closeEvent(QCloseEvent *event) {
     if (ConfirmWin("Are you sure you want to quit?", "Quit Elemem?")) {
       hndl->Shutdown();
+      hndl->eeg_acq.RemoveCallback("EEGDisplay");
       Worker::ExitAllWorkers();
       event->accept();
     }
