@@ -438,19 +438,13 @@ namespace CML {
     else { // Network experiment.
       // Note:  Binding to a specific LAN address is a safety feature.
       std::string ipaddress = "192.168.137.1";
-      if (stim_worker.GetStimulatorType() == StimulatorType::Simulator) {
-        // It's safe to accept connections from anywhere with simulators.
-        ipaddress = "0.0.0.0";
-      }
       uint16_t port = 8889;
-      try {
-        settings.exp_config->Get(ipaddress, "ipaddress");
-      }
-      catch (ErrorMsgFile&) { }
-      try {
-        settings.exp_config->Get(port, "port");
-      }
-      catch (ErrorMsgFile&) { }
+      //if (stim_worker.GetStimulatorType() == StimulatorType::Simulator) {
+      //  // It's safe to accept connections from anywhere with simulators.
+      //  ipaddress = "0.0.0.0";
+      //}
+      settings.sys_config->Get(ipaddress, "taskcom_ip");
+      settings.sys_config->Get(port, "taskcom_port");
 
       net_worker.Listen(ipaddress, port);
       main_window->GetStatusPanel()->SetEvent("WAITING");

@@ -19,12 +19,19 @@ namespace CML {
 
   void NetWorker::Listen_Handler(const RC::RStr& address,
                                  const uint16_t& port) {
+    connected = false;
     server = new QTcpServer();
     connect(server, &QTcpServer::newConnection, this,
         &NetWorker::NewConnection);
 
-    server->listen(QHostAddress(address.ToQString()), port);
-    connected = false;
+    auto qt_address = QHostAddress(address.ToQString());
+    auto qt_addstr = qt_address.toString();
+    // Start listening if the conversion checks pass.
+    if ( qt_addstr != address.ToQString() || qt_address.isNull() ||
+        (! server->listen(QHostAddress(address.ToQString()), port)) ) {
+      Throw_RC_Type(Net, (RC::RStr("Could not setup task server on address ")
+                    + address + " port " + RC::RStr(port)).c_str());
+    }
   }
 
   void NetWorker::Close_Handler() {
