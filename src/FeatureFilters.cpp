@@ -643,8 +643,7 @@ namespace CML {
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
     auto unmirrored_data = RemoveMirrorEnds(morlet_data, mirroring_duration_ms).ExtractConst();
 
-    // TODO: JPB (need) true back to false after validation
-    auto log_data = Log10Transform(unmirrored_data, log_min_power_clamp, true).ExtractConst();
+    auto log_data = Log10Transform(unmirrored_data, log_min_power_clamp, false).ExtractConst();
     auto avg_data = AvgOverTime(log_data, true).ExtractConst();
 
     //data->Print(2);
