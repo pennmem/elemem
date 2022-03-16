@@ -111,15 +111,17 @@ namespace CML {
     RC::RStr GetPath(Keys... keys) const {
       RC::RStr path;
       Get(path, keys...);
+      path.Subst("^~\\\\",
+          GetHomeDir()+RC::File::divider);
+      path.Subst("^~/",
+          GetHomeDir()+RC::File::divider);
+      path.Subst("\\$HOME", GetHomeDir());
+      path.Subst("\\$DESKTOP", GetDesktop());
 #ifdef WIN32
       path.Subst("/", RC::File::divider);
 #else
       path.Subst("\\\\", RC::File::divider);
 #endif
-      path.Subst(RC::RStr("^~")+RC::File::divider,
-          GetHomeDir()+RC::File::divider);
-      path.Subst("\\$HOME", GetHomeDir());
-      path.Subst("\\$DESKTOP", GetDesktop());
       return path;
     }
 
