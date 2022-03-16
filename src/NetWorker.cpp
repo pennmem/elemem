@@ -204,8 +204,8 @@ namespace CML {
       }
       else {
         if (type ==
-            RC::OneOf("ORIENT", "COUNTDOWN", "MATH", "RECALL", "REST",
-                      "TRIALEND")) {
+            RC::OneOf("ORIENT", "COUNTDOWN", "DISTRACT", "RECALL", "REST",
+                      "INSTRUCT", "TRIALEND", "MATH")) {
           status_panel->SetEvent(type);
         }
       }
