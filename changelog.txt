@@ -28,5 +28,10 @@ Add unreleased user-relevant updates to Dev section at end.
  - Fixes amplitude and duration units in output experiment_config.json.
  - Version hardcoded to work with 256 channel Neuroport systems.
 
+2022-03-16
+ - Strictly sequentialized initialization procedure.
+ - Introduced sys_config.json system for system level settings.
+ - Added closed-loop functionality.
+
 Dev
 
