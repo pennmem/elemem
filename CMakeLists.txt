@@ -130,7 +130,6 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/EEGFileSave.h
   src/EEGFileSave.cpp
   src/EEGPowers.h
-  src/EEGPowers.cpp
   src/EEGSource.h
   src/EventLog.h
   src/EventLog.cpp
@@ -165,6 +164,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Palette.cpp
   src/Popup.h
   src/Popup.cpp
+  src/PythonInterface.h
   src/QtFileFunctions.h
   src/QtStyle.h
   src/QtStyle.cpp
@@ -293,6 +293,13 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ptsa/ptsa/extensions/morlet/morlet.cpp")
   message(FATAL_ERROR "The ptsa submodule was not able to successfully download.  Unable to build.")
 endif()
 
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/pybind11/include/pybind11/pybind11.h")
+  message(FATAL_ERROR "The pybind11 submodule was not able to successfully download.  Unable to build.")
+endif()
+
+add_subdirectory(${PROJECT_SOURCE_DIR}/pybind11)
+set(PYBIND11_LIB pybind11::embed)
+
 
 ############################
 # Set includes and libraries
@@ -314,11 +321,13 @@ target_link_libraries (${PROJECT_NAME}
   ${HDF5_LIBRARIES}
   ${FFTW_LIB}
   ${PTHREAD_LIB}
+  ${PYBIND11_LIB}
 )
 
 target_compile_definitions (${PROJECT_NAME} PUBLIC
   ${ELEMEM_DEFINES}
 )
+
 
 ########################################################
 # Update build date-stamp in About window on each build.

@@ -21,14 +21,22 @@ namespace CML {
     TaskClassifierManager(RC::Ptr<Handler> hndl, size_t sampling_rate,
       size_t circ_buf_duration_ms);
 
+    ~TaskClassifierManager();
+    // Rule of 3.
+    TaskClassifierManager(const TaskClassifierManager&) = delete;
+    TaskClassifierManager& operator=(const TaskClassifierManager&) = delete;
+
     ClassifierEvent ProcessClassifierEvent =
       TaskHandler(TaskClassifierManager::ProcessClassifierEvent_Handler);
 
     RCqt::TaskCaller<const TaskClassifierCallback> SetCallback =
       TaskHandler(TaskClassifierManager::SetCallback_Handler);
 
+    RCqt::TaskBlocker<> Shutdown =
+      TaskHandler(TaskClassifierManager::Shutdown_Handler);
+
     protected:
-    RCqt::TaskCaller<RC::APtr<const EEGData>> ClassifyData = 
+    RCqt::TaskCaller<RC::APtr<const EEGData>> ClassifyData =
       TaskHandler(TaskClassifierManager::ClassifyData_Handler);
 
     void ClassifyData_Handler(RC::APtr<const EEGData>& data);
@@ -37,6 +45,8 @@ namespace CML {
         const uint64_t& duration_ms, const uint64_t& classif_id);
 
     void SetCallback_Handler(const TaskClassifierCallback& new_callback);
+
+    void Shutdown_Handler();
 
     void StartClassification();
 

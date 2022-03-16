@@ -5,7 +5,7 @@ namespace CML {
   /// Default constructor that initializes and resets the internal lists
   /** @param The settings needed to set up consistent normalization
    */
-  NormalizePowers::NormalizePowers(const NormalizePowersSettings& np_set) 
+  NormalizePowers::NormalizePowers(const NormalizePowersSettings& np_set)
       : np_set(np_set), rolling_powers(np_set.chanlen, np_set.freqlen) {
     size_t freqlen = np_set.freqlen;
     size_t chanlen = np_set.chanlen;
@@ -13,31 +13,19 @@ namespace CML {
 
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
-        rolling_powers[i][j] = new RollingStats(eventlen);
-      }
-    } 
-  }
-
-  NormalizePowers::~NormalizePowers() {
-    size_t freqlen = np_set.freqlen;
-    size_t chanlen = np_set.chanlen;
-
-    RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
-      RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
-        if (rolling_powers[i][j])
-          delete rolling_powers[i][j];
+        rolling_powers[i][j].SetSize(eventlen);
       }
     }
   }
 
-  /// Reset all of the values back to 0 
+  /// Reset all of the values back to 0
   void NormalizePowers::Reset() {
     size_t freqlen = np_set.freqlen;
     size_t chanlen = np_set.chanlen;
 
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
-        rolling_powers[i][j]->Reset(); 
+        rolling_powers[i][j].Reset();
       }
     }
   }
@@ -46,14 +34,13 @@ namespace CML {
   /** @param The new values to be added to the rolling statics
    */
   void NormalizePowers::Update(RC::APtr<const EEGPowers>& new_data) {
-    RC_DEBOUT(RC::RStr("NormalizePowers::Update\n\n"));
     auto& new_datar = new_data->data;
     size_t freqlen = np_set.freqlen;
     size_t chanlen = np_set.chanlen;
 
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
-        rolling_powers[i][j]->Update(new_datar[i][j]);
+        rolling_powers[i][j].Update(new_datar[i][j]);
       }
     }
   }
@@ -80,7 +67,7 @@ namespace CML {
 
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
-        out_datar[i][j] = rolling_powers[i][j]->ZScore(in_datar[i][j], div_by_zero_eq_zero);
+        out_datar[i][j] = rolling_powers[i][j].ZScore(in_datar[i][j], div_by_zero_eq_zero);
       }
     }
     return out_data;
@@ -97,7 +84,7 @@ namespace CML {
   //  RC::Data2D<StatsData> out_data(chanlen, freqlen);
   //  RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
   //    RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
-  //      out_data[i][j] = rolling_powers[i][j]->GetStats();
+  //      out_data[i][j] = rolling_powers[i][j].GetStats();
   //    }
   //  }
   //  return out_data;
@@ -128,7 +115,7 @@ namespace CML {
 
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
-        rolling_powers[i][j]->PrintStats();
+        rolling_powers[i][j].PrintStats();
       }
     }
   }

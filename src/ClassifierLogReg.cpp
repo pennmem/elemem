@@ -9,7 +9,7 @@ namespace CML {
   /** @param sampling_rate The sampling rate of the incoming data
    */
   ClassifierLogReg::ClassifierLogReg(RC::Ptr<Handler> hndl,
-      ClassifierLogRegSettings classifier_settings,
+      ClassifierLogRegSettings /* classifier_settings*/,  // TODO: JPB: Do we need this?
       RC::APtr<const FeatureWeights> weights)
     : Classifier(hndl, weights){
     //callback_ID = RC::RStr("ClassifierLogReg_") + RC::RStr(classifier_settings);
@@ -20,7 +20,6 @@ namespace CML {
    *  @return The classifier result
    */
   double ClassifierLogReg::Classification(RC::APtr<const EEGPowers>& data) {
-    RC_DEBOUT(RC::RStr("Classification\n\n"));
     auto& intercept = weights->intercept;
     auto& coef = weights->coef;
     auto& datar = data->data;

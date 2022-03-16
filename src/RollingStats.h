@@ -7,25 +7,25 @@ namespace CML {
   class StatsData {
     public:
     RC::Data1D<double> means = {};
-    RC::Data1D<double> std_devs = {};
     RC::Data1D<double> sample_std_devs = {};
     StatsData(size_t num_values)
-      : means(num_values), std_devs(num_values), sample_std_devs(num_values) {}
-    StatsData(RC::Data1D<double> means, RC::Data1D<double> std_devs, 
-              RC::Data1D<double> sample_std_devs)
-      : means(means), std_devs(std_devs), sample_std_devs(sample_std_devs) {}
+      : means(num_values), sample_std_devs(num_values) {}
+    StatsData(RC::Data1D<double> means, RC::Data1D<double> sample_std_devs)
+      : means(means), sample_std_devs(sample_std_devs) {}
   };
 
   class RollingStats {
     public:
+    RollingStats() {}
     RollingStats(size_t num_values);
 
-	size_t size();
+    size_t size();
+    void SetSize(size_t num_values);
     void Reset();
     void Update(const RC::Data1D<double>& new_values);
     RC::Data1D<double> ZScore(const RC::Data1D<double>& data, bool div_by_zero_eq_zero);
     StatsData GetStats();
-	void PrintStats();
+    void PrintStats();
 
 
     protected:

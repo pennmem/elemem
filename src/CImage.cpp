@@ -133,7 +133,7 @@ namespace CML {
 
 
   // Note:  Closes the FileWrite before saving to the filename.
-  bool CImage::SavePDF_Handler(FileWrite& fwr) {
+  //bool CImage::SavePDF_Handler(FileWrite& fwr) {
     // TODO: JPB: (feature) Add this back in
     //RStr filename = fwr.GetFilename();
     //fwr.Close();
@@ -147,8 +147,8 @@ namespace CML {
 
     //DrawGeneral(&printer);
 
-    return true;
-  }
+    //return true;
+  //}
 
 
   // Note:  Closes the FileWrite before saving to the filename.

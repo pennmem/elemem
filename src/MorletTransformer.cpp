@@ -22,6 +22,14 @@ namespace CML {
     mt->initialize_wavelet_props(mor_set.cycle_count,
         mor_set.frequencies.Raw(), mor_set.frequencies.size(),
         mor_set.complete);
+
+    // TODO: JPB: (need) Make this a setting in mor_set that only changes when this setup is called
+    //                   This will also require a new network packet for classifier setup (duration)
+    //                   This will also require a new check in filter to make sure it is the right length
+    // This is currently an optimization to make future prepare_run() calls take less time
+    size_t temp_eventlen = 1750; // This magic number was chosen becuase the expected duration is 1000ms + 750ms of mirroring
+    mt->set_signal_array(nullptr, mor_set.channels.size(), temp_eventlen);
+    mt->prepare_run();
   }
 
   // This calculates the minimum statistical buffer duration for the MorletTransform,
@@ -35,13 +43,12 @@ namespace CML {
     return 1.5 * 1000 * mor_set.cycle_count / 2 / min_freq;
   }
 
-  RC::APtr<EEGPowers> MorletTransformer::Filter(RC::APtr<const EEGData>& data) {
-    auto& datar = data->data;
-
+  RC::APtr<EEGPowers> MorletTransformer::Filter(RC::APtr<const EEGDataDouble>& data) {
     if (mt == NULL) {
       Throw_RC_Error("MorletTransformer Setup() was not called before Filter() was called.");
     }
 
+    auto& datar = data->data;
     size_t freqlen = mor_set.frequencies.size();
     size_t chanlen = mor_set.channels.size();
     size_t eventlen = data->sample_len;
@@ -68,7 +75,7 @@ namespace CML {
     RC::Data1D<double> flat_data(in_flat_size);
     flat_data.Zero();
     RC_ForIndex(i, datar) { // Iterate over channels
-      size_t flat_pos = i * eventlen; 
+      size_t flat_pos = i * eventlen;
       flat_data.CopyAt(flat_pos, datar[i]);
     }
 
@@ -80,11 +87,11 @@ namespace CML {
     // UnflattenData
     // The implicit pow_arr dimensions from outer to inner are: channel->frequency->time/event
     // This is just a part of the MorletWaveletTransformMP API in PTSA...
-    // It is converted back to the standard frequency->channel->time/event when unflattened 
+    // It is converted back to the standard frequency->channel->time/event when unflattened
     RC::APtr<EEGPowers> powers = new EEGPowers(data->sampling_rate, eventlen, chanlen, freqlen);
     RC_ForRange(i, 0, chanlen) { // Iterate over channels
       RC_ForRange(j, 0, freqlen) { // Iterate over frequencies
-        size_t flat_pos = (i * freqlen * eventlen) + (j * eventlen); 
+        size_t flat_pos = (i * freqlen * eventlen) + (j * eventlen);
         powers->data[j][i].CopyFrom(pow_arr, flat_pos, eventlen);
       }
     }

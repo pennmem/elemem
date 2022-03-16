@@ -2,6 +2,7 @@
 #define EEGDATA_H
 
 #include "RC/Data1D.h"
+#include "RC/RStr.h"
 
 namespace CML {
   /// This is a simple class that acts as a container for EEG data.
@@ -43,23 +44,48 @@ namespace CML {
    *  \endcode
    *  \nosubgrouping
    */
-  class EEGData {
+  template<typename T>
+  class EEGDataT {
     public:
-    EEGData(size_t sampling_rate, size_t sample_len)
+    EEGDataT(size_t sampling_rate, size_t sample_len)
       : sampling_rate(sampling_rate), sample_len(sample_len) {}
 
     size_t sampling_rate;
     // TODO - Encapsulate sample_len and data to preserve this invariant.
     size_t sample_len; // Internal Data1D size is either 0 or sample_len
-    RC::Data1D<RC::Data1D<int16_t>> data;
+    RC::Data1D<RC::Data1D<T>> data;
 
-    void EnableChan(size_t chan);
+    void EnableChan(size_t chan) {
+      data[chan].Resize(sample_len);
+    }
+
+    void Print(size_t num_chans) const {
+      size_t chanlen = num_chans;
+
+      if (chanlen > data.size()) {
+        Throw_RC_Error((RC::RStr("The chanlen (") + chanlen +
+              ") is longer than then number of freqs in powers (" + data.size() + ")").c_str());
+      }
+
+      RC::RStr deb_msg = RC::RStr("EEGDataT:\n  sampling_rate: ") + sampling_rate + "\n";
+      deb_msg += RC::RStr("  sample_len: ") + sample_len + "\n";
+      deb_msg += "  data: \n";
+      RC_ForRange(c, 0, chanlen) { // Iterate over channels
+        deb_msg += "    channel " + RC::RStr(c) + ": " + RC::RStr::Join(data[c], ", ") + "\n";
+      }
+      deb_msg += "\n––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––\n";
+      std::cerr << deb_msg << std::endl;
+    }
+
+    void Print() const {
+      size_t chanlen = data.size();
+      Print(chanlen);
+    }
   };
 
-  void PrintEEGData(const EEGData& data);
-  void PrintEEGData(const EEGData& data, size_t num_chans);
-  void PrintEEGDataPythonInput(const EEGData& data);
-  void PrintEEGDataPythonInput(const EEGData& data, size_t num_chans);
+  using EEGData = EEGDataT<int16_t>;
+  using EEGDataRaw = EEGDataT<int16_t>;
+  using EEGDataDouble = EEGDataT<double>;
 }
 
 #endif // EEGDATA_H

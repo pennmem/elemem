@@ -119,8 +119,9 @@ namespace CML {
 
     NewEEGSave();
 
+    //#define TESTING
     #ifdef TESTING
-    RC_DEBOUT(RC::RStr("TESTING"));
+    std::cerr << "TESTING ENABLED:" << std::endl;
     TestAllCode();
     #endif
   }
@@ -384,6 +385,10 @@ namespace CML {
       stim_worker.ConfigureStimulation(profile);
     }
 
+    if (stim_mode == StimMode::CLOSED) {
+      SetupClassifier();
+    }
+
     experiment_running = true;
     main_window->SetReadyToStart(false);
     for (size_t i=0; i<main_window->StimConfigCount(); i++) {
@@ -560,8 +565,6 @@ namespace CML {
             "classifier_file");
         settings.weight_manager = MakeAPtr<WeightManager>(
             File::FullPath(base_dir, classif_json), settings.elec_config);
-
-        SetupClassifier();
       }
     }
     catch (ErrorMsg&) {
@@ -714,9 +717,7 @@ namespace CML {
             "(" + RC::RStr(max_freq) + ")").c_str());
     }
 
-    task_classifier_manager = new TaskClassifierManager(this,
-        settings.binned_sampling_rate, circ_buf_duration_ms);
-
+    // Setup all settings first.  Config failures happen here.
     ButterworthSettings but_set;
     but_set.channels = chans;
     but_set.sampling_rate = settings.binned_sampling_rate;
@@ -734,30 +735,66 @@ namespace CML {
     np_set.eventlen = 1; // This is set to 1 because data is averaged first
     np_set.chanlen = chans.size();
     np_set.freqlen = freqs.size();
-    feature_filters = new FeatureFilters(mor_set.channels, but_set, mor_set, np_set);
 
     ClassifierLogRegSettings classifier_settings;
+
+    // Allocate components.
+    task_classifier_manager = new TaskClassifierManager(this,
+        settings.binned_sampling_rate, circ_buf_duration_ms);
+
+    feature_filters = new FeatureFilters(mor_set.channels, but_set,
+        mor_set, np_set);
+
     classifier = new ClassifierLogReg(this, classifier_settings,
         settings.weight_manager->weights);
 
     task_stim_manager = new TaskStimManager(this);
 
+    // Register the callbacks.
     task_classifier_manager->SetCallback(feature_filters->Process);
     feature_filters->SetCallback(classifier->Classify);
-    classifier->RegisterCallback("ClassifierDecision", task_stim_manager->StimDecision);
+    classifier->RegisterCallback("ClassifierDecision",
+        task_stim_manager->StimDecision);
 
-    // TODO: JPB: (need) Remove testing classifier processing events in Handler::SetupClassifier
-    RC_DEBOUT(RC::RStr("TESTING\n"));
-    RC_DEBOUT(RC::RStr("freqs: ") + RC::RStr::Join(mor_set.frequencies, ", "));
-    task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
-    sleep(7);
-    task_classifier_manager->ProcessClassifierEvent(ClassificationType::NORMALIZE, 1000, 0);
-    sleep(7);
-    task_classifier_manager->ProcessClassifierEvent(ClassificationType::STIM, 1000, 0);
+    classifier_running = true;
   }
 
 
+  void Handler::ShutdownClassifier() {
+    if ( ! classifier_running ) {
+      return;
+    }
+
+    // Remove EEGAcq input.
+    if (task_classifier_manager.IsSet()) {
+      task_classifier_manager->Shutdown();
+    }
+
+    // Shut down all the threads.
+    if (task_classifier_manager.IsSet()) {
+      task_classifier_manager->ExitWait();
+    }
+    if (feature_filters.IsSet()) {
+      feature_filters->ExitWait();
+    }
+    if (classifier.IsSet()) {
+      classifier->ExitWait();
+    }
+    if (task_stim_manager.IsSet()) {
+      task_stim_manager->ExitWait();
+    }
+
+    // Clean up data.
+    task_classifier_manager.Delete();
+    feature_filters.Delete();
+    classifier.Delete();
+    task_stim_manager.Delete();
+
+    classifier_running = false;
+  }
+
   void Handler::CloseExperimentComponents() {
+    ShutdownClassifier();
     net_worker.Close();
     exper_ops.Stop();
 

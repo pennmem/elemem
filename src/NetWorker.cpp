@@ -141,6 +141,7 @@ namespace CML {
         return;
       }
       if (type == "READY") {
+        hndl->eeg_acq.StartingExperiment();  // notify, replay needs this.
         JSONFile resp = MakeResp("START");
         Respond(resp);
       }
@@ -162,23 +163,20 @@ namespace CML {
         hndl->stim_worker.Stimulate();
       }
       else if (type == "CLSTIM") {
-        uint64_t classifyms, id;
+        uint64_t classifyms;
         inp.Get(classifyms, "data", "classifyms");
-        inp.Get(id, "data", "id");
         hndl->task_classifier_manager->ProcessClassifierEvent(
             ClassificationType::STIM, classifyms, id);
       }
       else if (type == "CLSHAM") {
-        uint64_t classifyms, id;
+        uint64_t classifyms;
         inp.Get(classifyms, "data", "classifyms");
-        inp.Get(id, "data", "id");
         hndl->task_classifier_manager->ProcessClassifierEvent(
             ClassificationType::SHAM, classifyms, id);
       }
       else if (type == "CLNORMALIZE") {
-        uint64_t duration, id;
-        inp.Get(duration, "data", "duration");
-        inp.Get(id, "data", "id");
+        uint64_t duration;
+        inp.Get(duration, "data", "classifyms");
         hndl->task_classifier_manager->ProcessClassifierEvent(
             ClassificationType::NORMALIZE, duration, id);
       }

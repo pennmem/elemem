@@ -37,8 +37,8 @@ namespace CML {
 
     RCqt::TaskGetter<bool, FileWrite> SavePNG =
       TaskHandler(CImage::SavePNG_Handler);
-    RCqt::TaskGetter<bool, FileWrite> SavePDF =
-      TaskHandler(CImage::SavePDF_Handler);
+    //RCqt::TaskGetter<bool, FileWrite> SavePDF =
+    //  TaskHandler(CImage::SavePDF_Handler);
     RCqt::TaskGetter<bool, FileWrite> SaveSVG =
       TaskHandler(CImage::SaveSVG_Handler);
 
@@ -64,7 +64,7 @@ namespace CML {
     void mouseMoveEvent(QMouseEvent * event);
 
     bool SavePNG_Handler(FileWrite& fwr);
-    bool SavePDF_Handler(FileWrite& fwr);
+    //bool SavePDF_Handler(FileWrite& fwr);
     bool SaveSVG_Handler(FileWrite& fwr);
 
     bool SaveImage(FileWrite& fwr, const RStr& format);

@@ -3,13 +3,11 @@
 #include "RC/RStr.h"
 
 namespace CML {
-  /// Default constructor that initializes and resets the internal lists
+  /// Constructor that initializes and resets the internal lists
   /** @param the number of values in each list
    */
   RollingStats::RollingStats(size_t num_values) {
-    means.Resize(num_values);
-    m2s.Resize(num_values);
-    Reset();
+    SetSize(num_values);
   }
 
   /// Get the size of the internal Data1Ds
@@ -19,11 +17,18 @@ namespace CML {
     return means.size();
   }
 
-  /// Reset all of the values back to 0 
+  /// Set the count of means and stddevs to track and reset.
+  void RollingStats::SetSize(size_t num_values) {
+    means.Resize(num_values);
+    m2s.Resize(num_values);
+    Reset();
+  }
+
+  /// Reset all of the values back to 0
   void RollingStats::Reset() {
     count = 0;
-    RC_ForEach(mean, means) { mean = 0; }
-    RC_ForEach(m2, m2s) { m2 = 0; }
+    means.Zero();
+    m2s.Zero();
   }
 
   /// Update the rolling statistics with a new set of values
@@ -62,20 +67,21 @@ namespace CML {
   /** @return The current statistics
    */
   StatsData RollingStats::GetStats() {
-    RC::Data1D<double> std_dev(m2s.size());
+    if (count <= 1) {
+      Throw_RC_Type(Bounds, "Cannot calculate statistics on fewer than 2 "
+          "elements");
+    }
     RC::Data1D<double> sample_std_dev(m2s.size());
     RC_ForIndex(i, m2s) {
-      std_dev[i] = std::sqrt(m2s[i] / count);
       sample_std_dev[i] = std::sqrt(m2s[i] / (count - 1));
     }
-    return StatsData {means, std_dev, sample_std_dev};
+    return StatsData {means, sample_std_dev};
   }
 
   void RollingStats::PrintStats() {
-	StatsData stats_data = GetStats();
-	auto rstr = "\nmeans: " + RC::RStr::Join(stats_data.means, ", ") + "\n";
-	rstr += "std_devs: " + RC::RStr::Join(stats_data.std_devs, ", ") + "\n";
-	rstr += "sample_std_devs: " + RC::RStr::Join(stats_data.sample_std_devs, ", ") + "\n";
-	RC_DEBOUT(rstr);
+    StatsData stats_data = GetStats();
+    auto rstr = "\nmeans: " + RC::RStr::Join(stats_data.means, ", ") + "\n";
+    rstr += "sample_std_devs: " + RC::RStr::Join(stats_data.sample_std_devs, ", ") + "\n";
+    std::cerr << rstr << std::endl;
   }
 }

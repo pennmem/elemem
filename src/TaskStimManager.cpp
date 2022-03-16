@@ -12,7 +12,6 @@ namespace CML {
 
   void TaskStimManager::StimDecision_Handler(const double& result,
     const TaskClassifierSettings& task_classifier_settings) {
-    RC_DEBOUT(RC::RStr("ClassifierDecision_Handler\n\n"));
 
     bool stim = result < 0.5;
     bool stim_type =
@@ -24,22 +23,20 @@ namespace CML {
 
     const RC::RStr type = [&] {
         switch (task_classifier_settings.cl_type) {
-          case ClassificationType::STIM: return "STIM_DECISON";
-          case ClassificationType::SHAM: return "SHAM_DECISON";
+          case ClassificationType::STIM: return "STIM_DECISION";
+          case ClassificationType::SHAM: return "SHAM_DECISION";
           default: Throw_RC_Error("Invalid classification type received.");
         }
     }();
 
     auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
     hndl->event_log.Log(resp.Line());
-    RC_DEBOUT(resp);
 
     if (stim_type && stim) {
-      // TODO: JPB: (need) Temporarily remove call to stimulate
-      //hndl->stim_worker.Stimulate();
-	  if (callback.IsSet()) callback(true, task_classifier_settings);
+      hndl->stim_worker.Stimulate();
+      if (callback.IsSet()) { callback(true, task_classifier_settings); }
     } else {
-	  if (callback.IsSet()) callback(false, task_classifier_settings);
+      if (callback.IsSet()) { callback(false, task_classifier_settings); }
     }
   }
 

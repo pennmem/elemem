@@ -76,6 +76,11 @@ namespace CML {
   }
 
 
+  void EDFReplay::ExperimentReady() {
+    Open();
+  }
+
+
   void EDFReplay::Prebuffer() {
     if (file_bufs.size() == 0) { return; }
 

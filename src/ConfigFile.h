@@ -116,6 +116,8 @@ namespace CML {
 #else
       path.Subst("\\\\", RC::File::divider);
 #endif
+      path.Subst(RC::RStr("^~")+RC::File::divider,
+          GetHomeDir()+RC::File::divider);
       path.Subst("\\$HOME", GetHomeDir());
       path.Subst("\\$DESKTOP", GetDesktop());
       return path;

@@ -24,7 +24,6 @@ namespace CML {
     public:
 
     MainWindow(RC::Ptr<Handler> hndl);
-    ~MainWindow();
 
     // Rule of 3;
     MainWindow(const MainWindow&) = delete;

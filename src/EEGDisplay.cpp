@@ -67,8 +67,8 @@ namespace CML {
         dmax = std::max(dmax, float(data.data[chan][i]));
         dmin = std::min(dmin, float(data.data[chan][i]));
       }
-      float ddiff = 2*std::max(std::abs(dmin), std::abs(dmax));
-      ddiff = std::max(ddiff, dmax-dmin);
+      float ddiff = dmax-dmin;
+      float dmid = (dmax-dmin)/2 + dmin;
       if (ddiff < 1) {
         ddiff = 1;
       }
@@ -81,7 +81,7 @@ namespace CML {
         size_t inc = data.sample_len / (window_seconds*500);
 
         for (x = inc; x < data.sample_len; x+=inc) {
-          QPointF current(qreal(x * xscale), qreal(draw_mid - (data.data[chan][x] * yscale)));
+          QPointF current(qreal(x * xscale), qreal(draw_mid - ((data.data[chan][x]-dmid) * yscale)));
           painter.drawLine(last, current);
           last = current;
         }

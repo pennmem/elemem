@@ -71,8 +71,7 @@ namespace CML {
         }
       }();
       rollover_data = binned_data->leftover_data.ExtractConst();
-      RC::APtr<EEGData> out_data_aptr = binned_data->out_data;
-      RC::APtr<const EEGData> out_data_captr = out_data_aptr.ExtractConst();
+      auto out_data_captr = binned_data->out_data.ExtractConst();
 
       for (size_t i=0; i<data_callbacks.size(); i++) {
         data_callbacks[i].callback(out_data_captr);

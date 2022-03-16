@@ -154,6 +154,7 @@ namespace CML {
     void SaveDefaultEEG();
     RC::Data1D<CSStimProfile> CreateGridProfiles();
     void SetupClassifier();
+    void ShutdownClassifier();
 
     void CloseExperimentComponents();
 
@@ -170,6 +171,7 @@ namespace CML {
     bool do_exit = false;
 
     bool experiment_running = false;
+    bool classifier_running = false;
     bool stim_api_test_warning = true;
   };
 }
