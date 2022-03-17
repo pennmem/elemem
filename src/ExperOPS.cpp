@@ -120,13 +120,13 @@ namespace CML {
     if (timer.IsSet()) {
       timer->stop();
     }
-
-    JSONFile stoplog = MakeResp("EXIT");
-    hndl->event_log.Log(stoplog.Line());
   }
 
 
   void ExperOPS::InternalStop() {
+    JSONFile stoplog = MakeResp("EXIT");
+    hndl->event_log.Log(stoplog.Line());
+
     Stop_Handler();
     hndl->StopExperiment();
   }
