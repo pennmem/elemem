@@ -101,7 +101,7 @@ namespace CML {
         exploration_biases, init_samples, rng_seeds, verbosity);
     stim_loc_profiles = new_stim_loc_profiles;
     stim_profiles = RC::Data2D<CSStimProfile>(0, n_searches);
-    add initial stim profiles for all searches here
+//    add initial stim profiles for all searches here
   }
 
   void ExperCPS::GetNextEvent(const unsigned int model_idx) {

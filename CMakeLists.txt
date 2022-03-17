@@ -104,7 +104,7 @@ if(WIN32)
 
   # CBayes dependencies
   # TODO: RDD: remove and put in include directory, ideally as a subtree/Git reference? ask Ryan/James
-  set (LAPACKLIBS "-L/${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack -lblas -lc")
+  set (LAPACKLIBS "-L${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack -L${CMAKE_CURRENT_SOURCE_DIR}/dll -lblas")# -lc")
 
   set (F2CLIB "-L${CMAKE_COMPILER_DIR} -lgfortran")
 
@@ -134,7 +134,7 @@ if(WIN32)
   # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
 
 #  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMFLAG} -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMFLAG} -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMFLAG} -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses -Wno-error=non-template-friend")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast")
 endif(WIN32)
 
