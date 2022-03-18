@@ -43,7 +43,8 @@ CS_EXPORT int CS_GetMaxValues(uint8_t* voltage, uint16_t* amplitude,
 //   4.7V, 5.3V, 5.9V, 6.5V, 7.1V, 7.7V, 8.3V, 8.9V, 9.5V
 CS_EXPORT int CS_SetMaxValues(uint8_t voltage, uint16_t amplitude, uint32_t
     phase_charge, uint32_t frequency) {
-  cout << "CS_SetMaxValues(" << voltage << ", " << amplitude << ", " << phase_charge << ", " << frequency << ")\n";
+  cout << "CS_SetMaxValues(" << uint32_t(voltage) << ", " << amplitude
+    << ", " << phase_charge << ", " << frequency << ")\n";
   return 0;
 }
 
@@ -79,7 +80,8 @@ CS_EXPORT int CS_BeginningOfGroup() {
 
 // waveform 1 through 15.
 CS_EXPORT int CS_AutoStimulus(uint8_t electrode, uint16_t waveform) {
-  cout << "CS_AutoStimulus(" << electrode << ", " << waveform << ")\n";
+  cout << "CS_AutoStimulus(" << uint32_t(electrode) << ", " << waveform
+    << ")\n";
   if (waveform == 0 || waveform > 15) {
     cout << "CS_AutoStimulus invalid.\n";
     return (int)CS_Result::BINVALIDPARAMS;
