@@ -104,7 +104,8 @@ if(WIN32)
 
   # CBayes dependencies
   # TODO: RDD: remove and put in include directory, ideally as a subtree/Git reference? ask Ryan/James
-  set (LAPACKLIBS "-L${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack -L${CMAKE_CURRENT_SOURCE_DIR}/dll -lblas")# -lc")
+  set (LAPACKLIBS "-L${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack64 -L${CMAKE_CURRENT_SOURCE_DIR}/dll -lblas64")# -lc")
+#  find_library (BLAS_LIB "blas" PATHS ${PROJECT_SOURCE_DIR}/lib64)
 
   set (F2CLIB "-L${CMAKE_COMPILER_DIR} -lgfortran")
 
