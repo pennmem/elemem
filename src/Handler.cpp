@@ -47,7 +47,7 @@ namespace CML {
 
   Handler::Handler()
     : stim_worker(this),
-      net_worker(this),
+      task_net_worker(this),
       exper_ops(this) {
     // For error management, everything that could error must go into
     // Initialize_Handler()
@@ -59,7 +59,7 @@ namespace CML {
 
   void Handler::SetMainWindow(Ptr<MainWindow> new_main) {
     main_window = new_main;
-    net_worker.SetStatusPanel(main_window->GetStatusPanel());
+    task_net_worker.SetStatusPanel(main_window->GetStatusPanel());
     stim_worker.SetStatusPanel(main_window->GetStatusPanel());
     exper_ops.SetStatusPanel(main_window->GetStatusPanel());
   }
@@ -446,7 +446,7 @@ namespace CML {
       settings.sys_config->Get(ipaddress, "taskcom_ip");
       settings.sys_config->Get(port, "taskcom_port");
 
-      net_worker.Listen(ipaddress, port);
+      task_net_worker.Listen(ipaddress, port);
       main_window->GetStatusPanel()->SetEvent("WAITING");
     }
   }
@@ -789,7 +789,7 @@ namespace CML {
 
   void Handler::CloseExperimentComponents() {
     ShutdownClassifier();
-    net_worker.Close();
+    task_net_worker.Close();
     exper_ops.Stop();
 
     eeg_save->StopSaving();
