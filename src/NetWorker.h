@@ -9,22 +9,19 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 
+
 namespace CML {
   class Handler;
-  class StatusPanel;
 
   class NetWorker : public RCqt::WorkerThread, public QObject {
     public:
 
-    NetWorker(RC::Ptr<Handler> hndl);
+    NetWorker(RC::Ptr<Handler> hndl, const RC::RStr& netWorkerType);
     ~NetWorker();
 
     // Rule of 3.
     NetWorker(const NetWorker&) = delete;
     NetWorker& operator=(const NetWorker&) = delete;
-
-    RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
-      TaskHandler(NetWorker::SetStatusPanel_Handler);
 
     RCqt::TaskCaller<const RC::RStr, const uint16_t> Listen =
       TaskHandler(NetWorker::Listen_Handler);
@@ -39,32 +36,22 @@ namespace CML {
       TaskHandler(NetWorker::WarnOnDisconnect_Handler);
 
     protected slots:
-    void NewConnection();
-    void DataReady();
-    void Disconnected();
+    virtual void NewConnection();
+    virtual void DataReady();
+    virtual void Disconnected();
 
     protected:
-    void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
-      status_panel = set_panel;
-    }
-
     void Listen_Handler(const RC::RStr& address, const uint16_t& port);
     void Close_Handler();
 
     bool IsConnected_Handler();
     void WarnOnDisconnect_Handler(const bool& warn);
 
-    void ProcessCommand(RC::RStr cmd);
+    virtual void ProcessCommand(RC::RStr cmd) = 0;
     void Respond(JSONFile& resp);
 
-    void ProtConfigure(const JSONFile& inp);
-    void ProtWord(const JSONFile& inp);
-
-    void Compare(RC::Data1D<RC::RStr>& errors, const RC::RStr& label,
-        const std::string& a, const std::string& b);
 
     RC::Ptr<Handler> hndl;
-    RC::Ptr<StatusPanel> status_panel;
     RC::APtr<QTcpServer> server;
     RC::APtr<QTcpSocket> con;
     RC::RStr buffer;
@@ -74,6 +61,8 @@ namespace CML {
 #ifdef NETWORKER_TIMING
     RC::Time timer;
 #endif // NETWORKER_TIMING
+    
+    RC::RStr netWorkerType = "";
   };
 }
 

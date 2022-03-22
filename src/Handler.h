@@ -12,7 +12,7 @@
 #include "Classifier.h"
 #include "EventLog.h"
 #include "ExperOPS.h"
-#include "NetWorker.h"
+#include "TaskNetWorker.h"
 #include "Settings.h"
 #include "StimWorker.h"
 #include "LocGUIConfig.h"
@@ -108,7 +108,7 @@ namespace CML {
     RC::APtr<FeatureFilters> feature_filters;
     RC::APtr<Classifier> classifier;
     RC::APtr<TaskStimManager> task_stim_manager;
-    NetWorker net_worker;
+    TaskNetWorker task_net_worker;
     EventLog event_log;
 
     private:

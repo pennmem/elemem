@@ -3,7 +3,6 @@
 #include "EventLog.h"
 #include "Handler.h"
 #include "JSONLines.h"
-#include "NetWorker.h"
 #include "StatusPanel.h"
 
 namespace CML {
