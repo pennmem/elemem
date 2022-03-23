@@ -36,11 +36,19 @@ namespace CML {
       TaskHandler(NetWorker::WarnOnDisconnect_Handler);
 
     protected slots:
-    virtual void NewConnection();
-    virtual void DataReady();
-    virtual void Disconnected();
+    void NewConnection();
+    void DataReady();
+    void Disconnected();
 
     protected:
+    virtual void NewConnectionBefore() {}
+    virtual void NewConnectionAfter() {}
+    virtual void DataReadyBefore() {}
+    virtual void DataReadyAfter() {}
+    virtual void DisconnectedBefore() {}
+    virtual void DisconnectedAfter() {}
+
+
     void Listen_Handler(const RC::RStr& address, const uint16_t& port);
     void Close_Handler();
 

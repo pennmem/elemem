@@ -1,5 +1,5 @@
-#ifndef TASKNETWORKER_H
-#define TASKNETWORKER_H
+#ifndef STIMNETWORKER_H
+#define STIMNETWORKER_H
 
 #include "NetWorker.h"
 
@@ -7,22 +7,23 @@ namespace CML {
   class Handler;
   class StatusPanel;
 
-  class TaskNetWorker : public NetWorker {
+  class StimNetWorker : public NetWorker {
     public:
 
-    TaskNetWorker(RC::Ptr<Handler> hndl);
-    ~TaskNetWorker() = default;
+    StimNetWorker(RC::Ptr<Handler> hndl);
+    ~StimNetWorker() = default;
 
     // Rule of 3.
-    TaskNetWorker(const TaskNetWorker&) = delete;
-    TaskNetWorker& operator=(const TaskNetWorker&) = delete;
+    StimNetWorker(const StimNetWorker&) = delete;
+    StimNetWorker& operator=(const StimNetWorker&) = delete;
 
     RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
-      TaskHandler(TaskNetWorker::SetStatusPanel_Handler);
+      TaskHandler(StimNetWorker::SetStatusPanel_Handler);
 
-    protected:
+    protected slots:
     void DisconnectedBefore() override;
 
+    protected:
     void ProcessCommand(RC::RStr cmd) override;
 
     void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel);
@@ -37,5 +38,5 @@ namespace CML {
   };
 }
 
-#endif // TASKNETWORKER_H
+#endif // STIMNETWORKER_H
 

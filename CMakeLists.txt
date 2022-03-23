@@ -178,6 +178,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/StatusPanel.cpp
   src/StimGUIConfig.h
   src/StimGUIConfig.cpp
+  src/StimNetWorker.h
+  src/StimNetWorker.cpp
   src/StimWorker.h
   src/StimWorker.cpp
   src/TaskClassifierManager.h

@@ -54,6 +54,7 @@ namespace CML {
   }
 
   void NetWorker::NewConnection() {
+    NewConnectionBefore();
     configured = false;
     if (server.IsNull()) {
       return;
@@ -64,9 +65,11 @@ namespace CML {
       connect(con, &QTcpSocket::disconnected, this, &NetWorker::Disconnected);
       connected = true;
     }
+    NewConnectionAfter();
   }
 
   void NetWorker::DataReady() {
+    DataReadyBefore();
     auto new_data = con->readAll();
     buffer += RStr(new_data.data(), size_t(new_data.size()));
     Data1D<RStr> split;
@@ -75,9 +78,11 @@ namespace CML {
       buffer = split[1];
       ProcessCommand(split[0]);
     }
+    DataReadyAfter();
   }
 
   void NetWorker::Disconnected() {
+    DisconnectedBefore();
     buffer.clear();
     if (stop_on_disconnect) {
       hndl->StopExperiment();
@@ -93,6 +98,7 @@ namespace CML {
                  "Click \"Stop Experiment\" to stop.");
       }
     }
+    DisconnectedAfter();
   }
 
   void NetWorker::Respond(JSONFile& resp) {
