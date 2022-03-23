@@ -1,4 +1,4 @@
-#include "TaskNetWorker.h"
+#include "StimNetWorker.h"
 #include "Handler.h"
 #include "JSONLines.h"
 #include "Popup.h"
@@ -8,19 +8,19 @@
 using namespace RC;
 
 namespace CML {
-  TaskNetWorker::TaskNetWorker(RC::Ptr<Handler> hndl)
-    : NetWorker(hndl, "Task"){
+  StimNetWorker::StimNetWorker(RC::Ptr<Handler> hndl)
+    : NetWorker(hndl, "Stim"){
   }
 
-  void TaskNetWorker::DisconnectedBefore() {
+  void StimNetWorker::DisconnectedBefore() {
     status_panel->Clear();
   }
 
-  void TaskNetWorker::SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
+  void StimNetWorker::SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
       status_panel = set_panel;
   }
 
-  void TaskNetWorker::ProcessCommand(RC::RStr cmd) {
+  void StimNetWorker::ProcessCommand(RC::RStr cmd) {
 #ifdef NETWORKER_TIMING
     timer.Start();
 #endif // NETWORKER_TIMING
@@ -131,7 +131,7 @@ namespace CML {
   }
 
 
-  void TaskNetWorker::ProtConfigure(const JSONFile& inp) {
+  void StimNetWorker::ProtConfigure(const JSONFile& inp) {
     Data1D<RStr> errors;
     Data1D<RStr> stimtags;
 
@@ -180,7 +180,7 @@ namespace CML {
     }
   }
 
-  void TaskNetWorker::ProtWord(const JSONFile& inp) {
+  void StimNetWorker::ProtWord(const JSONFile& inp) {
     bool do_stim;
 
     if (inp.TryGet(do_stim, "data", "stim")) {
@@ -190,7 +190,7 @@ namespace CML {
     }
   }
 
-  void TaskNetWorker::Compare(Data1D<RStr>& errors, const RC::RStr& label,
+  void StimNetWorker::Compare(Data1D<RStr>& errors, const RC::RStr& label,
       const std::string& a, const std::string& b) {
     if (RStr(a).ToLower() != RStr(b).ToLower()) {
       errors += RStr(label + " does not match, task: " + a + ", host: " + b);
