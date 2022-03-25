@@ -15,6 +15,9 @@ namespace CML {
 
     StimWorker(RC::Ptr<Handler> hndl);
 
+    RCqt::TaskCaller<RC::APtr<StimInterface>> SetStimInterface =
+      TaskHandler(StimWorker::SetStimInterface_Handler);
+
     RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
       TaskHandler(StimWorker::SetStatusPanel_Handler);
 
@@ -34,6 +37,7 @@ namespace CML {
       status_panel = set_panel;
     }
 
+	void SetStimInterface_Handler(RC::APtr<StimInterface>& new_interface);
     void ConfigureStimulation_Handler(const StimProfile& profile);
     void Stimulate_Handler();
 
