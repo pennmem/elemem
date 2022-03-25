@@ -22,6 +22,8 @@
 #include <unistd.h>
 #include <QtCore>
 
+#include "RC/APtr.h"
+
 
 using namespace std;
 using namespace CML;
@@ -54,14 +56,14 @@ namespace APITests {
   void CereStimTest() {
     cout << "Stimulation Test:" << endl;
 
-    CereStim cerestim;
+    RC::APtr<StimInterface> cerestim = new CereStim();
 
     cout << "Connected." << endl;
 
     cout << "Configuring." << endl;
 
-    CSStimProfile prof;
-    CSStimChannel chan;
+    StimProfile prof;
+    StimChannel chan;
 
     chan.electrode_pos = 1;
     chan.electrode_neg = 2;
@@ -81,10 +83,10 @@ namespace APITests {
 
     prof += chan;
 
-    cerestim.ConfigureStimulation(prof);
+    cerestim->ConfigureStimulation(prof);
 
     cout << "Stimulating." << endl;
-    cerestim.Stimulate();
+    cerestim->Stimulate();
 
     sleep(2);
 

@@ -56,7 +56,8 @@ namespace CML {
     void WarnOnDisconnect_Handler(const bool& warn);
 
     virtual void ProcessCommand(RC::RStr cmd) = 0;
-    void Respond(JSONFile& resp);
+    void Send(JSONFile& msg);
+    void Send(const RC::RStr& msg);
 
 
     RC::Ptr<Handler> hndl;

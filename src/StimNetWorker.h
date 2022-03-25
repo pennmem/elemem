@@ -2,15 +2,22 @@
 #define STIMNETWORKER_H
 
 #include "NetWorker.h"
+#include "StimInterface.h"
 
 namespace CML {
   class Handler;
   class StatusPanel;
 
-  class StimNetWorker : public NetWorker {
+  class StimNetWorkerSettings {
     public:
+      RC::RStr ip;
+      uint16_t port;
+      RC::RStr subject;
+  };
 
-    StimNetWorker(RC::Ptr<Handler> hndl);
+  class StimNetWorker : public StimInterface, public NetWorker {
+    public:
+    StimNetWorker(RC::Ptr<Handler> hndl, const StimNetWorkerSettings& settings);
     ~StimNetWorker() = default;
 
     // Rule of 3.
@@ -20,21 +27,24 @@ namespace CML {
     RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
       TaskHandler(StimNetWorker::SetStatusPanel_Handler);
 
+
     protected slots:
     void DisconnectedBefore() override;
 
+
     protected:
+    void ConfigureStimulationHelper(StimProfile profile) override;
+    void StimulateHelper() override;
+    void OpenHelper() override;
+    void CloseHelper() override;
+
     void ProcessCommand(RC::RStr cmd) override;
 
     void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel);
 
-    void ProtConfigure(const JSONFile& inp);
-    void ProtWord(const JSONFile& inp);
-
-    void Compare(RC::Data1D<RC::RStr>& errors, const RC::RStr& label,
-        const std::string& a, const std::string& b);
-
     RC::Ptr<StatusPanel> status_panel;
+
+    StimNetWorkerSettings settings;
   };
 }
 
