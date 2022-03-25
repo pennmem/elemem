@@ -21,7 +21,16 @@ namespace CML {
 
   }
 
+  void StimWorker::SetStimInterface_Handler(RC::APtr<StimInterface>& new_interface) {
+    stim_interface = new_interface;
+  }
+
   void StimWorker::ConfigureStimulation_Handler(const StimProfile& profile) {
+    if (stim_interface.IsNull()) {
+      // TODO: JPB: (need) Should I make an error window here?
+      return;
+	}
+
     cur_profile = profile;
     stim_interface->ConfigureStimulation(profile);
 
@@ -33,6 +42,11 @@ namespace CML {
 
 
   void StimWorker::Stimulate_Handler() {
+    if (stim_interface.IsNull()) {
+      // TODO: JPB: (need) Should I make an error window here?
+      return;
+	}
+	
     size_t num_bursts = 1;
     f64 burst_period = 0;
     if (stim_interface->GetBurstSlowFreq() != 0) {

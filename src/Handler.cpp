@@ -10,6 +10,7 @@
 #include "Cerebus.h"
 #endif
 #include "CerebusSim.h"
+#include "StimNetWorker.h"
 #include "ClassifierLogReg.h"
 #include "EDFReplay.h"
 #include "EDFSynch.h"
@@ -72,6 +73,7 @@ namespace CML {
 
     settings.LoadSystemConfig();
 
+	// EEG System
     RC::RStr eeg_system;
     settings.sys_config->Get(eeg_system, "eeg_system");
     RC::APtr<EEGSource> eeg_source;
@@ -98,6 +100,21 @@ namespace CML {
     }
     eeg_acq.SetSource(eeg_source);
     InitializeChannels_Handler();
+
+    // Stim System
+    RC::RStr stim_system;
+    settings.sys_config->Get(stim_system, "stim_system");
+    RC::APtr<StimInterface> stim_interface;
+    if (stim_system == "Cerebus") {
+      stim_interface = new CereStim();
+    } 
+    else if (stim_system == "StimNetWorker") {
+      stim_interface = new StimNetWorker(this, {"127.0.0.1", 8901, "TEMP"});
+    }
+    else {
+      Throw_RC_Type(File, "Unknown sys_config.json stim_system value");
+    }
+    stim_worker.SetStimInterface(stim_interface);
   }
 
   void Handler::Initialize_Handler() {
