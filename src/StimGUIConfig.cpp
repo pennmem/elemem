@@ -51,8 +51,8 @@ namespace CML {
   }
 
 
-  void StimConfigBox::SetChannel_Handler(const CSStimChannel& minvals,
-      const CSStimChannel& maxvals, const RC::RStr& label,
+  void StimConfigBox::SetChannel_Handler(const StimChannel& minvals,
+      const StimChannel& maxvals, const RC::RStr& label,
       const RC::RStr& stimtag, const size_t& index) {
     disabled = true;
     RC::RStr new_title = RStr(minvals.electrode_pos) + "_" +
@@ -76,7 +76,7 @@ namespace CML {
     SetEnabled_Handler(true);
   }
 
-  void StimConfigBox::SetParameters_Handler(const CSStimChannel& params) {
+  void StimConfigBox::SetParameters_Handler(const StimChannel& params) {
     disabled = true;
     settings.params = params;
     amp->Set(params.amplitude * 1e-3);

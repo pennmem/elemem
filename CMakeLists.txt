@@ -176,6 +176,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Settings.cpp
   src/StatusPanel.h
   src/StatusPanel.cpp
+  src/StimInterface.h
   src/StimGUIConfig.h
   src/StimGUIConfig.cpp
   src/StimNetWorker.h

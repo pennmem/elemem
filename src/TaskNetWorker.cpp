@@ -45,8 +45,8 @@ namespace CML {
     RC_DEBOUT(type);
 
     if (type == "CONNECTED") {
-      JSONFile resp = MakeResp("CONNECTED_OK");
-      Respond(resp);
+      JSONFile response = MakeResp("CONNECTED_OK");
+      Send(response);
       status_panel->SetEvent(type);
     }
     else if (type == "CONFIGURE") {
@@ -60,18 +60,18 @@ namespace CML {
       }
       if (type == "READY") {
         hndl->eeg_acq.StartingExperiment();  // notify, replay needs this.
-        JSONFile resp = MakeResp("START");
-        Respond(resp);
+        JSONFile response = MakeResp("START");
+        Send(response);
       }
       else if (type == "HEARTBEAT") {
-        JSONFile resp = MakeResp("HEARTBEAT_OK");
+        JSONFile response = MakeResp("HEARTBEAT_OK");
         try {
           uint64_t count;
           inp.Get(count, "data", "count");
-          resp.Set(count, "data", "count");
+          response.Set(count, "data", "count");
         }
         catch (...) { }
-        Respond(resp);
+        Send(response);
       }
       else if (type == "WORD") {
         ProtWord(inp);
@@ -164,19 +164,19 @@ namespace CML {
       errors += RStr(e.what()).SplitFirst("\n")[0];
     }
     if (errors.size() > 0) {
-      JSONFile resp = MakeResp("CONFIGURE_ERROR");
+      JSONFile response = MakeResp("CONFIGURE_ERROR");
       RStr json_msg = RC::RStr::Join(errors, "; ");
-      resp.Set(json_msg.c_str(), "data", "error");
-      Respond(resp);
+      response.Set(json_msg.c_str(), "data", "error");
+      Send(response);
 
       hndl->StopExperiment();
       RStr human_msg = RC::RStr::Join(errors, "\n");
       ErrorWin("Experiment halted, configuration error:\n" + human_msg);
     }
     else {
-      JSONFile resp = MakeResp("CONFIGURE_OK");
+      JSONFile response = MakeResp("CONFIGURE_OK");
       configured = true;
-      Respond(resp);
+      Send(response);
     }
   }
 

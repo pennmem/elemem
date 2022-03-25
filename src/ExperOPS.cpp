@@ -18,13 +18,13 @@ namespace CML {
   }
 
   void ExperOPS::SetStimProfiles_Handler(
-        const RC::Data1D<CSStimProfile>& new_stim_profiles) {
+        const RC::Data1D<StimProfile>& new_stim_profiles) {
     stim_profiles = new_stim_profiles;
 
     // Build all the stim grid events with ISI between.
     exp_events.Clear();
     for (size_t p=0; p<stim_profiles.size(); p++) {
-      const CSStimChannel& stim_info = stim_profiles[p][0];
+      const StimChannel& stim_info = stim_profiles[p][0];
 
       // Stim events for each grid cell's stim profile.
       for (size_t e=0; e<ops_specs.num_stim_trials; e++) {

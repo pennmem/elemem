@@ -101,17 +101,22 @@ namespace CML {
     DisconnectedAfter();
   }
 
-  void NetWorker::Respond(JSONFile& resp) {
-    RStr line = resp.Line();
-    hndl->event_log.Log(line);
+  void NetWorker::Send(JSONFile& msg) {
+    RStr line = msg.Line();
+    Send(line);
+  }
 
-    if (con->write(line.c_str(), qint64(line.size())) != qint64(line.size())) {
+  void NetWorker::Send(const RC::RStr& msg) {
+    hndl->event_log.Log(msg);
+
+    if (con->write(msg.c_str(), qint64(msg.size())) != qint64(msg.size())) {
       Close_Handler();
     }
 #ifdef NETWORKER_TIMING
     cout << (RC::RStr("Response time: ") +
              RC::RStr(timer.SinceStart()) + "\n");
 #endif // NETWORKER_TIMING
+
   }
 }
 

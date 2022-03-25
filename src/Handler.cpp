@@ -218,7 +218,7 @@ namespace CML {
       return;
     }
 
-    CSStimProfile profile;
+    StimProfile profile;
     profile += settings.stimconf[index].params;
 
     stim_worker.ConfigureStimulation(profile);
@@ -240,8 +240,8 @@ namespace CML {
       return;
     }
 
-    CSStimProfile profile;
-    CSStimChannel stimchan =
+    StimProfile profile;
+    StimChannel stimchan =
       settings.stimconf[settings.stimloctest_chanind].params;
     stimchan.amplitude = settings.stimgrid_amp_uA[settings.stimloctest_amp];
     stimchan.frequency = settings.stimgrid_freq_Hz[settings.stimloctest_freq];
@@ -316,7 +316,7 @@ namespace CML {
           "stimulation experiment.");
     }
 
-    CSStimProfile profile;
+    StimProfile profile;
     for (size_t c=0; c<settings.stimconf.size(); c++) {
       if (settings.stimconf[c].approved &&
           (settings.stimconf[c].stimtag == stimtag)) {
@@ -349,13 +349,13 @@ namespace CML {
         return;
       }
 
-      Data1D<CSStimProfile> grid_profiles = CreateGridProfiles();
+      Data1D<StimProfile> grid_profiles = CreateGridProfiles();
       exper_ops.SetOPSSpecs(settings.ops_specs);
       exper_ops.SetStimProfiles(grid_profiles);
     }
     else {
       // Count all approved.
-      CSStimProfile cnt_profile;
+      StimProfile cnt_profile;
       for (size_t c=0; c<settings.stimconf.size(); c++) {
         if (settings.stimconf[c].approved) {
           cnt_profile += settings.stimconf[c].params;
@@ -374,7 +374,7 @@ namespace CML {
       }
 
       // But default select only those with no stimtag.
-      CSStimProfile profile;
+      StimProfile profile;
       for (size_t c=0; c<settings.stimconf.size(); c++) {
         if (settings.stimconf[c].approved &&
             settings.stimconf[c].stimtag.empty()) {
@@ -662,8 +662,8 @@ namespace CML {
   }
 
 
-  RC::Data1D<CSStimProfile> Handler::CreateGridProfiles() {
-    Data1D<CSStimProfile> grid_profiles;
+  RC::Data1D<StimProfile> Handler::CreateGridProfiles() {
+    Data1D<StimProfile> grid_profiles;
 
     for (size_t c=0; c<settings.stimgrid_chan_on.size(); c++) {
       if (!settings.stimgrid_chan_on[c]) { continue; }
@@ -678,12 +678,12 @@ namespace CML {
             if (!settings.stimgrid_dur_on[d]) { continue; }
             auto& dur = settings.stimgrid_dur_us[d];
 
-            CSStimChannel target = chan.params;
+            StimChannel target = chan.params;
             target.amplitude = amp;
             target.frequency = freq;
             target.duration = dur;
 
-            CSStimProfile profile;
+            StimProfile profile;
             profile += target;
 
             grid_profiles += profile;
