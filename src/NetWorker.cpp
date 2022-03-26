@@ -64,6 +64,7 @@ namespace CML {
       connect(con, &QTcpSocket::readyRead, this, &NetWorker::DataReady);
       connect(con, &QTcpSocket::disconnected, this, &NetWorker::Disconnected);
       connected = true;
+	  NewConnectionMade();
     }
     NewConnectionAfter();
   }
@@ -102,16 +103,35 @@ namespace CML {
   }
 
   void NetWorker::Send(JSONFile& msg) {
-    RStr line = msg.Line();
-    Send(line);
+    if (!con.IsSet()) {
+      ErrorWin("Tried to send something via NetWorker before connection was made");
+	}
+
+	RC::RStr line = msg.Line();
+    hndl->event_log.Log(line);
+
+    if (con->write(line.c_str(), qint64(line.size())) != qint64(line.size())) {
+      Close_Handler();
+    }
+#ifdef NETWORKER_TIMING
+    cout << (RC::RStr("Response time: ") +
+             RC::RStr(timer.SinceStart()) + "\n");
+#endif // NETWORKER_TIMING
   }
 
   void NetWorker::Send(const RC::RStr& msg) {
+    if (!con.IsSet()) {
+      ErrorWin("Tried to send something via NetWorker before connection was made");
+	}
+
+    // TODO: JPB: (need) Make this output json to log
     hndl->event_log.Log(msg);
 
+	RC_DEBOUT(msg);
     if (con->write(msg.c_str(), qint64(msg.size())) != qint64(msg.size())) {
       Close_Handler();
     }
+	RC_DEBOUT(msg);
 #ifdef NETWORKER_TIMING
     cout << (RC::RStr("Response time: ") +
              RC::RStr(timer.SinceStart()) + "\n");

@@ -43,6 +43,7 @@ namespace CML {
     protected:
     virtual void NewConnectionBefore() {}
     virtual void NewConnectionAfter() {}
+    virtual void NewConnectionMade() {}
     virtual void DataReadyBefore() {}
     virtual void DataReadyAfter() {}
     virtual void DisconnectedBefore() {}
