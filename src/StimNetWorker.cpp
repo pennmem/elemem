@@ -17,6 +17,19 @@ namespace CML {
   }
 
   void StimNetWorker::ConfigureStimulationHelper(StimProfile profile) {
+    // CONNECT (this is here because it needs the experiment to be loaded first)
+    std::string subject;
+    try {
+      auto conf = hndl->GetConfig();
+	  conf.exp_config->Get(subject, "subject");
+    } catch (ErrorMsg& e){
+      Throw_RC_Error(("Could not find subject in experiment config."
+              "The experiment likely has not been loaded yet." + 
+               RStr(e.what()).SplitFirst("\n")[0]).c_str());
+    }
+    Send(subject); // Subject number
+
+    // CONFIGURE
     RC::RStr config = "SPSTIMCONFIG," + RC::RStr(profile.size());
     RC_ForRange(i, 0, profile.size()) {
       const StimChannel& sc = profile[i];
@@ -31,20 +44,7 @@ namespace CML {
   }
 
   void StimNetWorker::OpenHelper() {
-    RC_DEBOUT(RC::RStr("TESTING"));
-
-    std::string subject;
-    try {
-      auto conf = hndl->GetConfig();
-	  conf.exp_config->Get(subject, "subject");
-    } catch (ErrorMsg& e){
-      Throw_RC_Error(("Could not find subject in experiment config."
-              "The experiment likely has not been loaded yet." + 
-               RStr(e.what()).SplitFirst("\n")[0]).c_str());
-    }
-
     Listen(settings.ip, settings.port); // ip and port
-    Send(subject); // Subject number
   }
 
   void StimNetWorker::CloseHelper() {
@@ -72,6 +72,7 @@ namespace CML {
       // Do Nothing
     }
     else if (cmdName != "SPERROR") {
+      // TODO: JPB: (need) Make this stop the experiment
       ErrorWin("Stim client error: " + cmdVals);
     }
     else if (cmdName != "SPSTIMCONFIGDONE") {

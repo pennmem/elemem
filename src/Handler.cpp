@@ -119,6 +119,7 @@ namespace CML {
       Throw_RC_Type(File, "Unknown sys_config.json stim_system value");
     }
     stim_worker.SetStimInterface(stim_interface);
+	stim_worker.Open(); // TODO: JPB: (need) Move the stim_worker Open() call?
   }
 
   void Handler::Initialize_Handler() {

@@ -8,8 +8,6 @@
 namespace CML {
   StimWorker::StimWorker(RC::Ptr<Handler> hndl)
     : hndl(hndl) {
-	// TODO:JPB: (need) Move this to Handler.cpp
-	stim_interface = new CereStim();
   }
 
   StimulatorType StimWorker::GetStimulatorType() const {
@@ -25,13 +23,19 @@ namespace CML {
     stim_interface = new_interface;
   }
 
-  void StimWorker::ConfigureStimulation_Handler(const StimProfile& profile) {
+  void StimWorker::Open_Handler() {
     if (stim_interface.IsNull()) {
 	  Throw_RC_Error("The stim_interface in StimWorker is null on Configure");
 	}
 
     stim_interface->Close();
     stim_interface->Open();
+  }
+
+  void StimWorker::ConfigureStimulation_Handler(const StimProfile& profile) {
+    if (stim_interface.IsNull()) {
+	  Throw_RC_Error("The stim_interface in StimWorker is null on Configure");
+	}
 
     cur_profile = profile;
     stim_interface->ConfigureStimulation(profile);
