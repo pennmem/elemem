@@ -12,7 +12,6 @@ namespace CML {
     public:
       RC::RStr ip;
       uint16_t port;
-      RC::RStr subject;
   };
 
   class StimNetWorker : public StimInterface, public NetWorker {

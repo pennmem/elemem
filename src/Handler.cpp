@@ -105,11 +105,15 @@ namespace CML {
     RC::RStr stim_system;
     settings.sys_config->Get(stim_system, "stim_system");
     RC::APtr<StimInterface> stim_interface;
-    if (stim_system == "Cerebus") {
+    if (stim_system == "CereStim") {
       stim_interface = new CereStim();
     } 
     else if (stim_system == "StimNetWorker") {
-      stim_interface = new StimNetWorker(this, {"127.0.0.1", 8901, "TEMP"});
+      std::string stim_ip;
+      uint16_t stim_port;
+	  settings.sys_config->Get(stim_ip, "stimcom_ip");
+      settings.sys_config->Get(stim_port, "stimcom_port");
+      stim_interface = new StimNetWorker(this, {.ip=stim_ip, .port=stim_port});
     }
     else {
       Throw_RC_Type(File, "Unknown sys_config.json stim_system value");
