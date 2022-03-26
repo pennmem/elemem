@@ -31,12 +31,26 @@ namespace CML {
   }
 
   void StimNetWorker::OpenHelper() {
+    RC_DEBOUT(RC::RStr("TESTING"));
+
+    std::string subject;
+    try {
+      auto conf = hndl->GetConfig();
+	  conf.exp_config->Get(subject, "subject");
+    } catch (ErrorMsg& e){
+      Throw_RC_Error(("Could not find subject in experiment config."
+              "The experiment likely has not been loaded yet." + 
+               RStr(e.what()).SplitFirst("\n")[0]).c_str());
+    }
+
     Listen(settings.ip, settings.port); // ip and port
-    Send(settings.subject); // Subject number
+    Send(subject); // Subject number
   }
 
   void StimNetWorker::CloseHelper() {
     // Other device closes on disconnect
+	// TODO: JPB: (need) Diamond Inheritance
+	//Close();
   }
 
   void StimNetWorker::SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {

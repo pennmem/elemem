@@ -27,9 +27,11 @@ namespace CML {
 
   void StimWorker::ConfigureStimulation_Handler(const StimProfile& profile) {
     if (stim_interface.IsNull()) {
-      // TODO: JPB: (need) Should I make an error window here?
-      return;
+	  Throw_RC_Error("The stim_interface in StimWorker is null on Configure");
 	}
+
+    stim_interface->Close();
+    stim_interface->Open();
 
     cur_profile = profile;
     stim_interface->ConfigureStimulation(profile);
@@ -43,8 +45,7 @@ namespace CML {
 
   void StimWorker::Stimulate_Handler() {
     if (stim_interface.IsNull()) {
-      // TODO: JPB: (need) Should I make an error window here?
-      return;
+	  Throw_RC_Error("The stim_interface in StimWorker is null on Stimulate");
 	}
 	
     size_t num_bursts = 1;
