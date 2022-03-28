@@ -65,7 +65,7 @@ namespace CML {
     for (size_t i = 0; i < n_searches + 1; i++) { search_order += i; }
     // TODO: RDD: determine adequate number of sham events
     // add extra sham events for stability
-    if (n_searches > 5) { search_order += 0; }
+    // if (n_searches > 5) { search_order += 0; }
     param_bounds.clear();
     // for now give all searches the same kernels and kernel hyperparameters
     vector<CCmpndKern> kernels;
@@ -395,7 +395,7 @@ namespace CML {
       next_min_event_time = cur_time_ms + normalize_lockout_ms;
       if (abs_EEG_collection_times.size() < n_normalize_events) {
         #ifdef DEBUG_EXPERCPS
-        RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler normalization event\n"));
+        RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler request normalization event\n"));
         #endif
         // TODO log event info
         // TODO consider adding some jitter here and to timeouts in general
@@ -404,7 +404,7 @@ namespace CML {
       else if (abs_EEG_collection_times.size() == n_normalize_events) {
         // TODO log event info
         #ifdef DEBUG_EXPERCPS
-        RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler sham event\n"));
+        RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler request sham event\n"));
         #endif
         next_classif_state = ClassificationType::SHAM;
       }
@@ -429,9 +429,9 @@ namespace CML {
 
   void ExperCPS::StimDecision_Handler(const bool& stim_event, const TaskClassifierSettings& classif_settings, const f64& stim_time_from_start_sec) {
     // TODO: RDD: add docstrings for all functions
-    // #ifdef DEBUG_EXPERCPS
-    // RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler\n"));
-    // #endif
+    #ifdef DEBUG_EXPERCPS
+    RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler\n"));
+    #endif
 
     uint64_t cur_time_ms = uint64_t(1000*(stim_time_from_start_sec - exp_start)+0.5);
 
@@ -471,8 +471,8 @@ namespace CML {
       if (stim_event) { // stim event occurred or would have occurred if the event were not a sham
         #ifdef DEBUG_EXPERCPS
         if (classif_state == ClassificationType::STIM)
-          { RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: stim decision\n")); }
-        else { RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: sham decision\n")); }
+          { RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: stim event received\n")); }
+        else { RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: sham event received\n")); }
         #endif
         // TODO handle cases where say stim duration not equal between given and used params
         //      use assert as a placeholder for initial testing
@@ -531,8 +531,8 @@ namespace CML {
       
       // Randomize experiment events. Ensure searches and/or shams are not repeated consecutively.
       search_order_idx++;
-      if (search_order_idx == n_searches) {
-        size_t prev_search = search_order[n_searches - 1];
+      if (search_order_idx == search_order.size()) {
+        size_t prev_search = search_order[search_order.size() - 1];
         bool two_in_row = true;
         while (search_order[0] == prev_search || two_in_row) {
           search_order.Shuffle();
@@ -543,7 +543,18 @@ namespace CML {
         }
         search_order_idx = 0;
       }
-      if (search_order[search_order_idx]) { next_classif_state = ClassificationType::STIM; }
+      if (search_order[search_order_idx]) {
+        next_classif_state = ClassificationType::STIM;
+        // run pre-event (stim configuration) once stim parameters are available (after any randomization)
+        // if needed, could reduce latency after sham events by configuring next stim set earlier 
+        // immediately after sham events
+        if (cur_ev < exp_events.size()) {
+          unsigned int next_idx = search_order[search_order_idx];
+          CSStimProfile next_stim_profile = stim_profiles[next_idx][stim_profiles[next_idx].size() - 1];
+          DoConfigEvent(next_stim_profile);
+        }
+        else { Throw_RC_Error("Event requested before being allocated by the search process."); }
+      }
       else {
         next_classif_state = ClassificationType::SHAM;
         // TODO: RDD: set sham duration/event info? how are sham events controlled in StimulationManager?
@@ -551,17 +562,6 @@ namespace CML {
       // TODO: RDD: log model_idxs separately in experimental data log; already technically included in stored stim param profiles
       model_idxs += search_order[search_order_idx];
 
-      // run pre-event (stim configuration) as soon as stim parameters are available (after any randomization)
-      if (!prev_sham) {
-        if (cur_ev < exp_events.size()) {
-          unsigned int next_idx = search_order[search_order_idx];
-          CSStimProfile next_stim_profile = stim_profiles[next_idx][stim_profiles[next_idx].size() - 1];
-          DoConfigEvent(next_stim_profile);
-        }
-        else {
-          Throw_RC_Error("Event requested before being allocated by the search process.");
-        }
-      }
       status_panel->SetEvent("CLASSIFYING");
     }
     else if (classif_state == ClassificationType::NORMALIZE) {

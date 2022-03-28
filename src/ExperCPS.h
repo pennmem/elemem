@@ -115,6 +115,10 @@ namespace CML {
     double obsNoise;
     double exp_bias;
     int n_init_samples;
+    // number of discrete search locations (or more precisely, number of continuous discrete search spaces, 
+    // i.e. a single location could have different isolated blocks of stim parameters allowed for search, e.g.
+    // search is allowed from 1-10 Hz and from 50-100 Hz for a single stim location. Both ranges are searched
+    // separately)
     int n_searches;
     double pval_threshold;
     int verbosity;
