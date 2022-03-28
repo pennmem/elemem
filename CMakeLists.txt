@@ -68,6 +68,7 @@ if(APPLE)
   set (F2CLIB "-L/usr/local/lib/gcc/7/ -lgfortran")
 
   set (BAYES_DIR "include/BayesGPc")
+  set (BOOST_DIR "include/boost")
   set (OPTIMDIR "include/optim/header_only_version")
   set (OPTIMFLAG "-march=native -ffp-contract=fast")
   #set (EIGENDIR "include")
@@ -77,6 +78,7 @@ if(APPLE)
   set (MATPLOTLINKFLAG "-lmatplot")
 
   include_directories(${BAYES_DIR}
+                      ${BOOST_DIR}
                       ${OPTIMDIR}
                       ${EIGENDIR}
                       ${NPYINCLUDEDIR}
@@ -93,7 +95,7 @@ if(APPLE)
   # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
 
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMFLAG} -mmacosx-version-min=11.0 -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast -DBOOST_MATH_STANDALONE")
 endif(APPLE)
 if(WIN32)
 #  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1")
@@ -110,6 +112,7 @@ if(WIN32)
   set (F2CLIB "-L${CMAKE_COMPILER_DIR} -lgfortran")
 
   set (BAYES_DIR "include/BayesGPc")
+  set (BOOST_DIR "include/boost")
   set (OPTIMDIR "include/optim/header_only_version")
   set (OPTIMFLAG "-march=native -ffp-contract=fast")
   #set (EIGENDIR "include")
@@ -119,6 +122,7 @@ if(WIN32)
 #  set (MATPLOTLINKFLAG "-lmatplot")
 
   include_directories(${BAYES_DIR}
+                      ${BOOST_DIR}
                       ${OPTIMDIR}
                       ${EIGENDIR}
 #                      ${NPYINCLUDEDIR}
@@ -136,7 +140,7 @@ if(WIN32)
 
 #  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMFLAG} -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMFLAG} -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses -Wno-error=non-template-friend")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast -DBOOST_MATH_STANDALONE")
 endif(WIN32)
 
 set (BAYES_FILES
@@ -144,6 +148,8 @@ set (BAYES_FILES
   ${BAYES_DIR}/CSearchComparison.h
   ${BAYES_DIR}/CBayesianSearch.cpp
   ${BAYES_DIR}/CBayesianSearch.h
+  ${BAYES_DIR}/GridSearch.cpp
+  ${BAYES_DIR}/GridSearch.h
   ${BAYES_DIR}/CGp.cpp
   ${BAYES_DIR}/CGp.h
   ${BAYES_DIR}/CMltools.cpp

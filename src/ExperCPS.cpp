@@ -261,8 +261,6 @@ namespace CML {
     if (timer.IsSet()) {
       timer->stop();
     }
-
-    hndl->event_log.Log(stoplog.Line());
   }
 
 
@@ -322,6 +320,7 @@ namespace CML {
 
     Stop_Handler();
     JSONFile stoplog = MakeResp("EXIT");
+    hndl->event_log.Log(stoplog.Line());
     hndl->StopExperiment();
   }
 
