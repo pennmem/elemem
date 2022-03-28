@@ -7,7 +7,3 @@
 [submodule "include/cnpy"]
 	path = include/cnpy
 	url = git@github.com:rogersce/cnpy.git
-[submodule "include/optim"]
-	path = include/optim
-	url = git@github.com:kthohr/optim.git
-

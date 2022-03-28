@@ -43,12 +43,10 @@ namespace CML {
     // JAMES: WHAT WAS PREVIOUSLY HERE WAS NOT CORRECT. SEE COMMENT BELOW. FOR SHAM EVENTS, WE STILL NEED TO KNOW WHETHER THE EVENT WAS DETECTED AS BEING IN A BAD/GOOD MEM STATE, NOT JUST WHETHER A STIM EVENT ACTUALLY OCCURRED
     // return whether or not a bad memory state was detected with <stim>, 
     // not whether a stim event actually occurred (that can be determined with task_classifier_settings).
-    if (callback.IsSet()) {
-      if (stim_type && stim) {
-        hndl->stim_worker.Stimulate();
-      }
-      callback(stim, task_classifier_settings, stim_time_from_start_sec);
+    if (stim_type && stim) {
+      hndl->stim_worker.Stimulate();
     }
+    callback(stim, task_classifier_settings, stim_time_from_start_sec);
   }
 
   void TaskStimManager::SetCallback_Handler(const TaskStimCallback& new_callback) {

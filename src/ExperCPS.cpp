@@ -24,11 +24,11 @@ namespace CML {
 
     // cnpy::npz_t npz_dict;
     // CKern* k = getSklearnKernel((unsigned int)n_var, npz_dict, kernel, std::string(""), true);
-    k = new CMatern32Kern(n_var);
+    CMatern32Kern k(n_var);
     kern = CCmpndKern(n_var);
-    kern.addKern(k);
-    whitek = new CWhiteKern(n_var);
-    kern.addKern(whitek);
+    kern.addKern(&k);
+    CWhiteKern whitek(n_var);
+    kern.addKern(&whitek);
     CMatrix b(1, 2);
     b(0, 0) = 0.1;
     b(0, 1) = 2.0;
@@ -54,12 +54,6 @@ namespace CML {
     // classifier event counter
     classif_id = 0;
     search_order_idx = 0;
-  }
-
-  ExperCPS::~ExperCPS() {
-    delete k;
-    delete whitek;
-    Stop_Handler();
   }
 
   void ExperCPS::SetStimProfiles_Handler(
@@ -268,7 +262,6 @@ namespace CML {
       timer->stop();
     }
 
-    JSONFile stoplog = MakeResp("EXIT");
     hndl->event_log.Log(stoplog.Line());
   }
 
@@ -328,6 +321,7 @@ namespace CML {
     hndl->event_log.Log(data_log.Line());
 
     Stop_Handler();
+    JSONFile stoplog = MakeResp("EXIT");
     hndl->StopExperiment();
   }
 

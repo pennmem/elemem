@@ -118,9 +118,7 @@ namespace CML {
     int n_searches;
     double pval_threshold;
     int verbosity;
-    CKern* k;
     CCmpndKern kern;
-    CWhiteKern* whitek;
     CSearchComparison search;
 
     RC::Ptr<Handler> hndl;

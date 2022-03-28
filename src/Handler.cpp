@@ -355,7 +355,7 @@ namespace CML {
       exper_ops.SetOPSSpecs(settings.ops_specs);
       exper_ops.SetStimProfiles(grid_profiles);
     }
-    else if (!settings.task_driven) {  // CPS
+    else if (settings.exper.find("CPS") == 0) {
       // from OPS-style configuration attempt
       // Data1D<CSStimProfile> discrete_stim_param_sets = CreateDiscreteStimProfiles();
 
@@ -482,7 +482,7 @@ namespace CML {
     if (settings.grid_exper) {
       exper_ops.Start();
     }
-    else if (!settings.task_driven) {  // CPS
+    else if (settings.exper.find("CPS") == 0) {
       RC_DEBOUT(RC::RStr("Handler.cpp::StartExperiment_Handler CPS\n"));
       exper_cps.Start();
     }
@@ -632,7 +632,7 @@ namespace CML {
       if (settings.grid_exper) {
         settings.LoadStimParamGrid();
       }
-      else if (!settings.task_driven) {  // then CPS
+      else if (settings.exper.find("CPS") == 0) {
         settings.LoadStimParamsCPS();
       }
     }
