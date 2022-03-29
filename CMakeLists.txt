@@ -55,8 +55,7 @@ enable_language(Fortran)
 set(CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
 
 if(APPLE)
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=11.0")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1 -mmacosx-version-min=11.0")
 
   # CBayes dependencies
   set (LAPACKLIBS "-llapack -lblas -lc")
