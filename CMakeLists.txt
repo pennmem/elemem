@@ -69,32 +69,14 @@ if(APPLE)
 
   set (BAYES_DIR "include/BayesGPc")
   set (BOOST_DIR "include/boost")
-  set (OPTIMDIR "include/optim/header_only_version")
-  set (OPTIMFLAG "-march=native -ffp-contract=fast")
-  #set (EIGENDIR "include")
-  set (NPYINCLUDEDIR "include/cnpy")
-  set (NPYLINKFLAG "-L/usr/local/lib -lcnpy -lz")
   set (MATPLOT_INCLUDE_DIRS "matplot")
   set (MATPLOTLINKFLAG "-lmatplot")
 
   include_directories(${BAYES_DIR}
                       ${BOOST_DIR}
-                      ${OPTIMDIR}
-                      ${EIGENDIR}
-                      ${NPYINCLUDEDIR}
-                      ${MATPLOT_INCLUDE_DIRS}
                       )
-  # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
-  #link_directories(${LAPACKLIBS}
-  #                 ${F2CLIB}
-  #                 ${NPYLINKFLAG}
-  #                 ${MATPLOTLINKFLAG}
-  #                 )
-  # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
-  # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
-  # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
 
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMFLAG} -mmacosx-version-min=11.0 -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=11.0 -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast -DBOOST_MATH_STANDALONE -DDBG")
 endif(APPLE)
 if(WIN32)
@@ -113,33 +95,12 @@ if(WIN32)
 
   set (BAYES_DIR "include/BayesGPc")
   set (BOOST_DIR "include/boost")
-  set (OPTIMDIR "include/optim/header_only_version")
-  set (OPTIMFLAG "-march=native -ffp-contract=fast")
-  #set (EIGENDIR "include")
-#  set (NPYINCLUDEDIR "include/cnpy")
-#  set (NPYLINKFLAG "-L/usr/local/lib -lcnpy -lz")
-#  set (MATPLOT_INCLUDE_DIRS "matplot")
-#  set (MATPLOTLINKFLAG "-lmatplot")
 
   include_directories(${BAYES_DIR}
                       ${BOOST_DIR}
-                      ${OPTIMDIR}
-                      ${EIGENDIR}
-#                      ${NPYINCLUDEDIR}
-#                      ${MATPLOT_INCLUDE_DIRS}
                       )
-  # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
-  #link_directories(${LAPACKLIBS}
-  #                 ${F2CLIB}
-  #                 ${NPYLINKFLAG}
-  #                 ${MATPLOTLINKFLAG}
-  #                 )
-  # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
-  # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
-  # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
 
-#  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMFLAG} -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMFLAG} -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses -Wno-error=non-template-friend")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses -Wno-error=non-template-friend")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast -DBOOST_MATH_STANDALONE")
 endif(WIN32)
 
@@ -186,45 +147,6 @@ set (BAYES_FILES
   ${BAYES_DIR}/CNoise.h
   ${BAYES_DIR}/version.h
   )
-
-#  ${BAYES_DIR}/BayesTestFunction.cpp
-#  ${BAYES_DIR}/Logger.cpp
-#  ${BAYES_DIR}/Logger.h
-#  ${BAYES_DIR}/CIvm.h
-#  ${BAYES_DIR}/testKern.cpp
-#  ${BAYES_DIR}/testKern_sklearn.cpp
-#  ${BAYES_DIR}/CClctrl.cpp
-#  ${BAYES_DIR}/CPpa.cpp
-#  ${BAYES_DIR}/testMatrix.cpp
-#  ${BAYES_DIR}/sklearn_util.cpp
-#  ${BAYES_DIR}/testMltools.cpp
-#  ${BAYES_DIR}/testBayesianSearch.cpp
-#  ${BAYES_DIR}/testNdlutil.cpp
-#  ${BAYES_DIR}/CGplvm.cpp
-#  ${BAYES_DIR}/bayesPlotUtil.cpp
-#  ${BAYES_DIR}/testCode.cpp
-#  ${BAYES_DIR}/testNoise.cpp
-#  ${BAYES_DIR}/CIvm.cpp
-#  ${BAYES_DIR}/gp.cpp
-#  ${BAYES_DIR}/testDist.cpp
-#  ${BAYES_DIR}/testTransform.cpp
-#  ${BAYES_DIR}/gplvm.cpp
-#  ${BAYES_DIR}/testGp.cpp
-#  ${BAYES_DIR}/test_matplot.cpp
-#  ${BAYES_DIR}/ivm.cpp
-#  ${BAYES_DIR}/testGp_sklearn.cpp
-#  ${BAYES_DIR}/test_optim.cpp
-#  ${BAYES_DIR}/testIvm.cpp
-#  ${BAYES_DIR}/CMatlab.h
-#  ${BAYES_DIR}/bayesPlotUtil.h
-#  ${BAYES_DIR}/gp.h
-#  ${BAYES_DIR}/CClctrl.h
-#  ${BAYES_DIR}/gplvm.h
-#  ${BAYES_DIR}/ivm.h
-#  ${BAYES_DIR}/sklearn_util.h
-#  ${BAYES_DIR}/testBayesianSearch.h
-#  ${BAYES_DIR}/CGplvm.h
-#  ${BAYES_DIR}/CPpa.h
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g -fno-omit-frame-pointer")
@@ -504,8 +426,6 @@ target_link_libraries (${PROJECT_NAME}
   ${PTHREAD_LIB}
   ${LAPACKLIBS}
   ${F2CLIB}
-#  ${NPYLINKFLAG}
-#  ${MATPLOTLINKFLAG}
 )
 
 target_compile_definitions (${PROJECT_NAME} PUBLIC

@@ -4,6 +4,3 @@
 [submodule "include/BayesGPc"]
 	path = include/BayesGPc
 	url = git@github.com:Riley16/BayesGPc.git
-[submodule "include/cnpy"]
-	path = include/cnpy
-	url = git@github.com:rogersce/cnpy.git
