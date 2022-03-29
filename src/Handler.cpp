@@ -620,9 +620,6 @@ namespace CML {
           RC_DEBOUT(RC::RStr("Handler.cpp::OpenConfig_Handler CPS"));
           classifier->RegisterCallback("CPSClassifierDecision", exper_cps.ClassifierDecision);
           feature_filters->RegisterCallback("CPSHandleNormalization", exper_cps.HandleNormalization);
-
-          // task_classifier_manager->SetCallback(feature_filters->Process);
-
           task_stim_manager->SetCallback(exper_cps.StimDecision);
         }
       }

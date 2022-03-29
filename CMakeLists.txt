@@ -52,57 +52,34 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnull-dereference -Werror")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRC_HAVE_QT")
 
 enable_language(Fortran)
+set(CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
 
 if(APPLE)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1")
-
-  # FORTRAN
-  set(CMAKE_FC_COMPILER "/usr/local/bin/gfortran-7")
-  set(CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
-  #set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DVAR=2")
-  #add_definitions(-DVAR=2)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=11.0")
 
   # CBayes dependencies
-  # TODO: RDD: remove and put in include directory, ideally as a subtree/Git reference? ask Ryan/James
   set (LAPACKLIBS "-llapack -lblas -lc")
-  set (F2CLIB "-L/usr/local/lib/gcc/7/ -lgfortran")
-
-  set (BAYES_DIR "include/BayesGPc")
-  set (BOOST_DIR "include/boost")
-  set (MATPLOT_INCLUDE_DIRS "matplot")
-  set (MATPLOTLINKFLAG "-lmatplot")
-
-  include_directories(${BAYES_DIR}
-                      ${BOOST_DIR}
-                      )
 
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=11.0 -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast -DBOOST_MATH_STANDALONE -DDBG")
 endif(APPLE)
 if(WIN32)
-#  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1")
-
   # FORTRAN
   set(CMAKE_FC_COMPILER "${CMAKE_COMPILER_DIR}/gfortran.exe")
-  set(CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
 
   # CBayes dependencies
-  # TODO: RDD: remove and put in include directory, ideally as a subtree/Git reference? ask Ryan/James
-  set (LAPACKLIBS "-L${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack64 -L${CMAKE_CURRENT_SOURCE_DIR}/dll -lblas64")# -lc")
-#  find_library (BLAS_LIB "blas" PATHS ${PROJECT_SOURCE_DIR}/lib64)
-
+  set (LAPACKLIBS "-L${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack64 -L${CMAKE_CURRENT_SOURCE_DIR}/dll -lblas64")
   set (F2CLIB "-L${CMAKE_COMPILER_DIR} -lgfortran")
-
-  set (BAYES_DIR "include/BayesGPc")
-  set (BOOST_DIR "include/boost")
-
-  include_directories(${BAYES_DIR}
-                      ${BOOST_DIR}
-                      )
-
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses -Wno-error=non-template-friend")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast -DBOOST_MATH_STANDALONE")
 endif(WIN32)
+
+set (BAYES_DIR "include/BayesGPc")
+set (BOOST_DIR "include/boost")
+
+include_directories(${BAYES_DIR}
+                    ${BOOST_DIR}
+                    )
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast -DBOOST_MATH_STANDALONE -DDBG")
 
 set (BAYES_FILES
   ${BAYES_DIR}/CSearchComparison.cpp

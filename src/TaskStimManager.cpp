@@ -27,8 +27,8 @@ namespace CML {
 
     const RC::RStr type = [&] {
         switch (task_classifier_settings.cl_type) {
-          case ClassificationType::STIM: return "STIM_DECISON";
-          case ClassificationType::SHAM: return "SHAM_DECISON";
+          case ClassificationType::STIM: return "STIM_DECISION";
+          case ClassificationType::SHAM: return "SHAM_DECISION";
           case ClassificationType::NOSTIM: return "NOSTIM_DECISION";
           case ClassificationType::NORMALIZE: return "NORMALIZE_NOSTIM_DECISION";
           default: Throw_RC_Error("Invalid classification type received.");

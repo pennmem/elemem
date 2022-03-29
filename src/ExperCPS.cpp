@@ -399,14 +399,15 @@ namespace CML {
   void ExperCPS::TriggerAt(const uint64_t& next_min_event_time, const ClassificationType& next_classif_state) {
     // run next classification result (which conditionally calls for stimulation events)
     if (next_min_event_time > experiment_duration) {
-      // TODO: RDD/RC: preferred method for ending experiments?
       InternalStop();
     }
-    abs_EEG_collection_times += WaitUntil(next_min_event_time);
-    // TODO: RDD/JPB: use id = 0 for now, how much performance improvement would classifier queueing add?
-    // TODO: RDD: remove classify_ms
-    hndl->task_classifier_manager->ProcessClassifierEvent(
-        next_classif_state, classify_ms, classif_id);
+    else {
+      abs_EEG_collection_times += WaitUntil(next_min_event_time);
+      // TODO: RDD/JPB: use id = 0 for now, how much performance improvement would classifier queueing add?
+      // TODO: RDD: remove classify_ms
+      hndl->task_classifier_manager->ProcessClassifierEvent(
+          next_classif_state, classify_ms, classif_id);
+    }
   }
 
 
