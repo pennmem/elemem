@@ -60,6 +60,8 @@ namespace CML {
         const RC::Data1D<CSStimProfile>& new_stim_loc_profiles) {
     #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::SetStimProfiles\n"));
+    RC_DEBOUT(RC::RStr("ExperCPS::SetStimProfiles\n"));
+    RC_DEBOUT(RC::RStr("ExperCPS::SetStimProfiles n_searches: ") + to_string(n_searches) + RC::RStr("\n"));
     #endif
     n_searches = new_stim_loc_profiles.size();
     for (size_t i = 0; i < n_searches + 1; i++) { search_order += i; }
@@ -76,6 +78,9 @@ namespace CML {
 
     CMatrix bounds(n_var, 2);
 
+    // search grids
+    vector<vector<CMatrix>> all_grid_vals;
+    
     for (int i = 0; i < n_searches; i++) {
       // TODO: LATER RDD: fix this to allow for searching over arbitrary parameters
       //            for now assume that the maximum amplitude is the amplitude in the given profiles
@@ -90,12 +95,31 @@ namespace CML {
       exploration_biases.push_back(exp_bias);
       init_samples.push_back(n_init_samples);
       rng_seeds.push_back(seed + n_searches * 100000);
+      // TODO: RDD: update for arbitrary stim search parameters
+
+      double amplitude_resolution = 0.1;  // mA
+      int n_grid = (bounds.getVal(1) - bounds.getVal(0))/amplitude_resolution + 1;
+      // grid represented as vector of CMatrices over grid values for each dimension
+      vector<CMatrix> grid_vals;
+      for (int i = 0; i < n_var; i++) {
+          CMatrix grid1D = linspace(bounds.getVal(0),
+                                    bounds.getVal(1),
+                                    n_grid);
+          grid_vals.push_back(grid1D);
+      }
+      all_grid_vals.push_back(grid_vals);
+
+      uint64_t duration = new_stim_loc_profiles[i][0].duration / 1000;
+      // TODO: RDD: consider this scheme of conservatively setting the sham duration vs. just setting it in config as done now
+      // max_stim_duration_ms = duration > max_stim_duration_ms ? duration : max_stim_duration_ms;
     }
+
     search = CSearchComparison(n_searches, pval_threshold, kernels, param_bounds, observation_noises,
-        exploration_biases, init_samples, rng_seeds, verbosity);
+        exploration_biases, init_samples, rng_seeds, verbosity, all_grid_vals);
     stim_loc_profiles = new_stim_loc_profiles;
-    stim_profiles = RC::Data2D<CSStimProfile>(0, n_searches);
-//    add initial stim profiles for all searches here
+    stim_profiles = RC::Data1D<RC::Data1D<CSStimProfile>>(n_searches);
+    // add initial stim profiles
+    for (int i = 0; i < n_searches; i++) { GetNextEvent(i); }
   }
 
   void ExperCPS::GetNextEvent(const unsigned int model_idx) {
@@ -106,10 +130,10 @@ namespace CML {
 
     // TODO: all: LATER currently assuming that stim parameters not being searched over are set separately in
     //            stim_loc_profiles, should add these to Settings.cpp
-    if (stim_loc_profiles[0].size() != 1) {
+    if (stim_loc_profiles[model_idx].size() != 1) {
       Throw_RC_Error("ExperCPS::GetNextEvent: Only stimulation events with stimulation profiles of length 1 are supported currently.");
     }
-    CSStimChannel stim_chan((stim_loc_profiles[0][0]));
+    CSStimChannel stim_chan((stim_loc_profiles[model_idx][0]));
 
     // set stim parameter values for next search point
     // TODO: RDD: LATER may want to scale down into more desirable interval, e.g., [0, 1]
@@ -135,6 +159,7 @@ namespace CML {
   }
 
   void ExperCPS::UpdateSearch(const unsigned int model_idx, const CSStimProfile stim_info, const ExpEvent ev, const double biomarker) {
+    UpdateSearchPanel(stim_info);
     if (stim_info.size() != 1) {
       Throw_RC_Error("ExperCPS::UpdateSearch: Only stimulation events with stimulation profiles of length 1 are supported currently.");
     }
@@ -156,10 +181,12 @@ namespace CML {
 
 
   void ExperCPS::DoConfigEvent(const CSStimProfile& profile) {
+    #ifdef DEBUG_EXPERCPS
+    RC_DEBOUT(RC::RStr("ExperCPS: enter DoConfigEvent \n\n"));
+    #endif
     JSONFile config_event = MakeResp("CONFIG");
     config_event.Set(JSONifyCSStimProfile(profile), "data");
     status_panel->SetEvent("PRESET");
-    UpdateSearchPanel(profile);
     hndl->stim_worker.ConfigureStimulation(profile);
   }
 
@@ -215,6 +242,9 @@ namespace CML {
 
 
   void ExperCPS::DoShamEvent() {
+    #ifdef DEBUG_EXPERCPS
+    RC_DEBOUT(RC::RStr("ExperCPS::DoShamEvent\n"));
+    #endif
     JSONFile sham_event = MakeResp("SHAM");
     sham_event.Set(cps_specs.sham_duration_ms, "data", "duration");
     hndl->event_log.Log(sham_event.Line());
@@ -249,7 +279,6 @@ namespace CML {
     // initial time through searches/stim locations simply go through in order; location 0 comes first
     model_idxs += 0;
     model_idxs += 1;
-    GetNextEvent(0);
     #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler start ProcessClassifierEvent\n"));
     #endif
@@ -266,6 +295,9 @@ namespace CML {
 
   // TODO: RDD: are any of these internal stop functions guaranteed to run if other workers fail?
   void ExperCPS::InternalStop() {
+    #ifdef DEBUG_EXPERCPS
+    RC_DEBOUT(RC::RStr("ExperCPS::InternalStop\n"));
+    #endif
     ComputeBestStimProfile();
 
     // log best stim profile
@@ -297,6 +329,8 @@ namespace CML {
     data_log.Set(nlohmann::json::array(), "analysis_data", "exp_events");
     for (int i = 0; i < classif_results.size(); i++) {
       data_log.json["analysis_data"]["classif_results"].push_back(classif_results[i]);
+    }
+    for (int i = 0; i < exp_events.size(); i++) {
       data_log.json["analysis_data"]["exp_events"].push_back(nlohmann::json({}));
       data_log.Set(exp_events[i].active_ms, "analysis_data", "exp_events", i, "active_ms");
       data_log.Set(exp_events[i].event_ms, "analysis_data", "exp_events", i, "event_ms");
@@ -308,8 +342,10 @@ namespace CML {
       }
     }
 
+    // TODO: RDD: move these log statements and all others to be as early as possible? then can't have a single JSON line
+    data_log.Set(nlohmann::json::array(), "analysis_data", "stim_loc_profiles");
     for (int i = 0; i < stim_loc_profiles.size(); i++) {
-      data_log.Set(JSONifyCSStimProfile(stim_loc_profiles[i]), "analysis_data", "stim_loc_profiles", i);
+      data_log.json["analysis_data"]["stim_loc_profiles"].push_back(JSONifyCSStimProfile(stim_loc_profiles[i]).json);
     }
 
     // data_log.Set(exper_classif_settings, "analysis_data", "exper_classif_settings");
@@ -418,9 +454,9 @@ namespace CML {
 
   void ExperCPS::ClassifierDecision_Handler(const double& result,
         const TaskClassifierSettings& task_classifier_settings) {
-    #ifdef DEBUG_EXPERCPS
-    RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler\n"));
-    #endif
+    // #ifdef DEBUG_EXPERCPS
+    // RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler\n"));
+    // #endif
     // record classifier outcomes
     classif_results += result;
     classif_id++;
@@ -429,9 +465,9 @@ namespace CML {
 
   void ExperCPS::StimDecision_Handler(const bool& stim_event, const TaskClassifierSettings& classif_settings, const f64& stim_time_from_start_sec) {
     // TODO: RDD: add docstrings for all functions
-    #ifdef DEBUG_EXPERCPS
-    RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler\n"));
-    #endif
+    // #ifdef DEBUG_EXPERCPS
+    // RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler\n"));
+    // #endif
 
     uint64_t cur_time_ms = uint64_t(1000*(stim_time_from_start_sec - exp_start)+0.5);
 
@@ -450,12 +486,22 @@ namespace CML {
     double result = classif_results[classif_results.size() - 1];
     TaskClassifierSettings task_classifier_settings = exper_classif_settings[exper_classif_settings.size() - 1];
     ClassificationType classif_state = task_classifier_settings.cl_type;
-
-    // pre-stim/post-stim events
-    unsigned int model_idx = model_idxs[model_idxs.size() - 1] - 1;
-    unsigned int profile_idx = stim_profiles[model_idx].size() - 1;
-    CSStimProfile stim_params = stim_profiles[model_idx][profile_idx];
     ExpEvent cur_event = exp_events[cur_ev];
+
+    // duration of either next stim event (pre-event) or previous stim event (post-event)
+    uint64_t event_duration_ms;
+    CSStimProfile stim_params;
+    if (classif_state == ClassificationType::SHAM ||  // pre-sham
+       (prev_sham && (classif_state == ClassificationType::NOSTIM))) { // post-sham
+      event_duration_ms = cps_specs.sham_duration_ms; 
+    }
+    else {
+      // get previous or next stim event for stim event duration
+      unsigned int model_idx = model_idxs[model_idxs.size() - 1] - 1;
+      unsigned int profile_idx = stim_profiles[model_idx].size() - 1;
+      stim_params = stim_profiles[model_idx][profile_idx];
+      event_duration_ms = stim_params[0].duration / 1000;
+    }
 
     // TODO define minimum numbers of events for each stim location/sham for experiment
 
@@ -483,7 +529,11 @@ namespace CML {
         //   warning
         //   stim_profiles[model_idx][profile_idx] = stim_params;
         // }
-        uint64_t stim_offset_ms = abs_stim_event_times[abs_stim_event_times.size() - 1] + stim_params[0].duration / 1000;
+
+        uint64_t stim_offset_ms = abs_stim_event_times[abs_stim_event_times.size() - 1] + event_duration_ms;
+        #ifdef DEBUG_EXPERCPS
+        RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: just afer stim_offset_ms assignment\n"));
+        #endif
         next_min_event_time = stim_offset_ms + poststim_classif_lockout_ms;
         next_classif_state = ClassificationType::NOSTIM;
         if (classif_state == ClassificationType::STIM) {
@@ -506,7 +556,10 @@ namespace CML {
       }
     }
     else if (classif_state == ClassificationType::NOSTIM) {  // received post-stim/post-sham classification event
-      uint64_t stim_offset_ms = abs_stim_event_times[abs_stim_event_times.size() - 2] + stim_params[0].duration / 1000;
+      #ifdef DEBUG_EXPERCPS
+      RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: nostim event enter\n"));
+      #endif
+      uint64_t stim_offset_ms = abs_stim_event_times[abs_stim_event_times.size() - 2] + event_duration_ms;
       next_min_event_time = stim_offset_ms + stim_lockout_ms;
       status_panel->SetEvent("UPDATING");
 
@@ -524,6 +577,11 @@ namespace CML {
         #ifdef DEBUG_EXPERCPS
         RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: nostim decision with prev stim\n\n"));
         #endif
+        // get previous stim event
+        unsigned int model_idx = model_idxs[model_idxs.size() - 1] - 1;
+        unsigned int profile_idx = stim_profiles[model_idx].size() - 1;
+        CSStimProfile stim_params = stim_profiles[model_idx][profile_idx];
+
         UpdateSearch(model_idx, stim_params, cur_event, biomarker);
         GetNextEvent(model_idx);
         cur_ev++;
@@ -532,6 +590,9 @@ namespace CML {
       // Randomize experiment events. Ensure searches and/or shams are not repeated consecutively.
       search_order_idx++;
       if (search_order_idx == search_order.size()) {
+        #ifdef DEBUG_EXPERCPS
+        RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: shuffling stim locations\n\n"));
+        #endif
         size_t prev_search = search_order[search_order.size() - 1];
         bool two_in_row = true;
         while (search_order[0] == prev_search || two_in_row) {
@@ -543,13 +604,16 @@ namespace CML {
         }
         search_order_idx = 0;
       }
+      #ifdef DEBUG_EXPERCPS
+      RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: search_order[search_order_idx] ") + to_string(search_order[search_order_idx]) + RC::RStr("\n"));
+      #endif
       if (search_order[search_order_idx]) {
         next_classif_state = ClassificationType::STIM;
         // run pre-event (stim configuration) once stim parameters are available (after any randomization)
         // if needed, could reduce latency after sham events by configuring next stim set earlier 
         // immediately after sham events
         if (cur_ev < exp_events.size()) {
-          unsigned int next_idx = search_order[search_order_idx];
+          unsigned int next_idx = search_order[search_order_idx] - 1;
           CSStimProfile next_stim_profile = stim_profiles[next_idx][stim_profiles[next_idx].size() - 1];
           DoConfigEvent(next_stim_profile);
         }
@@ -559,6 +623,7 @@ namespace CML {
         next_classif_state = ClassificationType::SHAM;
         // TODO: RDD: set sham duration/event info? how are sham events controlled in StimulationManager?
       }
+      // log which stim location (or whether sham) was last requested
       // TODO: RDD: log model_idxs separately in experimental data log; already technically included in stored stim param profiles
       model_idxs += search_order[search_order_idx];
 
@@ -594,14 +659,14 @@ namespace CML {
     // TODO
     // QObject::killTimer: Timers cannot be stopped from another thread
     // QObject::~QObject: Timers cannot be stopped from another thread
-
-    // TODO Error: stimulation requested before parameters set
-
   }
 
 
   void ExperCPS::ComputeBestStimProfile() {
-    // TODO: RDD: extend to tuning with arbitrary stim parameters
+    #ifdef DEBUG_EXPERCPS
+    RC_DEBOUT(RC::RStr("ExperCPS::ComputeBestStimProfile\n"));
+    #endif
+    // TODO LATER: RDD: extend to tuning with arbitrary stim parameters
     // TODO: RDD: save/log full ComparisonStruct results in addition to beat_sham
     ComparisonStruct sol = search.get_best_solution();
     CMatrix best_sol_mat = *(sol.xs[sol.idx_best]);
@@ -612,7 +677,7 @@ namespace CML {
 
     // compare best stim paramet set with sham events
     TestStruct sham_test = search.compare_GP_to_sample(sol, sham_results);
-    beat_sham = sham_test.pval > pval_threshold;
+    beat_sham = sham_test.pval < pval_threshold;
   }
 }
 

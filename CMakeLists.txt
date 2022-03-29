@@ -95,7 +95,7 @@ if(APPLE)
   # set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")
 
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMFLAG} -mmacosx-version-min=11.0 -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast -DBOOST_MATH_STANDALONE")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast -DBOOST_MATH_STANDALONE -DDBG")
 endif(APPLE)
 if(WIN32)
 #  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1")

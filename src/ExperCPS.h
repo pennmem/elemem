@@ -104,6 +104,8 @@ namespace CML {
     uint64_t experiment_duration; // in seconds
     size_t n_normalize_events;
     uint64_t classify_ms;
+    // for conservative estimate of duration for sham "lockouts" (want roughly the same lockouts between for stim and sham events for comparability)
+    // uint64_t max_stim_duration_ms;
     uint64_t normalize_lockout_ms;
     uint64_t stim_lockout_ms;
     uint64_t poststim_classif_lockout_ms;
@@ -137,7 +139,7 @@ namespace CML {
     bool beat_sham;
 
     // logging
-    RC::Data2D<CSStimProfile> stim_profiles;
+    RC::Data1D<RC::Data1D<CSStimProfile>> stim_profiles;
     RC::Data1D<double> classif_results;
     vector<double> sham_results;
 
