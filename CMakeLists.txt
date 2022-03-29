@@ -22,15 +22,6 @@ else (IS_RELEASE)
   set(BUILD_TYPE "")
 endif (IS_RELEASE)
 
-if (WIN32)
-    # Windows task laptop
-    #set(Qt5_DIR "C:/Qt/Qt5.12.12/5.12.12/mingw73_64/lib/cmake")
-    set(CMAKE_COMPILER_DIR "C:/Qt/Qt5.12.12/Tools/mingw730_64/bin")
-    set(CMAKE_PREFIX_PATH "C:/Qt/Qt5.12.12/5.12.12/mingw73_64/lib/cmake/Qt5")
-    list(APPEND CMAKE_FIND_ROOT_PATH "C:/Qt/Qt5.12.12/5.12.12/mingw73_64")
-    set(CMAKE_CXX_COMPILER "${CMAKE_COMPILER_DIR}/g++.exe")
-endif (WIN32)
-
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -52,7 +43,6 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnull-dereference -Werror")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRC_HAVE_QT")
 
 enable_language(Fortran)
-set(CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
 
 if(APPLE)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1 -mmacosx-version-min=11.0")
@@ -67,13 +57,33 @@ if(WIN32)
   set(CMAKE_FC_COMPILER "${CMAKE_COMPILER_DIR}/gfortran.exe")
 
   # CBayes dependencies
-  set (LAPACKLIBS "-L${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack64 -L${CMAKE_CURRENT_SOURCE_DIR}/dll -lblas64")
+  #set (LAPACKLIBS "-L${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack64 -L${CMAKE_CURRENT_SOURCE_DIR}/dll -lblas64")
+  
+  #set (LAPACKLIBS "-L${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack64 -lblas64")# -lc")
+  find_library (BLAS_LIB "blas64" PATHS ${PROJECT_SOURCE_DIR}/lib64)
+  if (NOT BLAS_LIB)
+    message (FATAL_ERROR
+      "BLAS library missing from ${PROJECT_SOURCE_DIR}/lib64"
+    )
+  endif ()
+  find_library (LAPACK_LIB "lapack64" PATHS ${PROJECT_SOURCE_DIR}/lib64)
+  if (NOT LAPACK_LIB)
+    message (FATAL_ERROR
+      "LAPACK library missing from ${PROJECT_SOURCE_DIR}/lib64"
+    )
+  endif ()
   set (F2CLIB "-L${CMAKE_COMPILER_DIR} -lgfortran")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses -Wno-error=non-template-friend")
+  
+  set_source_files_properties( include/BayesGPc/ndlfortran_timer.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
+  set_source_files_properties( include/BayesGPc/ndlfortran_linpack.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
+  set_source_files_properties( include/BayesGPc/ndlfortran_lbfgsb.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
+
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses -Wno-error=non-template-friend -Wno-error=unused-value")
 endif(WIN32)
 
 set (BAYES_DIR "include/BayesGPc")
 set (BOOST_DIR "include/boost")
+set(CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
 
 include_directories(${BAYES_DIR}
                     ${BOOST_DIR}
@@ -334,14 +344,15 @@ if (NOT CBSDK_LIB)
 endif ()
 
 if (WIN32)
-    # find_library was failing on task laptop while explicitly setting CSTIM_LIB worked.
-    #  find_library (CSTIM_LIB "CereStimDLL" PATHS ${PROJECT_SOURCE_DIR}/dll)
-    #  if (NOT CSTIM_LIB)
-    #    message (FATAL_ERROR
-    #      "CereStimDLL library missing from ${PROJECT_SOURCE_DIR}/dll"
-    #    )
-    #  endif ()
-      set (CSTIM_LIB "${PROJECT_SOURCE_DIR}/dll/CereStimDLL.dll")
+  # find_library was failing on task laptop while explicitly setting CSTIM_LIB worked.
+  # changing CereStimDLL.dll to CereStimDLL.dll.a also worked
+  #set (CSTIM_LIB "${PROJECT_SOURCE_DIR}/dll/CereStimDLL.dll")
+  find_library (CSTIM_LIB "CereStimDLL" PATHS ${PROJECT_SOURCE_DIR}/dll)
+  if (NOT CSTIM_LIB)
+    message (FATAL_ERROR
+      "CereStimDLL library missing from ${PROJECT_SOURCE_DIR}/dll"
+    )
+  endif ()
 else (WIN32)
   set (CSTIM_LIB "")
 endif (WIN32)
@@ -400,8 +411,10 @@ target_link_libraries (${PROJECT_NAME}
   ${HDF5_LIBRARIES}
   ${FFTW_LIB}
   ${PTHREAD_LIB}
-  ${LAPACKLIBS}
+#  ${LAPACKLIBS}
   ${F2CLIB}
+  ${BLAS_LIB}
+  ${LAPACK_LIB}
 )
 
 target_compile_definitions (${PROJECT_NAME} PUBLIC
