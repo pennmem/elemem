@@ -10,7 +10,7 @@ namespace CML {
   class Handler;
 
   using ClassifierCallback = RCqt::TaskCaller<const double, const TaskClassifierSettings>;
-  using TaskStimCallback = RCqt::TaskCaller<const bool, const TaskClassifierSettings>;
+  using TaskStimCallback = RCqt::TaskCaller<const bool, const TaskClassifierSettings, const f64>;
 
   // TODO: JPB: (refactor) Make this a base class
   class TaskStimManager : public RCqt::WorkerThread {

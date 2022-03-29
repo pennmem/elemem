@@ -9,9 +9,9 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 # Compilation settings
 
 set(IS_RELEASE true)
-option(CEREBUS_HW "Use the Cerebus/Neuroport interface" ON) # cmake -DCEREBUS_HW=OFF ..
+option(CEREBUS_HW "Use the Cerebus/Neuroport interface" OFF) # cmake -DCEREBUS_HW=OFF ..
 option(CERESTIM_STUB # cmake -DCERESTIM_STUB=ON ..
-	"Use the CereStim simulator (default ON for non-Windows)" OFF)
+	"Use the CereStim simulator (default ON for non-Windows)" ON)
 option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake -DHDF5_EXPORT=ON ..
 
 if (IS_RELEASE)
@@ -21,6 +21,15 @@ else (IS_RELEASE)
   set(CMAKE_BUILD_TYPE Debug)
   set(BUILD_TYPE "")
 endif (IS_RELEASE)
+
+#if (WIN32)
+#    # Windows task laptop
+#    #set(Qt5_DIR "C:/Qt/Qt5.12.12/5.12.12/mingw73_64/lib/cmake")
+#    set(CMAKE_COMPILER_DIR "C:/Qt/Qt5.12.12/Tools/mingw730_64/bin")
+#    set(CMAKE_PREFIX_PATH "C:/Qt/Qt5.12.12/5.12.12/mingw73_64/lib/cmake/Qt5")
+#    list(APPEND CMAKE_FIND_ROOT_PATH "C:/Qt/Qt5.12.12/5.12.12/mingw73_64")
+#    set(CMAKE_CXX_COMPILER "${CMAKE_COMPILER_DIR}/g++.exe")
+#endif (WIN32)
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
@@ -41,9 +50,89 @@ endif()
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-zero-as-null-pointer-constant")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnull-dereference -Werror")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRC_HAVE_QT")
+
+enable_language(Fortran)
+
 if(APPLE)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=11.0")
+
+  # FORTRAN
+  # need gfortran-7; later versions break the build
+  set(CMAKE_FC_COMPILER "/usr/local/bin/gfortran-7")
+  set(CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
+
+  # CBayes dependencies
+  # TODO: RDD: remove and put in include directory, ideally as a subtree/Git reference? ask Ryan/James
+  set (LAPACKLIBS "-llapack -lblas -lc")
+  set (F2CLIB "-L/usr/local/lib/gcc/7/ -lgfortran")
+
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=11.0 -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
 endif(APPLE)
+if(WIN32)
+  # FORTRAN
+  set(CMAKE_FC_COMPILER "${CMAKE_COMPILER_DIR}/gfortran.exe")
+  set(CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
+
+  # CBayes dependencies
+  # TODO: RDD: remove and put in include directory, ideally as a subtree/Git reference? ask Ryan/James
+  set (LAPACKLIBS "-L${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack64 -L${CMAKE_CURRENT_SOURCE_DIR}/dll -lblas64")
+  set (F2CLIB "-L${CMAKE_COMPILER_DIR} -lgfortran")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses -Wno-error=non-template-friend")
+endif(WIN32)
+
+set (BAYES_DIR "include/BayesGPc")
+set (BOOST_DIR "include/boost")
+
+include_directories(${BAYES_DIR}
+                    ${BOOST_DIR}
+                    )
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast -DBOOST_MATH_STANDALONE -DDBG")
+
+set (BAYES_FILES
+  ${BAYES_DIR}/CSearchComparison.cpp
+  ${BAYES_DIR}/CSearchComparison.h
+  ${BAYES_DIR}/CBayesianSearch.cpp
+  ${BAYES_DIR}/CBayesianSearch.h
+  ${BAYES_DIR}/GridSearch.cpp
+  ${BAYES_DIR}/GridSearch.h
+  ${BAYES_DIR}/CGp.cpp
+  ${BAYES_DIR}/CGp.h
+  ${BAYES_DIR}/CMltools.cpp
+  ${BAYES_DIR}/CMltools.h
+  ${BAYES_DIR}/ndlassert.cpp
+  ${BAYES_DIR}/ndlassert.h
+  ${BAYES_DIR}/ndlexceptions.h
+  ${BAYES_DIR}/ndlstrutil.cpp
+  ${BAYES_DIR}/ndlstrutil.h
+  ${BAYES_DIR}/COptimisable.cpp
+  ${BAYES_DIR}/COptimisable.h
+  ${BAYES_DIR}/CMatrix.cpp
+  ${BAYES_DIR}/CMatrix.h
+  ${BAYES_DIR}/CNdlInterfaces.h
+  ${BAYES_DIR}/ndlutil.cpp
+  ${BAYES_DIR}/ndlutil.h
+  ${BAYES_DIR}/ndlfortran.h
+  ${BAYES_DIR}/ndlfortran_lbfgsb.h
+  ${BAYES_DIR}/ndlfortran.f
+  ${BAYES_DIR}/ndlfortran_linpack.f
+  ${BAYES_DIR}/ndlfortran_lbfgsb.f
+  ${BAYES_DIR}/ndlfortran_timer.f
+  ${BAYES_DIR}/ndlfortran_linpack.h
+  ${BAYES_DIR}/ndlfortran_timer.h
+  ${BAYES_DIR}/lapack.h
+  ${BAYES_DIR}/CKern.cpp
+  ${BAYES_DIR}/CKern.h
+  ${BAYES_DIR}/CTransform.cpp
+  ${BAYES_DIR}/CTransform.h
+  ${BAYES_DIR}/CDataModel.h
+  ${BAYES_DIR}/CDist.cpp
+  ${BAYES_DIR}/CDist.h
+  ${BAYES_DIR}/CNoise.cpp
+  ${BAYES_DIR}/CNoise.h
+  ${BAYES_DIR}/version.h
+  )
+
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g -fno-omit-frame-pointer")
 set (CMAKE_CXX_FLAGS_RELEASE "-O3 -g -ffast-math -fno-finite-math-only")
@@ -226,6 +315,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
 
   include/edflib/edflib.cpp
   ${PTSA_FILES}
+
+  ${BAYES_FILES}
 )
 
 ####################
@@ -256,6 +347,7 @@ if (WIN32)
       "CereStimDLL library missing from ${PROJECT_SOURCE_DIR}/dll"
     )
   endif ()
+  #set (CSTIM_LIB "${PROJECT_SOURCE_DIR}/dll/CereStimDLL.dll")
 else (WIN32)
   set (CSTIM_LIB "")
 endif (WIN32)
@@ -320,6 +412,8 @@ target_link_libraries (${PROJECT_NAME}
   ${CSTIM_LIB}
   ${HDF5_LIBRARIES}
   ${FFTW_LIB}
+  ${LAPACKLIBS}
+  ${F2CLIB}
   ${PTHREAD_LIB}
   #${PYBIND11_LIB}
 )

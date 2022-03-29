@@ -6,6 +6,7 @@
 #include "RC/RStr.h"
 #include "ChannelConf.h"
 #include "OPSSpecs.h"
+#include "CPSSpecs.h"
 #include "WeightManager.h"
 
 namespace CML {
@@ -38,10 +39,12 @@ namespace CML {
     void Clear();
     RC::Data1D<EEGChan> LoadElecConfig(RC::RStr dir);
     void LoadStimParamGrid();
+    void LoadStimParamsCPS();
     void LoadChannelSettings();
 
     void UpdateConfFR(JSONFile& current_config);
     void UpdateConfOPS(JSONFile& current_config);
+    void UpdateConfCPS(JSONFile& current_config);
 
     size_t GridSize() const;
 
@@ -65,6 +68,7 @@ namespace CML {
 
     RC::APtr<WeightManager> weight_manager;
     OPSSpecs ops_specs;
+    CPSSpecs cps_specs;
 
     size_t stimloctest_chanind;
     size_t stimloctest_amp;

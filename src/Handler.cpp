@@ -48,7 +48,8 @@ namespace CML {
   Handler::Handler()
     : stim_worker(this),
       net_worker(this),
-      exper_ops(this) {
+      exper_ops(this),
+      exper_cps(this) {
     // For error management, everything that could error must go into
     // Initialize_Handler()
   }
@@ -62,6 +63,7 @@ namespace CML {
     net_worker.SetStatusPanel(main_window->GetStatusPanel());
     stim_worker.SetStatusPanel(main_window->GetStatusPanel());
     exper_ops.SetStatusPanel(main_window->GetStatusPanel());
+    exper_cps.SetStatusPanel(main_window->GetStatusPanel());
   }
 
   void Handler::LoadSysConfig_Handler() {
@@ -340,7 +342,7 @@ namespace CML {
       return;
     }
 
-    if (settings.grid_exper) {
+    if (settings.grid_exper) {  // OPS
       size_t grid_size = settings.GridSize();
       if (grid_size == 0) {
         ErrorWin("Error!  At least one value must be approved for each "
@@ -352,6 +354,49 @@ namespace CML {
       Data1D<CSStimProfile> grid_profiles = CreateGridProfiles();
       exper_ops.SetOPSSpecs(settings.ops_specs);
       exper_ops.SetStimProfiles(grid_profiles);
+    }
+    else if (settings.exper.find("CPS") == 0) {
+      // from OPS-style configuration attempt
+      // Data1D<CSStimProfile> discrete_stim_param_sets = CreateDiscreteStimProfiles();
+
+      // FR5-style configuration
+      // Count all approved.
+      #ifdef DEBUG_EXPERCPS
+      RC_DEBOUT(RC::RStr("Handler::StartExperiment_Handler: CPS settings\n"));
+      #endif
+
+      CSStimProfile cnt_profile;
+      for (size_t c=0; c<settings.stimconf.size(); c++) {
+        if (settings.stimconf[c].approved) {
+          cnt_profile += settings.stimconf[c].params;
+        }
+      }
+      if (cnt_profile.size() == 0 && stim_mode != StimMode::NONE) {
+        if (!ConfirmWin("No stim channels approved on experiment configured "
+             "with stimulation.  Proceed?")) {
+          return;
+        }
+      }
+      if (cnt_profile.size() > 0 && stim_mode == StimMode::NONE) {
+        ErrorWin("Error!  Stim channels enabled on experiment with "
+                 "experiment:stim_mode set to \"none\".");
+        return;
+      }
+
+      // But default select only those with no stimtag.
+      Data1D<CSStimProfile> discrete_stim_param_sets;
+      for (size_t c=0; c<settings.stimconf.size(); c++) {
+        if (settings.stimconf[c].approved &&
+            settings.stimconf[c].stimtag.empty()) {
+          CSStimProfile profile;
+          profile += settings.stimconf[c].params;
+          discrete_stim_param_sets += profile;
+        }
+      }
+
+      exper_cps.SetCPSSpecs(settings.cps_specs);
+      // discrete stim param sets only give fixed (non-optimized) stim parameters
+      exper_cps.SetStimProfiles(discrete_stim_param_sets);
     }
     else {
       // Count all approved.
@@ -403,6 +448,9 @@ namespace CML {
     JSONFile current_config = *(settings.exp_config);
     if (settings.exper.find("OPS") == 0) {
       settings.UpdateConfOPS(current_config);
+    }
+    else if (settings.exper.find("CPS") == 0) {
+      settings.UpdateConfCPS(current_config);
     }
     else {
       settings.UpdateConfFR(current_config);
@@ -547,6 +595,9 @@ namespace CML {
       if (settings.grid_exper) {
         settings.LoadStimParamGrid();
       }
+      else if (settings.exper.find("CPS") == 0) {
+        settings.LoadStimParamsCPS();
+      }
 
       RStr stim_mode_str;
       settings.exp_config->Get(stim_mode_str, "experiment", "stim_mode");
@@ -559,6 +610,15 @@ namespace CML {
             "classifier_file");
         settings.weight_manager = MakeAPtr<WeightManager>(
             File::FullPath(base_dir, classif_json), settings.elec_config);
+
+        if (settings.exper.find("CPS") == 0) {
+          settings.grid_exper = false;
+          settings.task_driven = false;
+          RC_DEBOUT(RC::RStr("Handler.cpp::OpenConfig_Handler CPS"));
+          classifier->RegisterCallback("CPSClassifierDecision", exper_cps.ClassifierDecision);
+          feature_filters->RegisterCallback("CPSHandleNormalization", exper_cps.HandleNormalization);
+          task_stim_manager->SetCallback(exper_cps.StimDecision);
+        }
       }
     }
     catch (ErrorMsg&) {
@@ -604,6 +664,20 @@ namespace CML {
       main_window->GetLocConfigDur().SetOptions(dur_strs);
 
       main_window->SwitchToStimPanelLoc();
+    }
+    // TODO: RDD: update for CPS with min/max safety testing interface
+    else if (settings.exper.find("CPS") == 0) {
+      size_t config_box_cnt = std::min(settings.stimconf.size(),
+          main_window->StimConfigCount());
+      for (size_t c=0; c<config_box_cnt; c++) {
+        main_window->GetStimConfigBox(c).SetChannel(
+            settings.min_stimconf[c].params, settings.max_stimconf[c].params,
+            settings.stimconf[c].label, settings.stimconf[c].stimtag, c);
+        main_window->GetStimConfigBox(c).SetParameters(
+            settings.stimconf[c].params);
+      }
+
+      main_window->SwitchToStimPanelFR();
     }
     else {
       size_t config_box_cnt = std::min(settings.stimconf.size(),
@@ -693,6 +767,40 @@ namespace CML {
     }
 
     return grid_profiles;
+  }
+
+
+  RC::Data1D<CSStimProfile> Handler::CreateDiscreteStimProfiles() {
+    Data1D<CSStimProfile> profiles;
+
+    for (size_t c=0; c<settings.stimgrid_chan_on.size(); c++) {
+      if (!settings.stimgrid_chan_on[c]) { continue; }
+      auto& chan = settings.stimconf[c];
+      // TODO: RDD: tuning amplitude for now; update to tune arbitrary stim parameters
+      // for (size_t a=0; a<settings.stimgrid_amp_on.size(); a++) {
+      //   if (!settings.stimgrid_amp_on[a]) { continue; }
+      //   auto& amp = settings.stimgrid_amp_uA[a];
+      for (size_t f=0; f<settings.stimgrid_freq_on.size(); f++) {
+        if (!settings.stimgrid_freq_on[f]) { continue; }
+        auto& freq = settings.stimgrid_freq_Hz[f];
+        for (size_t d=0; d<settings.stimgrid_dur_on.size(); d++) {
+          if (!settings.stimgrid_dur_on[d]) { continue; }
+          auto& dur = settings.stimgrid_dur_us[d];
+
+          CSStimChannel target = chan.params;
+          target.amplitude = 0;
+          target.frequency = freq;
+          target.duration = dur;
+
+          CSStimProfile profile;
+          profile += target;
+
+          profiles += profile;
+        }
+      }
+    }
+
+    return profiles;
   }
 
 
@@ -791,6 +899,7 @@ namespace CML {
     ShutdownClassifier();
     net_worker.Close();
     exper_ops.Stop();
+    exper_cps.Stop();
 
     eeg_save->StopSaving();
     event_log.CloseFile();

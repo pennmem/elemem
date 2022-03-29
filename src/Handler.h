@@ -11,6 +11,7 @@
 #include "FeatureFilters.h"
 #include "Classifier.h"
 #include "EventLog.h"
+#include "ExperCPS.h"
 #include "ExperOPS.h"
 #include "NetWorker.h"
 #include "Settings.h"
@@ -153,6 +154,7 @@ namespace CML {
     void NewEEGSave();
     void SaveDefaultEEG();
     RC::Data1D<CSStimProfile> CreateGridProfiles();
+    RC::Data1D<CSStimProfile> CreateDiscreteStimProfiles();
     void SetupClassifier();
     void ShutdownClassifier();
 
@@ -165,6 +167,7 @@ namespace CML {
     RC::RStr session_dir;
 
     ExperOPS exper_ops;
+    ExperCPS exper_cps;
     StimMode stim_mode = StimMode::NONE;
 
     RC::APtr<QTimer> exit_timer;
