@@ -56,22 +56,6 @@ endif(APPLE)
 if(WIN32)
   # FORTRAN
   set(CMAKE_FC_COMPILER "${CMAKE_COMPILER_DIR}/gfortran.exe")
-
-  # CBayes dependencies
-  #set (LAPACKLIBS "-L${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack64 -L${CMAKE_CURRENT_SOURCE_DIR}/dll -lblas64")
-  
-  find_library (BLAS_LIB "blas64" PATHS ${PROJECT_SOURCE_DIR}/lib64)
-  if (NOT BLAS_LIB)
-    message (FATAL_ERROR
-      "BLAS library missing from ${PROJECT_SOURCE_DIR}/lib64"
-    )
-  endif ()
-  find_library (LAPACK_LIB "lapack64" PATHS ${PROJECT_SOURCE_DIR}/lib64)
-  if (NOT LAPACK_LIB)
-    message (FATAL_ERROR
-      "LAPACK library missing from ${PROJECT_SOURCE_DIR}/lib64"
-    )
-  endif ()
   set (F2CLIB "-L${CMAKE_COMPILER_DIR} -lgfortran")
   
   set_source_files_properties( include/BayesGPc/ndlfortran_timer.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
@@ -80,14 +64,12 @@ if(WIN32)
 
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses -Wno-error=non-template-friend -Wno-error=unused-value")
 endif(WIN32)
-
 set (BAYES_DIR "include/BayesGPc")
 set (BOOST_DIR "include/boost")
-set(CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
-
 include_directories(${BAYES_DIR}
                     ${BOOST_DIR}
                     )
+set(CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast -DBOOST_MATH_STANDALONE -DDBG")
 
 set (BAYES_FILES
@@ -404,6 +386,71 @@ target_include_directories (${PROJECT_NAME} PUBLIC
 )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+
+if(WIN32)
+  # build BLAS/LAPACK
+  enable_language(C)
+  execute_process(
+    COMMAND mkdir -p BUILD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack
+    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
+  if(NOT LAPACK_SUBMOD_RESULT EQUAL "0")
+    message(FATAL_ERROR "Failed to make lapack BUILD directory with ${LAPACK_SUBMOD_RESULT}")
+  endif()
+  execute_process(
+    COMMAND cmake -G "MinGW Makefiles" -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DBUILD_SHARED_LIBS=ON -DGNUtoMS=ON -DCMAKE_Fortran_FLAGS=-O0 ..
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
+    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
+  if(NOT LAPACK_SUBMOD_RESULT EQUAL "0")
+    message(FATAL_ERROR "LAPACK cmake failed with ${LAPACK_SUBMOD_RESULT}")
+  endif()
+  execute_process(
+    COMMAND make -j -s
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
+    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
+  if(NOT LAPACK_SUBMOD_RESULT EQUAL "0")
+    message(FATAL_ERROR "LAPACK make failed with ${LAPACK_SUBMOD_RESULT}")
+  endif()
+  # copy into dll and lib64
+  execute_process(
+    COMMAND cp bin/libblas.dll ../../../dll/libblas.dll
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
+    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
+  execute_process(
+    COMMAND cp lib/libblas.dll.a ../../../lib64/libblas.dll.a
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
+    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
+  execute_process(
+    COMMAND cp bin/liblapack.dll ../../../dll/liblapack.dll
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
+    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
+  execute_process(
+    COMMAND cp lib/liblapack.dll.a ../../../lib64/liblapack.dll.a
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
+    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
+  execute_process(
+    COMMAND cp dll/libblas.dll dist/libblas.dll
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
+  execute_process(
+    COMMAND cp dll/liblapack.dll dist/liblapack.dll
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
+
+  # CBayes dependencies
+  find_library (BLAS_LIB "blas" PATHS ${PROJECT_SOURCE_DIR}/lib64)
+  if (NOT BLAS_LIB)
+    message (FATAL_ERROR
+      "BLAS library missing from ${PROJECT_SOURCE_DIR}/lib64"
+    )
+  endif ()
+  find_library (LAPACK_LIB "lapack" PATHS ${PROJECT_SOURCE_DIR}/lib64)
+  if (NOT LAPACK_LIB)
+    message (FATAL_ERROR
+      "LAPACK library missing from ${PROJECT_SOURCE_DIR}/lib64"
+    )
+  endif ()
+endif(WIN32)
 
 target_link_libraries (${PROJECT_NAME}
   ${CBSDK_LIB}

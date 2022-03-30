@@ -4,3 +4,6 @@
 [submodule "include/BayesGPc"]
 	path = include/BayesGPc
 	url = git@github.com:Riley16/BayesGPc.git
+[submodule "include/lapack"]
+	path = include/lapack
+	url = git@github.com:Reference-LAPACK/lapack.git
