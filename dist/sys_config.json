@@ -1,6 +1,8 @@
 {
   "data_dir": "$DESKTOP/ElememData",
-  "eeg_system": "Cerebus",
+  "eeg_system": "CerebusSim",
+  //"eeg_system": "EDFReplay",
+  //"eeg_system": "Cerebus",
   "stim_system": "CereStim",
   "channel_count": 256,
   "taskcom_ip": "192.168.137.1",

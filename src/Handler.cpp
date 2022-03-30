@@ -451,6 +451,11 @@ namespace CML {
     }
     else if (settings.exper.find("CPS") == 0) {
       settings.UpdateConfCPS(current_config);
+      settings.grid_exper = false;
+      settings.task_driven = false;
+      classifier->RegisterCallback("CPSClassifierDecision", exper_cps.ClassifierDecision);
+      feature_filters->RegisterCallback("CPSHandleNormalization", exper_cps.HandleNormalization);
+      task_stim_manager->SetCallback(exper_cps.StimDecision);
     }
     else {
       settings.UpdateConfFR(current_config);
@@ -487,10 +492,10 @@ namespace CML {
       // Note:  Binding to a specific LAN address is a safety feature.
       std::string ipaddress = "192.168.137.1";
       uint16_t port = 8889;
-      //if (stim_worker.GetStimulatorType() == StimulatorType::Simulator) {
-      //  // It's safe to accept connections from anywhere with simulators.
-      //  ipaddress = "0.0.0.0";
-      //}
+      if (stim_worker.GetStimulatorType() == StimulatorType::Simulator) {
+       // It's safe to accept connections from anywhere with simulators.
+       ipaddress = "0.0.0.0";
+      }
       settings.sys_config->Get(ipaddress, "taskcom_ip");
       settings.sys_config->Get(port, "taskcom_port");
 
@@ -610,15 +615,6 @@ namespace CML {
             "classifier_file");
         settings.weight_manager = MakeAPtr<WeightManager>(
             File::FullPath(base_dir, classif_json), settings.elec_config);
-
-        if (settings.exper.find("CPS") == 0) {
-          settings.grid_exper = false;
-          settings.task_driven = false;
-          RC_DEBOUT(RC::RStr("Handler.cpp::OpenConfig_Handler CPS"));
-          classifier->RegisterCallback("CPSClassifierDecision", exper_cps.ClassifierDecision);
-          feature_filters->RegisterCallback("CPSHandleNormalization", exper_cps.HandleNormalization);
-          task_stim_manager->SetCallback(exper_cps.StimDecision);
-        }
       }
     }
     catch (ErrorMsg&) {
@@ -854,7 +850,8 @@ namespace CML {
 
     // Register the callbacks.
     task_classifier_manager->SetCallback(feature_filters->Process);
-    feature_filters->SetCallback(classifier->Classify);
+    feature_filters->RegisterCallback("ClassifierClassify",
+        classifier->Classify);
     classifier->RegisterCallback("ClassifierDecision",
         task_stim_manager->StimDecision);
 

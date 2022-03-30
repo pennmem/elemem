@@ -32,8 +32,11 @@ namespace CML {
     TaskClassifierCallback Process =
       TaskHandler(FeatureFilters::Process_Handler);
 
-    RCqt::TaskCaller<const FeatureCallback> SetCallback =
-      TaskHandler(FeatureFilters::SetCallback_Handler);
+    RCqt::TaskCaller<const RC::RStr, const FeatureCallback> RegisterCallback =
+      TaskHandler(FeatureFilters::RegisterCallback_Handler);
+
+    RCqt::TaskCaller<const RC::RStr> RemoveCallback =
+      TaskHandler(FeatureFilters::RemoveCallback_Handler);
 
     static RC::APtr<BinnedData> BinData(RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate);
     static RC::APtr<BinnedData> BinData(RC::APtr<const EEGDataRaw> rollover_data, RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate);
@@ -58,15 +61,22 @@ namespace CML {
 
 
     protected:
+    void ExecuteCallbacks(RC::APtr<const EEGPowers> data, const TaskClassifierSettings& task_classifier_settings);
     void Process_Handler(RC::APtr<const EEGData>&, const TaskClassifierSettings&);
-    void SetCallback_Handler(const FeatureCallback &new_callback);
+    void RegisterCallback_Handler(const RC::RStr& tag,
+                                  const FeatureCallback& callback);
+    void RemoveCallback_Handler(const RC::RStr& tag);
 
+    struct TaggedCallback {
+      RC::RStr tag;
+      FeatureCallback callback;
+    };
+    RC::Data1D<TaggedCallback> data_callbacks;
+    
     MorletTransformer morlet_transformer;
     ButterworthTransformer butterworth_transformer;
     RC::Data1D<BipolarPair> bipolar_reference_channels;
     NormalizePowers normalize_powers;
-
-    FeatureCallback callback;
 
     // Minimum power clamp (just before taking log) to avoid log singularity in case we get zero power
     // A power could be zero due to constant signal across two electrodes that are part of bipolar pair
