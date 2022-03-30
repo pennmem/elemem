@@ -48,7 +48,8 @@ if(APPLE)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1 -mmacosx-version-min=11.0")
 
   # CBayes dependencies
-  set (LAPACKLIBS "-llapack -lblas -lc")
+  set (BLAS_LIB "-lblas -lc")
+  set (LAPACK_LIB "-llapack")
 
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=11.0 -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
 endif(APPLE)
@@ -59,7 +60,6 @@ if(WIN32)
   # CBayes dependencies
   #set (LAPACKLIBS "-L${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack64 -L${CMAKE_CURRENT_SOURCE_DIR}/dll -lblas64")
   
-  #set (LAPACKLIBS "-L${CMAKE_CURRENT_SOURCE_DIR}/dll -llapack64 -lblas64")# -lc")
   find_library (BLAS_LIB "blas64" PATHS ${PROJECT_SOURCE_DIR}/lib64)
   if (NOT BLAS_LIB)
     message (FATAL_ERROR
@@ -411,7 +411,6 @@ target_link_libraries (${PROJECT_NAME}
   ${HDF5_LIBRARIES}
   ${FFTW_LIB}
   ${PTHREAD_LIB}
-#  ${LAPACKLIBS}
   ${F2CLIB}
   ${BLAS_LIB}
   ${LAPACK_LIB}
@@ -449,6 +448,18 @@ if (WIN32)
     )
   endif (IS_RELEASE)
 
+  add_custom_command (TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CSTIM_LIB}
+      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  )
+  add_custom_command (TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${BLAS_LIB}
+      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  )
+  add_custom_command (TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${LAPACK_LIB}
+      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  )
   add_custom_command (TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${CSTIM_LIB}
       ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
