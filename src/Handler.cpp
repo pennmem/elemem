@@ -28,7 +28,6 @@
 using namespace std;
 using namespace RC;
 
-
 namespace CML {
   StimMode ToStimMode(const RC::RStr& stim_mode_str) {
     if (stim_mode_str == "none") { return StimMode::NONE; }
@@ -361,10 +360,6 @@ namespace CML {
 
       // FR5-style configuration
       // Count all approved.
-      #ifdef DEBUG_EXPERCPS
-      RC_DEBOUT(RC::RStr("Handler::StartExperiment_Handler: CPS settings\n"));
-      #endif
-
       CSStimProfile cnt_profile;
       for (size_t c=0; c<settings.stimconf.size(); c++) {
         if (settings.stimconf[c].approved) {
@@ -488,14 +483,17 @@ namespace CML {
     if (settings.grid_exper) {
       exper_ops.Start();
     }
+    else if (settings.exper.find("CPS") == 0) {
+      exper_cps.Start();
+    }
     else { // Network experiment.
       // Note:  Binding to a specific LAN address is a safety feature.
       std::string ipaddress = "192.168.137.1";
       uint16_t port = 8889;
-      if (stim_worker.GetStimulatorType() == StimulatorType::Simulator) {
-       // It's safe to accept connections from anywhere with simulators.
-       ipaddress = "0.0.0.0";
-      }
+      // if (stim_worker.GetStimulatorType() == StimulatorType::Simulator) {
+      //  // It's safe to accept connections from anywhere with simulators.
+      //  ipaddress = "0.0.0.0";
+      // }
       settings.sys_config->Get(ipaddress, "taskcom_ip");
       settings.sys_config->Get(port, "taskcom_port");
 

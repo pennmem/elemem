@@ -407,7 +407,7 @@ if(WIN32)
     message(FATAL_ERROR "Failed to make lapack BUILD directory with ${LAPACK_SUBMOD_RESULT}")
   endif()
   execute_process(
-    COMMAND cmake -G "MinGW Makefiles" -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DBUILD_SHARED_LIBS=ON -DGNUtoMS=ON -DCMAKE_Fortran_FLAGS=-O0 ..
+    COMMAND cmake -G "MinGW Makefiles" -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DBUILD_SHARED_LIBS=ON -DGNUtoMS=ON -DCMAKE_Fortran_FLAGS=-O0 -DBUILD_INDEX64=ON ..
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
     RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
   if(NOT LAPACK_SUBMOD_RESULT EQUAL "0")
@@ -420,32 +420,40 @@ if(WIN32)
   if(NOT LAPACK_SUBMOD_RESULT EQUAL "0")
     message(FATAL_ERROR "LAPACK make failed with ${LAPACK_SUBMOD_RESULT}")
   endif()
-  # copy into dll and lib64
+  # copy into dll, lib64, and dist
   execute_process(
-    COMMAND cp bin/libblas.dll ../../../dll/libblas.dll
+    COMMAND cp bin/libblas64.dll ../../../dll/libblas64.dll
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
     RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
   execute_process(
-    COMMAND cp lib/libblas.dll.a ../../../lib64/libblas.dll.a
+    COMMAND cp bin/libblas64.dll ../../../dist/libblas64.dll
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
     RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
   execute_process(
-    COMMAND cp bin/liblapack.dll ../../../dll/liblapack.dll
+    COMMAND cp lib/libblas64.dll.a ../../../lib64/libblas64.dll.a
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
     RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
   execute_process(
-    COMMAND cp lib/liblapack.dll.a ../../../lib64/liblapack.dll.a
+    COMMAND cp bin/liblapack64.dll ../../../dll/liblapack64.dll
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
+    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
+  execute_process(
+    COMMAND cp bin/liblapack64.dll ../../../dist/liblapack64.dll
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
+    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
+  execute_process(
+    COMMAND cp lib/liblapack64.dll.a ../../../lib64/liblapack64.dll.a
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
     RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
 
   # CBayes dependencies
-  find_library (BLAS_LIB "blas" PATHS ${PROJECT_SOURCE_DIR}/lib64)
+  find_library (BLAS_LIB "blas64" PATHS ${PROJECT_SOURCE_DIR}/lib64)
   if (NOT BLAS_LIB)
     message (FATAL_ERROR
       "BLAS library missing from ${PROJECT_SOURCE_DIR}/lib64"
     )
   endif ()
-  find_library (LAPACK_LIB "lapack" PATHS ${PROJECT_SOURCE_DIR}/lib64)
+  find_library (LAPACK_LIB "lapack64" PATHS ${PROJECT_SOURCE_DIR}/lib64)
   if (NOT LAPACK_LIB)
     message (FATAL_ERROR
       "LAPACK library missing from ${PROJECT_SOURCE_DIR}/lib64"
@@ -500,14 +508,6 @@ if (WIN32)
     )
   endif (IS_RELEASE)
 
-  add_custom_command (TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${BLAS_LIB}
-      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-  )
-  add_custom_command (TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${LAPACK_LIB}
-      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-  )
   add_custom_command (TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${CSTIM_LIB}
       ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}

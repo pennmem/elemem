@@ -100,6 +100,7 @@ namespace CML {
     const CSStimChannel& operator[](size_t i) const {
       return stim_profile[i];
     }
+    void Clear() { stim_profile.clear(); }
 
     private:
     std::vector<CSStimChannel> stim_profile;

@@ -659,9 +659,11 @@ namespace CML {
       case ClassificationType::NORMALIZE:
         normalize_powers.Update(avg_data);
         //normalize_powers.PrintStats(1, 10);
+        ExecuteCallbacks(avg_data, task_classifier_settings);
         break;
       case ClassificationType::STIM:
       case ClassificationType::SHAM:
+      case ClassificationType::NOSTIM:
       {
         auto norm_data = normalize_powers.ZScore(avg_data, true).ExtractConst();
         //norm_data->Print(1, 10);
