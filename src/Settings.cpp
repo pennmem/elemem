@@ -86,6 +86,8 @@ namespace CML {
     stimconf.Resize(stim_channels.size());
     min_stimconf.Resize(stim_channels.size());
     max_stimconf.Resize(stim_channels.size());
+    min_stimconf_range.Resize(stim_channels.size());
+    max_stimconf_range.Resize(stim_channels.size());
     stimgrid_chan_on.Resize(stim_channels.size());
     stimgrid_chan_on.Zero();
 
@@ -235,12 +237,35 @@ namespace CML {
           min_stimconf[c].params.amplitude;
       }
       try {
+        stim_channels[c].Get(f, "amplitude_search_range_mA", 0);
+        min_stimconf_range[c].params.amplitude = uint16_t(f*1000+0.5f);
+        stim_channels[c].Get(f, "amplitude_search_range_mA", 1);
+        max_stimconf_range[c].params.amplitude = uint16_t(f*1000+0.5f);
+        // use stimconf for setting stimulation upper bound for now
+        stimconf[c].params.amplitude =
+          max_stimconf_range[c].params.amplitude;
+      }
+      catch (ErrorMsgFile&) {
+        min_stimconf_range[c].params.amplitude =
+          min_stimconf[c].params.amplitude;
+        max_stimconf_range[c].params.amplitude =
+          min_stimconf[c].params.amplitude;
+      }
+      try {
         stim_channels[c].Get(stimconf[c].params.frequency,
             "frequency_Hz");
       }
       catch (ErrorMsgFile&) {
         stimconf[c].params.frequency =
-          max_stimconf[c].params.frequency;
+          min_stimconf[c].params.frequency;
+      }
+      try {
+        stim_channels[c].Get(stimconf[c].params.frequency,
+            "frequency_Hz");
+      }
+      catch (ErrorMsgFile&) {
+        stimconf[c].params.frequency =
+          min_stimconf[c].params.frequency;
       }
       try {
         stim_channels[c].Get(stimconf[c].params.duration,
@@ -251,18 +276,81 @@ namespace CML {
         stimconf[c].params.duration =
           min_stimconf[c].params.duration;
       }
-      stimconf[c].approved = false;
 
+      // for parameter search, set all fixed parameters to stimconf values
+      min_stimconf_range[c].label = stimconf[c].label;
+      max_stimconf_range[c].label = stimconf[c].label;
+      min_stimconf_range[c].params.electrode_pos = stimconf[c].params.electrode_pos;
+      max_stimconf_range[c].params.electrode_pos = stimconf[c].params.electrode_pos;
+      min_stimconf_range[c].params.electrode_neg = stimconf[c].params.electrode_neg;
+      max_stimconf_range[c].params.electrode_neg = stimconf[c].params.electrode_neg;
+      min_stimconf_range[c].params.frequency = stimconf[c].params.frequency;
+      max_stimconf_range[c].params.frequency = stimconf[c].params.frequency;
+      min_stimconf_range[c].params.duration = stimconf[c].params.duration;
+      max_stimconf_range[c].params.duration = stimconf[c].params.duration;
+      min_stimconf_range[c].params.area = stimconf[c].params.area;
+      max_stimconf_range[c].params.area = stimconf[c].params.area;
+      min_stimconf_range[c].params.burst_frac = stimconf[c].params.burst_frac;
+      max_stimconf_range[c].params.burst_frac = stimconf[c].params.burst_frac;
+      min_stimconf_range[c].params.burst_slow_freq = stimconf[c].params.burst_slow_freq;
+      max_stimconf_range[c].params.burst_slow_freq = stimconf[c].params.burst_slow_freq;
+
+      stimconf[c].approved = false;
+      min_stimconf_range[c].approved = false;
+      max_stimconf_range[c].approved = false;
+
+//      cout << "min_stimconf" << endl;
+//      cout << min_stimconf[0].params.amplitude << endl;
+//      cout << min_stimconf[0].params.frequency << endl;
+//      cout << min_stimconf[0].params.duration << endl;
+
+//      cout << "max_stimconf" << endl;
+//      cout << max_stimconf[0].params.amplitude << endl;
+//      cout << max_stimconf[0].params.frequency << endl;
+//      cout << max_stimconf[0].params.duration << endl;
+
+//      cout << "stimconf" << endl;
+//      cout << stimconf[0].params.amplitude << endl;
+//      cout << stimconf[0].params.frequency << endl;
+//      cout << stimconf[0].params.duration << endl;
+
+//      cout << "min_stimconf_range" << endl;
+//      cout << min_stimconf_range[0].params.amplitude << endl;
+//      cout << min_stimconf_range[0].params.frequency << endl;
+//      cout << min_stimconf_range[0].params.duration << endl;
+
+//      cout << "max_stimconf_range" << endl;
+//      cout << max_stimconf_range[0].params.amplitude << endl;
+//      cout << max_stimconf_range[0].params.frequency << endl;
+//      cout << max_stimconf_range[0].params.duration << endl;
 
       if ( ! (
         (min_stimconf[c].params.amplitude <=
          Betw(stimconf[c].params.amplitude) <=
          max_stimconf[c].params.amplitude) &&
+        (min_stimconf[c].params.amplitude <=
+         Betw(min_stimconf_range[c].params.amplitude) <=
+         max_stimconf[c].params.amplitude) &&
+        (min_stimconf[c].params.amplitude <=
+         Betw(max_stimconf_range[c].params.amplitude) <=
+         max_stimconf[c].params.amplitude) &&
         (min_stimconf[c].params.frequency <=
          Betw(stimconf[c].params.frequency) <=
          max_stimconf[c].params.frequency) &&
+        (min_stimconf[c].params.frequency <=
+         Betw(min_stimconf_range[c].params.frequency) <=
+         max_stimconf[c].params.frequency) &&
+        (min_stimconf[c].params.frequency <=
+         Betw(max_stimconf_range[c].params.frequency) <=
+         max_stimconf[c].params.frequency) &&
         (min_stimconf[c].params.duration <=
          Betw(stimconf[c].params.duration) <=
+         max_stimconf[c].params.duration) &&
+        (min_stimconf[c].params.duration <=
+         Betw(min_stimconf_range[c].params.duration) <=
+         max_stimconf[c].params.duration) &&
+        (min_stimconf[c].params.duration <=
+         Betw(max_stimconf_range[c].params.duration) <=
          max_stimconf[c].params.duration))) {
         Throw_RC_Type(File, ("Stim channel index "+RStr(c)+
             " default stim value outside of allowed range").c_str());
@@ -342,55 +430,6 @@ namespace CML {
 
 
   void Settings::LoadStimParamsCPS() {
-    // // stim_parameter ranges for grid search, if they exist.
-
-    // std::vector<float> vf;
-    // std::vector<uint32_t> vi;
-
-    // // Grab grid param values (values of all parameters not being searched over) from config.
-    // // Exception if missing.
-    // exp_config->Get(vf, "experiment", "stim_parameters",
-    //     "amplitudes_mA");
-    // stimgrid_amp_uA.Resize(vf.size());
-    // for (size_t i=0; i<vf.size(); i++) {
-    //   stimgrid_amp_uA[i] = uint16_t(vf[i]*1000+0.5);
-    // }
-    // stimgrid_amp_on.Resize(stimgrid_amp_uA.size());
-    // stimgrid_amp_on.Zero();
-
-    // exp_config->Get(stimgrid_freq_Hz, "experiment", "stim_parameters",
-    //     "frequencies_Hz");
-    // stimgrid_freq_on.Resize(stimgrid_freq_Hz.size());
-    // stimgrid_freq_on.Zero();
-
-    // exp_config->Get(vi, "experiment", "stim_parameters",
-    //     "durations_ms");
-    // stimgrid_dur_us.Resize(vi.size());
-    // for (size_t i=0; i<vi.size(); i++) {
-    //   stimgrid_dur_us[i] = uint32_t(vi[i]*1000+0.5);
-    // }
-    // stimgrid_dur_on.Resize(stimgrid_dur_us.size());
-    // stimgrid_dur_on.Zero();
-
-    // // Validate values within min/max.
-    // // TODO: RDD: will want to make choice of which parameters being tuned safely into a config choice
-    // //            don't want to accidentally tune wrong parameter... just hardcode amplitude for now
-    // size_t chcnt = min_stimconf.size();
-    // for (size_t c=0; c<chcnt; c++) {
-    //   ValidateRange(stimgrid_amp_uA,
-    //       min_stimconf[c].params.amplitude,
-    //       max_stimconf[c].params.amplitude,
-    //       c, "amplitude");
-    //   ValidateRange(stimgrid_freq_Hz,
-    //       min_stimconf[c].params.frequency,
-    //       max_stimconf[c].params.frequency,
-    //       c, "frequency");
-    //   ValidateRange(stimgrid_dur_us,
-    //       min_stimconf[c].params.duration,
-    //       max_stimconf[c].params.duration,
-    //       c, "duration");
-    // }
-
     exp_config->Get(cps_specs.experiment_duration_secs, "experiment",
         "experiment_specs", "experiment_duration_secs");
     exp_config->Get(cps_specs.intertrial_range_ms, "experiment",
@@ -456,63 +495,32 @@ namespace CML {
   }
 
 
-  // TODO: RDD: sel_chan_json for selecting channels? loading available channels with ranges?
   void Settings::UpdateConfCPS(JSONFile& current_config) {
-    for (size_t c=0; c<stimconf.size(); c++) {
-      // TODO: RDD: 
+    RC_DEBOUT(RC::RStr("Settings::UpdateConfCPS enter\n"));
+    for (size_t c=0; c<max_stimconf_range.size(); c++) {
+      // configuration ranges for parameters to search over
       current_config.Set(min_stimconf[c].params.amplitude*1e-3,
           "experiment", "stim_channels", c, "amplitude_range_mA", 0);
       current_config.Set(max_stimconf[c].params.amplitude*1e-3,
           "experiment", "stim_channels", c, "amplitude_range_mA", 1);
-      // current_config.Set(stimconf[c].params.amplitude*1e-3,
-      //     "experiment", "stim_channels", c, "amplitude_mA");
-      current_config.Set(stimconf[c].params.frequency,
-          "experiment", "stim_channels", c, "frequency_Hz");
-      current_config.Set(uint32_t((stimconf[c].params.duration+500)/1000),
-          "experiment", "stim_channels", c, "duration_ms");
+
+      // fixed parameters
+      current_config.Set(min_stimconf_range[c].params.amplitude*1e-3,
+          "experiment", "stim_channels", c, "amplitude_search_range_mA", 0);
+      current_config.Set(max_stimconf_range[c].params.amplitude*1e-3,
+          "experiment", "stim_channels", c, "amplitude_search_range_mA", 1);
+
+      current_config.Set(min_stimconf_range[c].params.frequency,
+          "experiment", "stim_channels", c, "frequency_search_range_Hz", 0);
+      current_config.Set(max_stimconf_range[c].params.frequency,
+          "experiment", "stim_channels", c, "frequency_search_range_Hz", 1);
+
+      current_config.Set(uint32_t((min_stimconf_range[c].params.duration+500)/1000),
+          "experiment", "stim_channels", c, "duration_search_range_ms", 0);
+      current_config.Set(uint32_t((max_stimconf_range[c].params.duration+500)/1000),
+          "experiment", "stim_channels", c, "duration_search_range_ms", 1);
     }
-
-    // OPS-style update
-    // RC::Data1D<RC::RStr> sel_chans;
-    // for (size_t i=0; i<stimconf.size(); i++) {
-    //   if (stimgrid_chan_on[i]) {
-    //     sel_chans += RC::RStr("[") + stimconf[i].params.electrode_pos + ", " +
-    //       stimconf[i].params.electrode_neg + "]";
-    //   }
-    // }
-    // RC::RStr sel_chan_str = RC::RStr("[") + RC::RStr::Join(sel_chans, ", ")
-    //   + "]";
-    // JSONFile sel_chan_json;
-    // sel_chan_json.Parse(sel_chan_str);
-    // current_config.Set(sel_chan_json, "experiment", "stim_parameters",
-    //     "channels");
-
-    // RC::Data1D<float> sel_amp;
-    // for (size_t i=0; i<stimgrid_amp_uA.size(); i++) {
-    //   if (stimgrid_amp_on[i]) {
-    //     sel_amp.Append(stimgrid_amp_uA[i]/1000.0f);
-    //   }
-    // }
-    // current_config.Set(sel_amp, "experiment", "stim_parameters",
-    //     "amplitudes_mA");
-
-    // RC::Data1D<uint32_t> sel_freq;
-    // for (size_t i=0; i<stimgrid_freq_Hz.size(); i++) {
-    //   if (stimgrid_freq_on[i]) {
-    //     sel_freq.Append(stimgrid_freq_Hz[i]);
-    //   }
-    // }
-    // current_config.Set(sel_freq, "experiment", "stim_parameters",
-    //     "frequencies_Hz");
-
-    // RC::Data1D<uint32_t> sel_dur;
-    // for (size_t i=0; i<stimgrid_dur_us.size(); i++) {
-    //   if (stimgrid_dur_on[i]) {
-    //     sel_dur.Append(stimgrid_dur_us[i]/1000.0f+0.5f);
-    //   }
-    // }
-    // current_config.Set(sel_dur, "experiment", "stim_parameters",
-    //     "durations_ms");
+    RC_DEBOUT(RC::RStr("Settings::UpdateConfCPS exit\n"));
   }
 
 

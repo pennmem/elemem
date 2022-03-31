@@ -65,7 +65,8 @@ namespace CML {
     abs_EEG_collection_times.Clear();
     classif_results.Clear();
     exper_classif_settings.Clear();
-    stim_loc_profiles.Clear();
+    min_stim_loc_profiles.Clear();
+    max_stim_loc_profiles.Clear();
     stim_event_flags.Clear();
     sham_results.clear();
     search_order.Clear();
@@ -78,20 +79,36 @@ namespace CML {
   }
 
   void ExperCPS::SetStimProfiles_Handler(
-        const RC::Data1D<CSStimProfile>& new_stim_loc_profiles) {
+        const RC::Data1D<CSStimProfile>& new_min_stim_loc_profiles,
+        const RC::Data1D<CSStimProfile>& new_max_stim_loc_profiles) {
     #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::SetStimProfiles\n"));
     #endif
+    if (new_min_stim_loc_profiles.size() != new_max_stim_loc_profiles.size()) {
+      Throw_RC_Error("ExperCPS::SetStimProfiles: Min and max stimulation profiles must have the same length.");
+    }
     _init();
-    n_searches = new_stim_loc_profiles.size();
-    for (size_t i = 0; i < n_searches + 1; i++) { search_order += i; }
+    n_searches = new_max_stim_loc_profiles.size();
+    // validation
+    for (size_t i = 0; i < n_searches + 1; i++) {
+      if (new_min_stim_loc_profiles[i].size() != 1 ||
+          new_max_stim_loc_profiles[i].size() != 1) {
+        Throw_RC_Error("ExperCPS::SetStimProfiles: Only single-channel stimulation profiles supported.");
+      }
+      if (new_min_stim_loc_profiles[i][0].electrode_pos != new_max_stim_loc_profiles[i][0].electrode_pos ||
+          new_min_stim_loc_profiles[i][0].electrode_neg != new_max_stim_loc_profiles[i][0].electrode_neg ||
+          new_min_stim_loc_profiles[i][0].frequency != new_max_stim_loc_profiles[i][0].frequency ||
+          new_min_stim_loc_profiles[i][0].duration != new_max_stim_loc_profiles[i][0].duration ||
+          new_min_stim_loc_profiles[i][0].area != new_max_stim_loc_profiles[i][0].area ||
+          new_min_stim_loc_profiles[i][0].burst_frac != new_max_stim_loc_profiles[i][0].burst_frac ||
+          new_min_stim_loc_profiles[i][0].burst_slow_freq != new_max_stim_loc_profiles[i][0].burst_slow_freq) {
+        Throw_RC_Error("ExperCPS::SetStimProfiles: Min and max stimulation profiles do not match for fixed parameters.");
+      }
+      search_order += i;
+    }
     // TODO: RDD: determine adequate number of sham events
     // add extra sham events for stability
     // if (n_searches > 5) { search_order += 0; }
-
-    #ifdef DEBUG_EXPERCPS
-    RC_DEBOUT(RC::RStr("ExperCPS::SetStimProfiles n_searches: ") + to_string(n_searches) + RC::RStr("\n"));
-    #endif
 
     param_bounds.clear();
     // for now give all searches the same kernels and kernel hyperparameters
@@ -106,13 +123,14 @@ namespace CML {
     // search grids
     vector<vector<CMatrix>> all_grid_vals;
     
+    // set search bounds
     for (int i = 0; i < n_searches; i++) {
       // TODO: LATER RDD: fix this to allow for searching over arbitrary parameters
       //            for now assume that the maximum amplitude is the amplitude in the given profiles
-      // TODO: RDD: bounds should be passed separately with min/max configuration; fine for now with just amplitude being tuned
+
       // amplitude bounds in mA
-      bounds.setVal(0.1, 0);
-      bounds.setVal(((double)new_stim_loc_profiles[i][0].amplitude)/1000, 1);
+      bounds.setVal(((double)new_min_stim_loc_profiles[i][0].amplitude)/1000, 0, 0);
+      bounds.setVal(((double)new_max_stim_loc_profiles[i][0].amplitude)/1000, 0, 1);
 
       kernels.push_back(kern);
       param_bounds.push_back(bounds);
@@ -120,7 +138,6 @@ namespace CML {
       exploration_biases.push_back(exp_bias);
       init_samples.push_back(n_init_samples);
       rng_seeds.push_back(seed + n_searches * 100000);
-      // TODO: RDD: update for arbitrary stim search parameters
 
       double amplitude_resolution = 0.1;  // mA
       int n_grid = (bounds.getVal(1) - bounds.getVal(0))/amplitude_resolution + 1;
@@ -134,14 +151,15 @@ namespace CML {
       }
       all_grid_vals.push_back(grid_vals);
 
-      uint64_t duration = new_stim_loc_profiles[i][0].duration / 1000;
+      uint64_t duration = new_max_stim_loc_profiles[i][0].duration / 1000;
       // TODO: RDD: consider this scheme of conservatively setting the sham duration vs. just setting it in config as done now
       // max_stim_duration_ms = duration > max_stim_duration_ms ? duration : max_stim_duration_ms;
     }
 
     search = CSearchComparison(n_searches, pval_threshold, kernels, param_bounds, observation_noises,
         exploration_biases, init_samples, rng_seeds, verbosity, all_grid_vals);
-    stim_loc_profiles = new_stim_loc_profiles;
+    min_stim_loc_profiles = new_min_stim_loc_profiles;
+    max_stim_loc_profiles = new_max_stim_loc_profiles;
     stim_profiles = RC::Data1D<RC::Data1D<CSStimProfile>>(n_searches);
     // add initial stim profiles
     for (int i = 0; i < n_searches; i++) { GetNextEvent(i); }
@@ -155,10 +173,10 @@ namespace CML {
 
     // TODO: all: LATER currently assuming that stim parameters not being searched over are set separately in
     //            stim_loc_profiles, should add these to Settings.cpp
-    if (stim_loc_profiles[model_idx].size() != 1) {
+    if (max_stim_loc_profiles[model_idx].size() != 1) {
       Throw_RC_Error("ExperCPS::GetNextEvent: Only stimulation events with stimulation profiles of length 1 are supported currently.");
     }
-    CSStimChannel stim_chan((stim_loc_profiles[model_idx][0]));
+    CSStimChannel stim_chan((max_stim_loc_profiles[model_idx][0]));
 
     // set stim parameter values for next search point
     // TODO: RDD: LATER may want to scale down into more desirable interval, e.g., [0, 1]
@@ -365,9 +383,11 @@ namespace CML {
     }
 
     // TODO: RDD: move these log statements and all others to be as early as possible? then can't have a single JSON line
-    data_log.Set(nlohmann::json::array(), "analysis_data", "stim_loc_profiles");
-    for (int i = 0; i < stim_loc_profiles.size(); i++) {
-      data_log.json["analysis_data"]["stim_loc_profiles"].push_back(JSONifyCSStimProfile(stim_loc_profiles[i]).json);
+    data_log.Set(nlohmann::json::array(), "analysis_data", "min_stim_loc_profiles");
+    data_log.Set(nlohmann::json::array(), "analysis_data", "max_stim_loc_profiles");
+    for (int i = 0; i < min_stim_loc_profiles.size(); i++) {
+      data_log.json["analysis_data"]["min_stim_loc_profiles"].push_back(JSONifyCSStimProfile(min_stim_loc_profiles[i]).json);
+      data_log.json["analysis_data"]["max_stim_loc_profiles"].push_back(JSONifyCSStimProfile(max_stim_loc_profiles[i]).json);
     }
 
     // data_log.Set(exper_classif_settings, "analysis_data", "exper_classif_settings");

@@ -36,7 +36,11 @@ namespace CML {
     StimConfigBox& GetStimConfigBox(size_t i) {
       return *stim_config_boxes[i];
     }
+    MinMaxStimConfigBox& GetMinMaxStimConfigBox(size_t i) {
+      return *min_max_stim_config_boxes[i];
+    }
     size_t StimConfigCount() { return stim_config_boxes.size(); }
+    size_t MinMaxStimConfigCount() { return min_max_stim_config_boxes.size(); }
 
     LocConfigBox& GetLocConfigChan() {
       return *loc_config_chans;
@@ -71,6 +75,8 @@ namespace CML {
 
     RCqt::TaskCaller<> SwitchToStimPanelFR =
       TaskHandler(MainWindow::SwitchToStimPanelFR_Handler);
+    RCqt::TaskCaller<> SwitchToStimPanelCPS =
+      TaskHandler(MainWindow::SwitchToStimPanelCPS_Handler);
     RCqt::TaskCaller<> SwitchToStimPanelLoc =
       TaskHandler(MainWindow::SwitchToStimPanelLoc_Handler);
 
@@ -84,6 +90,7 @@ namespace CML {
     void PrepareMenus();
     RC::Ptr<QGroupBox> BuildStimConfig();
     RC::Ptr<QWidget> BuildStimPanelFR();
+    RC::Ptr<QWidget> BuildStimPanelCPS();
     RC::Ptr<QWidget> BuildStimPanelLoc();
     void BuildLayout();
 
@@ -99,6 +106,7 @@ namespace CML {
     void SetReadyToStart_Handler(const bool& ready);
 
     void SwitchToStimPanelFR_Handler();
+    void SwitchToStimPanelCPS_Handler();
     void SwitchToStimPanelLoc_Handler();
 
     RC::Ptr<EEGDisplay> eeg_disp;
@@ -110,6 +118,7 @@ namespace CML {
 
     RC::APtr<OpenConfigDialog> open_config_dialog;
     RC::Data1D<RC::Ptr<StimConfigBox>> stim_config_boxes;
+    RC::Data1D<RC::Ptr<MinMaxStimConfigBox>> min_max_stim_config_boxes;
     RC::Ptr<LocConfigBox> loc_config_chans;
     RC::Ptr<LocConfigBox> loc_config_amp;
     RC::Ptr<LocConfigBox> loc_config_freq;

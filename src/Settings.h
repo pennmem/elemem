@@ -56,6 +56,9 @@ namespace CML {
     RC::Data1D<StimSettings> stimconf;
     RC::Data1D<StimSettings> min_stimconf;
     RC::Data1D<StimSettings> max_stimconf;
+    // min and max ranges for parameter search (min/max_stimconf give ranges for stim parameter configuration)
+    RC::Data1D<StimSettings> min_stimconf_range;
+    RC::Data1D<StimSettings> max_stimconf_range;
 
     RC::Data1D<uint16_t> stimgrid_amp_uA;
     RC::Data1D<uint32_t> stimgrid_freq_Hz;

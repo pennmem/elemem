@@ -40,7 +40,7 @@ namespace CML {
     RCqt::TaskCaller<const CPSSpecs> SetCPSSpecs =
       TaskHandler(ExperCPS::SetCPSSpecs_Handler);
 
-    RCqt::TaskCaller<const RC::Data1D<CSStimProfile>> SetStimProfiles =
+    RCqt::TaskCaller<const RC::Data1D<CSStimProfile>, const RC::Data1D<CSStimProfile>> SetStimProfiles =
       TaskHandler(ExperCPS::SetStimProfiles_Handler);
 
     RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
@@ -67,7 +67,8 @@ namespace CML {
     }
 
     void SetStimProfiles_Handler(
-        const RC::Data1D<CSStimProfile>& new_stim_loc_profiles);
+        const RC::Data1D<CSStimProfile>& new_min_stim_loc_profiles,
+        const RC::Data1D<CSStimProfile>& new_max_stim_loc_profiles);
 
 
     void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
@@ -110,6 +111,8 @@ namespace CML {
     uint64_t stim_lockout_ms;
     uint64_t poststim_classif_lockout_ms;
 
+    bool search_amplitude = true;
+
     // TODO: RDD: link to general Elemem seed
     int seed;
     int n_var;
@@ -133,7 +136,8 @@ namespace CML {
 
     // set of stimulation profiles used to indicate unique stim locations
     // ordered by testing priority (unknown number of stim events per experiment)
-    RC::Data1D<CSStimProfile> stim_loc_profiles;
+    RC::Data1D<CSStimProfile> min_stim_loc_profiles;
+    RC::Data1D<CSStimProfile> max_stim_loc_profiles;
     CPSSpecs cps_specs;
     CSStimProfile best_stim_profile;
     bool beat_sham;

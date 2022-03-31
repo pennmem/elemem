@@ -167,6 +167,9 @@ namespace CML {
     if (experiment_running) {
       main_window->GetStimConfigBox(index).SetParameters(
           settings.stimconf[index].params);
+      if (settings.exper.find("CPS") == 0) {
+        Throw_RC_Error("Cannot edit CPS parameter search range while experiment is running.");
+      }
       return;
     }
 
@@ -198,7 +201,8 @@ namespace CML {
       (updated_settings.params.burst_slow_freq !=
        settings.stimconf[index].params.burst_slow_freq) ||
       (updated_settings.stimtag !=
-       settings.stimconf[index].stimtag)) {
+       settings.stimconf[index].stimtag)
+      ) {
       main_window->GetStimConfigBox(index).SetParameters(
         settings.stimconf[index].params);
       ErrorWin("Attempted to set invalid stim settings.", "Safety check");
@@ -206,6 +210,15 @@ namespace CML {
     }
 
     settings.stimconf[index] = updated_settings;
+
+    // set CPS parameter search ranges
+    if (settings.exper.find("CPS") == 0) {
+      settings.min_stimconf_range[index] = updated_settings;
+      // hardcode min amplitude to min value of 0.1; non-zero stim values will never
+      // be below 0.1 mA
+      settings.min_stimconf_range[index].params.amplitude = 100;
+      settings.max_stimconf_range[index] = updated_settings;
+    }
   }
 
   void Handler::TestStim_Handler(const size_t& index) {
@@ -355,43 +368,45 @@ namespace CML {
       exper_ops.SetStimProfiles(grid_profiles);
     }
     else if (settings.exper.find("CPS") == 0) {
-      // from OPS-style configuration attempt
-      // Data1D<CSStimProfile> discrete_stim_param_sets = CreateDiscreteStimProfiles();
-
-      // FR5-style configuration
       // Count all approved.
-      CSStimProfile cnt_profile;
-      for (size_t c=0; c<settings.stimconf.size(); c++) {
-        if (settings.stimconf[c].approved) {
-          cnt_profile += settings.stimconf[c].params;
+      CSStimProfile max_cnt_profile;
+      CSStimProfile min_cnt_profile;
+      for (size_t c=0; c<settings.max_stimconf_range.size(); c++) {
+        if (settings.max_stimconf_range[c].approved) {
+          min_cnt_profile += settings.min_stimconf_range[c].params;
+          max_cnt_profile += settings.max_stimconf_range[c].params;
         }
       }
-      if (cnt_profile.size() == 0 && stim_mode != StimMode::NONE) {
+      if (min_cnt_profile.size() == 0 && stim_mode != StimMode::NONE) {
         if (!ConfirmWin("No stim channels approved on experiment configured "
              "with stimulation.  Proceed?")) {
           return;
         }
       }
-      if (cnt_profile.size() > 0 && stim_mode == StimMode::NONE) {
+      if (max_cnt_profile.size() > 0 && stim_mode == StimMode::NONE) {
         ErrorWin("Error!  Stim channels enabled on experiment with "
                  "experiment:stim_mode set to \"none\".");
         return;
       }
 
       // But default select only those with no stimtag.
-      Data1D<CSStimProfile> discrete_stim_param_sets;
-      for (size_t c=0; c<settings.stimconf.size(); c++) {
-        if (settings.stimconf[c].approved &&
-            settings.stimconf[c].stimtag.empty()) {
-          CSStimProfile profile;
-          profile += settings.stimconf[c].params;
-          discrete_stim_param_sets += profile;
+      Data1D<CSStimProfile> max_discrete_stim_param_sets;
+      Data1D<CSStimProfile> min_discrete_stim_param_sets;
+      for (size_t c=0; c<settings.max_stimconf_range.size(); c++) {
+        if (settings.max_stimconf_range[c].approved &&
+            settings.max_stimconf_range[c].stimtag.empty()) {
+          CSStimProfile min_profile;
+          min_profile += settings.min_stimconf_range[c].params;
+          min_discrete_stim_param_sets += min_profile;
+          CSStimProfile max_profile;
+          max_profile += settings.max_stimconf_range[c].params;
+          max_discrete_stim_param_sets += max_profile;
         }
       }
 
       exper_cps.SetCPSSpecs(settings.cps_specs);
       // discrete stim param sets only give fixed (non-optimized) stim parameters
-      exper_cps.SetStimProfiles(discrete_stim_param_sets);
+      exper_cps.SetStimProfiles(min_discrete_stim_param_sets, max_discrete_stim_param_sets);
     }
     else {
       // Count all approved.
@@ -429,10 +444,17 @@ namespace CML {
       SetupClassifier();
     }
 
+    RC_DEBOUT(RC::RStr("Handler.cpp::SelectStimHandler 4\n"));
     experiment_running = true;
     main_window->SetReadyToStart(false);
     for (size_t i=0; i<main_window->StimConfigCount(); i++) {
       main_window->GetStimConfigBox(i).SetEnabled(false);
+    }
+
+    RC_DEBOUT(RC::RStr("Handler.cpp::SelectStimHandler 5\n"));
+
+    for (size_t i=0; i<main_window->MinMaxStimConfigCount(); i++) {
+      main_window->GetMinMaxStimConfigBox(i).SetEnabled(false);
     }
 
     RStr sub_dir = RStr(settings.sub) + "_" + Time::GetDateTime();
@@ -512,6 +534,9 @@ namespace CML {
     for (size_t i=0; i<main_window->StimConfigCount(); i++) {
       main_window->GetStimConfigBox(i).SetEnabled(true);
     }
+    for (size_t i=0; i<main_window->MinMaxStimConfigCount(); i++) {
+      main_window->GetMinMaxStimConfigBox(i).SetEnabled(true);
+    }
 
     do_exit = false;
     if (experiment_running) {
@@ -553,6 +578,9 @@ namespace CML {
     // Clear the gui stim elements.
     for (size_t c=0; c<main_window->StimConfigCount(); c++) {
       main_window->GetStimConfigBox(c).Clear();
+    }
+    for (size_t c=0; c<main_window->MinMaxStimConfigCount(); c++) {
+      main_window->GetMinMaxStimConfigBox(c).Clear();
     }
     main_window->GetLocConfigChan().Clear();
     main_window->GetLocConfigAmp().Clear();
@@ -662,16 +690,18 @@ namespace CML {
     // TODO: RDD: update for CPS with min/max safety testing interface
     else if (settings.exper.find("CPS") == 0) {
       size_t config_box_cnt = std::min(settings.stimconf.size(),
-          main_window->StimConfigCount());
+          main_window->MinMaxStimConfigCount());
       for (size_t c=0; c<config_box_cnt; c++) {
-        main_window->GetStimConfigBox(c).SetChannel(
+        main_window->GetMinMaxStimConfigBox(c).SetChannel(
             settings.min_stimconf[c].params, settings.max_stimconf[c].params,
             settings.stimconf[c].label, settings.stimconf[c].stimtag, c);
-        main_window->GetStimConfigBox(c).SetParameters(
+        // for now just pass stimconf through to MinMaxStimConfigBox
+        main_window->GetMinMaxStimConfigBox(c).SetParameters(
             settings.stimconf[c].params);
       }
 
-      main_window->SwitchToStimPanelFR();
+      //main_window->SwitchToStimPanelFR();
+      main_window->SwitchToStimPanelCPS();
     }
     else {
       size_t config_box_cnt = std::min(settings.stimconf.size(),

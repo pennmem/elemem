@@ -90,6 +90,26 @@ namespace CML {
   }
 
 
+  RC::Ptr<QWidget> MainWindow::BuildStimPanelCPS() {
+    int stim_cols = 2;
+    int stim_rows = 10;
+    min_max_stim_config_boxes.Clear();
+    RC::Ptr<QGridLayout> stim_grid = new QGridLayout();
+    for (int r=0; r<stim_rows; r++) {
+      for (int c=0; c<stim_cols; c++) {
+        RC::Ptr<MinMaxStimConfigBox> box = new MinMaxStimConfigBox(hndl->SetStimSettings,
+                                                                   hndl->TestStim);
+        min_max_stim_config_boxes += box;
+        stim_grid->addWidget(box, r, c);
+      }
+    }
+
+    RC::Ptr<QWidget> stim_panel = new QWidget();
+    stim_panel->setLayout(stim_grid);
+    return stim_panel;
+  }
+
+
   RC::Ptr<QWidget> MainWindow::BuildStimPanelLoc() {
     RC::Ptr<QWidget> stimloc_panel = new QWidget();
 
@@ -144,6 +164,12 @@ namespace CML {
     Loc_panel_scroll->setWidget(BuildStimPanelLoc());
     Loc_panel_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     stim_panels->addWidget(Loc_panel_scroll);
+
+    RC::Ptr<QScrollArea> CPS_panel_scroll = new QScrollArea();
+    CPS_panel_scroll->setWidget(BuildStimPanelCPS());
+    CPS_panel_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    CPS_panel_scroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
+    stim_panels->addWidget(CPS_panel_scroll);
 
     stim_and_start->addLayout(stim_panels);
 
@@ -221,6 +247,10 @@ namespace CML {
 
   void MainWindow::SwitchToStimPanelLoc_Handler() {
     stim_panels->setCurrentIndex(1);
+  }
+
+  void MainWindow::SwitchToStimPanelCPS_Handler() {
+    stim_panels->setCurrentIndex(2);
   }
 
 

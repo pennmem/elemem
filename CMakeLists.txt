@@ -8,7 +8,7 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 ######################
 # Compilation settings
 
-set(IS_RELEASE true)
+set(IS_RELEASE false)
 option(CEREBUS_HW "Use the Cerebus/Neuroport interface" OFF) # cmake -DCEREBUS_HW=OFF ..
 option(CERESTIM_STUB # cmake -DCERESTIM_STUB=ON ..
 	"Use the CereStim simulator (default ON for non-Windows)" ON)
