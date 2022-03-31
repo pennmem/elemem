@@ -7,3 +7,6 @@
 [submodule "include/BayesGPc"]
 	path = include/BayesGPc
 	url = git@github.com:pennmem/BayesGPc.git
+[submodule "include/lapack"]
+	path = include/lapack
+	url = git@github.com:Reference-LAPACK/lapack.git
