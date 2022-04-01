@@ -25,7 +25,11 @@ namespace CML {
         ChannelChecked(i, b);
       };
       RC::Ptr<CheckBox> chk = new CheckBox(chan_callbacks[i],
-        RC::RStr(channels[i].channel+1) + " (" + channels[i].label + ")");
+        // TODO: JPB: (need) Should this be "5-6" or 0 indexed?
+        //RC::RStr::Join(channels[i].channels, "-",
+        //  []( in) { return RC::RStr(in + 1); })
+        // + " (" + channels[i].label + ")");
+        RC::RStr(channels[i].index) + " (" + channels[i].label + ")");
       lyt->addWidget(chk);
       if (i < 16) {
         chk->Set(true);

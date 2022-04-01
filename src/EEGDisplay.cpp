@@ -57,7 +57,7 @@ namespace CML {
         (data.sample_len-1);
 
     for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
-      size_t chan = eeg_channels[chan_i].channel;
+      size_t chan = eeg_channels[chan_i].index;
       if (chan > data.data.size()) {
         continue;
       }
@@ -127,7 +127,7 @@ namespace CML {
     }
 
     for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
-      uint32_t c = eeg_channels[chan_i].channel;
+      uint32_t c = eeg_channels[chan_i].index;
       if (c >= new_data.size() || c >= data.data.size()) {
         continue;
       }
@@ -172,11 +172,11 @@ namespace CML {
 
 
   void EEGDisplay::UnsetChannel_Handler(EEGChan& chan) {
-    if (chan.channel < data.data.size()) {
-      data.data[chan.channel].Zero();
+    if (chan.index < data.data.size()) {
+      data.data[chan.index].Zero();
     }
     for (size_t i=0; i<eeg_channels.size(); i++) {
-      if (chan.channel == eeg_channels[i].channel) {
+      if (chan.index == eeg_channels[i].index) {
         eeg_channels.Remove(i);
         i--;
       }
