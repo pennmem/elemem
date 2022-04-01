@@ -71,10 +71,61 @@ namespace CML {
       elec_config.Delete();
       Throw_RC_Type(Note, "Montage CSV file has insufficient columns.");
     }
-    Data1D<EEGChan> new_chans(elec_config->data.size2());
+    RC::Data1D<EEGChan> new_chans(elec_config->data.size2());
     for (size_t r=0; r<elec_config->data.size2(); r++) {
       new_chans[r] = EEGChan(elec_config->data[r][1].Get_u32()-1,
                              elec_config->data[r][0]);
+    }
+
+    return new_chans;
+  }
+
+  RC::Data1D<EEGChan> Settings::LoadBipolarElecConfig(RC::RStr dir) {
+    RStr elecfilename =  exp_config->GetPath("bipolar_electrode_config_file");
+    if (File::Basename(elecfilename) == elecfilename) {
+      elecfilename = File::FullPath(dir, elecfilename);
+    }
+
+    APtr<CSVFile> elecs = new CSVFile();
+    elecs->Load(elecfilename);
+    elec_config = elecs.ExtractConst();
+    if (elec_config->data.size1() < 3) {
+      elec_config.Delete();
+      Throw_RC_Type(Note, "Bipolar CSV file has insufficient columns.");
+    }
+
+    RC::Data1D<EEGChan> new_chans(elec_config->data.size2());
+    for (size_t r=0; r<elec_config->data.size2(); r++) {
+      auto& chan = elec_config->data[r];
+      RC::RStr label = chan[0];
+      RC::RStr pos_str = chan[1];
+      RC::RStr neg_str = chan[2];
+
+      if (! pos_str.Is_u32(10, true)) {
+        Throw_RC_Type(File, ("Invalid positive electrode (" + pos_str + ") of bipolar pair (" + RC::RStr(label) + ") "
+              "in Bipolar CSV").c_str());
+      }
+      if (! neg_str.Is_u32(10, true)) {
+        Throw_RC_Type(File, ("Invalid negative electrode (" + neg_str + ") of bipolar pair (" + RC::RStr(label) + ") "
+              "in Bipolar CSV").c_str());
+      }
+
+      uint32_t pos = pos_str.Get_u32();
+      uint32_t neg = neg_str.Get_u32();
+
+      if (pos > 255) {
+        Throw_RC_Type(File, ("Positive electrode (" + RC::RStr(pos) + ") of bipolar pair (" + RC::RStr(label) + ") "
+              "in Bipolar CSV is greater than 255").c_str());
+      }
+
+      if (neg > 255) {
+        Throw_RC_Type(File, ("Negative electrode (" + RC::RStr(neg) + ") of bipolar pair (" + RC::RStr(label) + ") "
+              "in Bipolar CSV is greater than 255").c_str());
+      }
+
+      // JPB: TODO: (need) Validate if electrode is present in main elecrode config
+
+      new_chans[r] = EEGChan(pos, neg, label, r);
     }
 
     return new_chans;

@@ -5,19 +5,32 @@
 #include "EEGData.h"
 #include "RC/Data1D.h"
 #include <vector>
+#include <variant>
 
 
 namespace CML {
   class EEGChan {
     public:
-    EEGChan(uint32_t channel=0, RC::RStr label="")
-      : channel(channel), label(label) {
+    EEGChan() : EEGChan(0) {}
+    EEGChan(uint32_t channel) : EEGChan(channel, "") {}
+    EEGChan(uint32_t channel, RC::RStr label) : EEGChan(channel, label, channel+1) {}
+    EEGChan(uint32_t channel, RC::RStr label, uint32_t index) : channels({channel}), label(label), index(index) {
       if (label.empty()) {
         this->label = RC::RStr(channel+1);
       }
     }
-    uint32_t channel;
+
+    EEGChan(uint32_t pos, uint32_t neg) : EEGChan(pos, neg, "") {}
+    EEGChan(uint32_t pos, uint32_t neg, RC::RStr label) :  EEGChan(pos, neg, label, pos) {}
+    EEGChan(uint32_t pos, uint32_t neg, RC::RStr label, uint32_t index) : channels({pos, neg}), label(label), index(index) {
+      if (label.empty()) {
+        this->label = RC::RStr(pos+1) + "-" + RC::RStr(neg+1);
+      }
+    }
+
+    RC::Data1D<uint32_t> channels;
     RC::RStr label;
+    uint32_t index;
   };
 
   class EEGDisplay : public CImage {

@@ -37,6 +37,7 @@ namespace CML {
 
     void Clear();
     RC::Data1D<EEGChan> LoadElecConfig(RC::RStr dir);
+    RC::Data1D<EEGChan> LoadBipolarElecConfig(RC::RStr dir);
     void LoadStimParamGrid();
     void LoadChannelSettings();
 
