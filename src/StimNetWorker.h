@@ -32,6 +32,7 @@ namespace CML {
 
 
     protected:
+    void LogAndSend(const RC::RStr& msg);
     void ConfigureStimulationHelper(StimProfile profile) override;
     void StimulateHelper() override;
     void OpenHelper() override;
@@ -42,6 +43,7 @@ namespace CML {
     void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel);
 
     RC::Ptr<StatusPanel> status_panel;
+    RC::Ptr<Handler> hndl;
 
     StimNetWorkerSettings settings;
   };

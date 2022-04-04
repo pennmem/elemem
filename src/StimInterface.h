@@ -61,27 +61,27 @@ namespace CML {
       // A : cm^2
       float current_f_uA = std::sqrt(area_mmsq*1e-2*31.622776601683793) /
                            (stim_width_us*1e-6);
-  
+
       uint16_t current_uA = uint16_t(current_f_uA);
       if (current_f_uA > uint16_t(-1)) {
         current_uA = uint16_t(-1);
       }
-  
+
       return current_uA;
     }
-  
+
     uint16_t ShannonCriteria(const StimChannel& chan) {
       return ShannonCriteria(chan.area);
     }
-  
+
     bool ShannonSafe(float area_mmsq, uint16_t amplitude_uA) {
       return amplitude_uA <= ShannonCriteria(area_mmsq);
     }
-  
+
     bool ShannonSafe(const StimChannel& chan) {
       return ShannonSafe(chan.area, chan.amplitude);
     }
-  
+
     void ShannonAssert(float area_mmsq, uint16_t amplitude_uA) {
       if ( ! ShannonSafe(area_mmsq, amplitude_uA)) {
         throw std::runtime_error(std::string("Requested ") +
@@ -91,7 +91,7 @@ namespace CML {
             "Stimulation not done.");
       }
     }
-  
+
     void ShannonAssert(const StimChannel& chan) {
       ShannonAssert(chan.area, chan.amplitude);
     }
@@ -129,7 +129,7 @@ namespace CML {
       std::vector<uint8_t> uniqueness_check(256);
       for (size_t i=0; i<profile.stim_profile.size(); i++) {
         auto& prof =  profile.stim_profile[i];
-  
+
         if (uniqueness_check.at(prof.electrode_pos) ||
             uniqueness_check.at(prof.electrode_neg) ||
             prof.electrode_pos == prof.electrode_neg) {
@@ -137,7 +137,7 @@ namespace CML {
         }
         uniqueness_check.at(prof.electrode_pos) = 1;
         uniqueness_check.at(prof.electrode_neg) = 1;
-  
+
         if (i==0) {  // Save first burst setting.
           burst_slow_freq = prof.burst_slow_freq;
           burst_frac = prof.burst_frac;
@@ -151,7 +151,7 @@ namespace CML {
               "stim.");
         }
       }
-  
+
       // Sensible burst settings only.
       if (burst_frac > 1) {
         throw std::runtime_error("Attempted to configure stim burst fraction "
@@ -172,10 +172,10 @@ namespace CML {
       for (size_t i=0; i<prof_size; i++) {
         // Extract and index the unique ones.
         auto& chan = profile.stim_profile[i];
-  
+
         // Enforce Shannon criteria for safety.
         ShannonAssert(chan);
-  
+
         FreqDurAmp fda{chan.frequency, chan.duration, chan.amplitude};
         auto res = std::find(fda_vec.begin(), fda_vec.end(), fda);
         if (res == fda_vec.end()) {
@@ -185,7 +185,7 @@ namespace CML {
         auto pat_index = res - fda_vec.begin();
         pattern_index[i] = size_t(pat_index);
       }
-  
+
       for (size_t i=0; i<fda_vec.size(); i++) {
         auto& afd = fda_vec[i];
         uint64_t pulses_64 = (uint64_t(afd.duration) * afd.frequency) / 1000000;
@@ -194,7 +194,7 @@ namespace CML {
           pulses_64 = uint64_t(round(afd.frequency * burst_frac /
                                      burst_slow_freq));
         }
-  
+
         if (pulses_64 < 1) {
           pulses_64 = 1;
         }
@@ -216,7 +216,7 @@ namespace CML {
       OpenHelper();
     }
 
-	void Close() {
+    void Close() {
       CloseHelper();
 
       is_configured = false;
@@ -252,7 +252,7 @@ namespace CML {
       .amplitude=3500, // 35*100uA.
       .phase_charge=20000000, // Won't go above 1.05e6 with 300us
       .frequency=1000}; // Hz
-  }; 
+  };
 }
 
 #endif

@@ -73,7 +73,7 @@ namespace CML {
 
     settings.LoadSystemConfig();
 
-	// EEG System
+    // EEG System
     RC::RStr eeg_system;
     settings.sys_config->Get(eeg_system, "eeg_system");
     RC::APtr<EEGSource> eeg_source;
@@ -107,19 +107,22 @@ namespace CML {
     RC::APtr<StimInterface> stim_interface;
     if (stim_system == "CereStim") {
       stim_interface = new CereStim();
-    } 
+    }
     else if (stim_system == "StimNetWorker") {
       std::string stim_ip;
       uint16_t stim_port;
-	  settings.sys_config->Get(stim_ip, "stimcom_ip");
+      settings.sys_config->Get(stim_ip, "stimcom_ip");
       settings.sys_config->Get(stim_port, "stimcom_port");
-      stim_interface = new StimNetWorker(this, {.ip=stim_ip, .port=stim_port});
+      RC::Ptr<StimNetWorker> stim_net_worker =
+        new StimNetWorker(this, {.ip=stim_ip, .port=stim_port});
+      stim_net_worker->StopOnDisconnect(true);
+      stim_interface = stim_net_worker;
     }
     else {
       Throw_RC_Type(File, "Unknown sys_config.json stim_system value");
     }
     stim_worker.SetStimInterface(stim_interface);
-	stim_worker.Open(); // TODO: JPB: (need) Move the stim_worker Open() call?
+    stim_worker.Open(); // TODO: JPB: (need) Move the stim_worker Open() call?
   }
 
   void Handler::Initialize_Handler() {

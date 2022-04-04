@@ -28,8 +28,10 @@ namespace CML {
     // Start listening if the conversion checks pass.
     if ( qt_addstr != address.ToQString() || qt_address.isNull() ||
         (! server->listen(QHostAddress(address.ToQString()), port)) ) {
-      Throw_RC_Type(Net, (RC::RStr("Could not setup ") + netWorkerType + " server on address "
-                    + address + " port " + RC::RStr(port)).c_str());
+      hndl->StopExperiment();  // Always stop.  Cannot start.
+      Throw_RC_Type(Net, (RC::RStr("Could not setup ") + netWorkerType +
+            " server on address " + address + " port " +
+            RC::RStr(port)).c_str());
     }
   }
 
@@ -49,8 +51,8 @@ namespace CML {
     return (con.IsSet() && con->isOpen());
   }
 
-  void NetWorker::WarnOnDisconnect_Handler(const bool& warn) {
-    stop_on_disconnect = warn;
+  void NetWorker::StopOnDisconnect_Handler(const bool& stop) {
+    stop_on_disconnect = stop;
   }
 
   void NetWorker::NewConnection() {
@@ -64,7 +66,7 @@ namespace CML {
       connect(con, &QTcpSocket::readyRead, this, &NetWorker::DataReady);
       connect(con, &QTcpSocket::disconnected, this, &NetWorker::Disconnected);
       connected = true;
-	  NewConnectionMade();
+      NewConnectionMade();
     }
     NewConnectionAfter();
   }
@@ -85,9 +87,7 @@ namespace CML {
   void NetWorker::Disconnected() {
     DisconnectedBefore();
     buffer.clear();
-    if (stop_on_disconnect) {
-      hndl->StopExperiment();
-    }
+    StopExpIfShould();
     // Message required, unplanned disconnect.
     if (connected) {
       connected = false;
@@ -102,41 +102,27 @@ namespace CML {
     DisconnectedAfter();
   }
 
-  void NetWorker::Send(JSONFile& msg) {
-    if (!con.IsSet()) {
-      ErrorWin("Tried to send something via NetWorker before connection was made");
-	}
+  void NetWorker::Send(const RC::RStr& msg) {
+    if ( ! IsConnected_Handler() ) {
+      StopExpIfShould();
+      Throw_RC_Type(Net, "Tried to send something via NetWorker before "
+          "connection was made");
+    }
 
-	RC::RStr line = msg.Line();
-    hndl->event_log.Log(line);
-
-    if (con->write(line.c_str(), qint64(line.size())) != qint64(line.size())) {
+    if (con->write(msg.c_str(), qint64(msg.size())) != qint64(msg.size())) {
       Close_Handler();
     }
+
 #ifdef NETWORKER_TIMING
     cout << (RC::RStr("Response time: ") +
              RC::RStr(timer.SinceStart()) + "\n");
 #endif // NETWORKER_TIMING
   }
 
-  void NetWorker::Send(const RC::RStr& msg) {
-    if (!con.IsSet()) {
-      ErrorWin("Tried to send something via NetWorker before connection was made");
-	}
-
-    // TODO: JPB: (need) Make this output json to log
-    hndl->event_log.Log(msg);
-
-	RC_DEBOUT(msg);
-    if (con->write(msg.c_str(), qint64(msg.size())) != qint64(msg.size())) {
-      Close_Handler();
+  void NetWorker::StopExpIfShould() {
+    if (stop_on_disconnect) {
+      hndl->StopExperiment();
     }
-	RC_DEBOUT(msg);
-#ifdef NETWORKER_TIMING
-    cout << (RC::RStr("Response time: ") +
-             RC::RStr(timer.SinceStart()) + "\n");
-#endif // NETWORKER_TIMING
-
   }
 }
 

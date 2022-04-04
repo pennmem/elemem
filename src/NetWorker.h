@@ -5,7 +5,6 @@
 #include "RC/RStr.h"
 #include "RC/Ptr.h"
 #include "RCqt/Worker.h"
-#include "ConfigFile.h"
 #include <QTcpServer>
 #include <QTcpSocket>
 
@@ -32,8 +31,8 @@ namespace CML {
     RCqt::TaskGetter<bool> IsConnected =
       TaskHandler(NetWorker::IsConnected_Handler);
 
-    RCqt::TaskCaller<const bool> WarnOnDisconnect =
-      TaskHandler(NetWorker::WarnOnDisconnect_Handler);
+    RCqt::TaskCaller<const bool> StopOnDisconnect =
+      TaskHandler(NetWorker::StopOnDisconnect_Handler);
 
     protected slots:
     void NewConnection();
@@ -54,11 +53,11 @@ namespace CML {
     void Close_Handler();
 
     bool IsConnected_Handler();
-    void WarnOnDisconnect_Handler(const bool& warn);
+    void StopOnDisconnect_Handler(const bool& stop);
 
     virtual void ProcessCommand(RC::RStr cmd) = 0;
-    void Send(JSONFile& msg);
     void Send(const RC::RStr& msg);
+    void StopExpIfShould();
 
 
     RC::Ptr<Handler> hndl;
@@ -71,7 +70,7 @@ namespace CML {
 #ifdef NETWORKER_TIMING
     RC::Time timer;
 #endif // NETWORKER_TIMING
-    
+
     RC::RStr netWorkerType = "";
   };
 }

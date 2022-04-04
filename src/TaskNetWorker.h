@@ -5,6 +5,7 @@
 
 namespace CML {
   class Handler;
+  class JSONFile;
   class StatusPanel;
 
   class TaskNetWorker : public NetWorker {
@@ -23,6 +24,8 @@ namespace CML {
     protected:
     void DisconnectedBefore() override;
 
+    void LogAndSend(JSONFile& msg);
+
     void ProcessCommand(RC::RStr cmd) override;
 
     void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel);
@@ -34,6 +37,7 @@ namespace CML {
         const std::string& a, const std::string& b);
 
     RC::Ptr<StatusPanel> status_panel;
+    RC::Ptr<Handler> hndl;
   };
 }
 

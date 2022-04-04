@@ -1,3 +1,4 @@
+#include "ConfigFile.h"
 #include "TaskNetWorker.h"
 #include "Handler.h"
 #include "JSONLines.h"
@@ -9,7 +10,7 @@ using namespace RC;
 
 namespace CML {
   TaskNetWorker::TaskNetWorker(RC::Ptr<Handler> hndl)
-    : NetWorker(hndl, "Task"){
+    : NetWorker(hndl, "Task"), hndl(hndl) {
   }
 
   void TaskNetWorker::DisconnectedBefore() {
@@ -18,6 +19,13 @@ namespace CML {
 
   void TaskNetWorker::SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
       status_panel = set_panel;
+  }
+
+  void TaskNetWorker::LogAndSend(JSONFile& msg) {
+    RC::RStr line = msg.Line();
+    hndl->event_log.Log(line);
+
+    Send(line);
   }
 
   void TaskNetWorker::ProcessCommand(RC::RStr cmd) {
@@ -42,11 +50,9 @@ namespace CML {
     inp.Set(Time::Get()*1e3, "time");
     hndl->event_log.Log(inp.Line());
 
-    RC_DEBOUT(type);
-
     if (type == "CONNECTED") {
       JSONFile response = MakeResp("CONNECTED_OK");
-      Send(response);
+      LogAndSend(response);
       status_panel->SetEvent(type);
     }
     else if (type == "CONFIGURE") {
@@ -61,7 +67,7 @@ namespace CML {
       if (type == "READY") {
         hndl->eeg_acq.StartingExperiment();  // notify, replay needs this.
         JSONFile response = MakeResp("START");
-        Send(response);
+        LogAndSend(response);
       }
       else if (type == "HEARTBEAT") {
         JSONFile response = MakeResp("HEARTBEAT_OK");
@@ -71,7 +77,7 @@ namespace CML {
           response.Set(count, "data", "count");
         }
         catch (...) { }
-        Send(response);
+        LogAndSend(response);
       }
       else if (type == "WORD") {
         ProtWord(inp);
@@ -167,7 +173,7 @@ namespace CML {
       JSONFile response = MakeResp("CONFIGURE_ERROR");
       RStr json_msg = RC::RStr::Join(errors, "; ");
       response.Set(json_msg.c_str(), "data", "error");
-      Send(response);
+      LogAndSend(response);
 
       hndl->StopExperiment();
       RStr human_msg = RC::RStr::Join(errors, "\n");
@@ -176,7 +182,7 @@ namespace CML {
     else {
       JSONFile response = MakeResp("CONFIGURE_OK");
       configured = true;
-      Send(response);
+      LogAndSend(response);
     }
   }
 
