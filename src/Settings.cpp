@@ -74,7 +74,11 @@ namespace CML {
     RC::Data1D<EEGChan> new_chans(elec_config->data.size2());
     for (size_t r=0; r<elec_config->data.size2(); r++) {
       uint32_t chan = elec_config->data[r][1].Get_u32() - 1;
-      new_chans[r] = EEGChan(chan, chan, elec_config->data[r][0]);
+      if (chan > 255) {
+        Throw_RC_Type(File, ("Electrode channel (" + RC::RStr(chan) + ") "
+              "in Montage CSV (item " + r + ") is greater than 255").c_str());
+      }
+      new_chans[r] = EEGChan(static_cast<uint8_t>(chan), chan, elec_config->data[r][0]);
     }
 
     return new_chans;
@@ -115,17 +119,17 @@ namespace CML {
 
       if (pos > 255) {
         Throw_RC_Type(File, ("Positive electrode (" + RC::RStr(pos) + ") of bipolar pair (" + RC::RStr(label) + ") "
-              "in Bipolar CSV is greater than 255").c_str());
+              "in Bipolar CSV (item " + r + ") is greater than 255").c_str());
       }
 
       if (neg > 255) {
         Throw_RC_Type(File, ("Negative electrode (" + RC::RStr(neg) + ") of bipolar pair (" + RC::RStr(label) + ") "
-              "in Bipolar CSV is greater than 255").c_str());
+              "in Bipolar CSV (item " + r + ") is greater than 255").c_str());
       }
 
       // JPB: TODO: (need) Validate if electrode is present in main elecrode config
 
-      new_chans[r] = EEGChan(pos, neg, r, label);
+      new_chans[r] = EEGChan(static_cast<uint8_t>(pos), static_cast<uint8_t>(neg), r, label);
     }
 
     return new_chans;
