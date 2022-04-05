@@ -73,8 +73,8 @@ namespace CML {
     }
     RC::Data1D<EEGChan> new_chans(elec_config->data.size2());
     for (size_t r=0; r<elec_config->data.size2(); r++) {
-      new_chans[r] = EEGChan(elec_config->data[r][1].Get_u32()-1,
-                             elec_config->data[r][0]);
+      uint32_t chan = elec_config->data[r][1].Get_u32() - 1;
+      new_chans[r] = EEGChan(chan, chan, elec_config->data[r][0]);
     }
 
     return new_chans;
@@ -125,7 +125,7 @@ namespace CML {
 
       // JPB: TODO: (need) Validate if electrode is present in main elecrode config
 
-      new_chans[r] = EEGChan(pos, neg, label, r);
+      new_chans[r] = EEGChan(pos, neg, r, label);
     }
 
     return new_chans;

@@ -166,7 +166,7 @@ namespace CML {
     channel_selector = new ChannelSelector(this);
     Data1D<EEGChan> demo_chans;
     for (uint32_t i=32; i<32+16; i++) {
-      demo_chans += EEGChan(i);
+      demo_chans += EEGChan(i, i);
     }
     channel_selector->SetChannels(demo_chans);
     eeg_and_chan->addWidget(channel_selector, 0);
