@@ -57,7 +57,7 @@ namespace CML {
         (data.sample_len-1);
 
     for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
-      size_t chan = eeg_channels[chan_i].index;
+      size_t chan = eeg_channels[chan_i].GetDataIndex();
       if (chan > data.data.size()) {
         continue;
       }
@@ -104,7 +104,7 @@ namespace CML {
       painter.setFont(font);
       SetPen(palette.GetFG_ARGB(0.9f));
       painter.drawText(4, draw_mid-draw_height/2, width-2, draw_height,
-        Qt::AlignTop | Qt::AlignLeft, eeg_channels[chan_i].label.ToQString());
+        Qt::AlignTop | Qt::AlignLeft, eeg_channels[chan_i].GetLabel().ToQString());
 
       draw_mid += draw_step;
     }
@@ -127,7 +127,7 @@ namespace CML {
     }
 
     for (size_t chan_i = 0; chan_i<eeg_channels.size(); chan_i++) {
-      uint32_t c = eeg_channels[chan_i].index;
+      uint32_t c = eeg_channels[chan_i].GetDataIndex();
       if (c >= new_data.size() || c >= data.data.size()) {
         continue;
       }
@@ -172,11 +172,11 @@ namespace CML {
 
 
   void EEGDisplay::UnsetChannel_Handler(EEGChan& chan) {
-    if (chan.index < data.data.size()) {
-      data.data[chan.index].Zero();
+    if (chan.GetDataIndex() < data.data.size()) {
+      data.data[chan.GetDataIndex()].Zero();
     }
     for (size_t i=0; i<eeg_channels.size(); i++) {
-      if (chan.index == eeg_channels[i].index) {
+      if (chan.GetDataIndex() == eeg_channels[i].GetDataIndex()) {
         eeg_channels.Remove(i);
         i--;
       }

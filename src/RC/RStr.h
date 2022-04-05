@@ -1739,7 +1739,7 @@ namespace RC {
 
 
     /// Takes a Data1D<T> array and joins them as one string with spacer
-    /// between each element while applying the function to each element. 
+    /// between each element while applying the function to each element.
     /** Note:  Each element is converted to a string with its RStr(T)
      *  constructor, and thus only works on types for which a constructor
      *  exists.
