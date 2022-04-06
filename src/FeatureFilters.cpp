@@ -246,11 +246,11 @@ namespace CML {
     return out_data;
   }
 
-  /// Converts an EEGDataRaw of electrode channels into EEGDataDouble of electrode channels
+  /// Converts an EEGDataRaw of electrode channels into EEGDataDouble of selected electrode channels, 
   /** @param EEGDataRaw of electrode channels
     * @return EEGDataDouble of electrode channels
     */
-  RC::APtr<EEGDataDouble> FeatureFilters::BipolarSelector(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<size_t> indices) {
+  RC::APtr<EEGDataDouble> FeatureFilters::MonoSelector(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<size_t> indices) {
     auto out_data = RC::MakeAPtr<EEGDataDouble>(in_data->sampling_rate, in_data->sample_len);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
@@ -265,7 +265,37 @@ namespace CML {
     }
     else {
       out_datar.Resize(indices.size());
-      for (size_t out_i=0; out_i<indices.size(); out_i++) {
+      RC_ForRange(out_i, 0, indices.size()) {
+        size_t in_i = indices[out_i];
+        if (in_datar[in_i].IsEmpty()) { continue; }
+        out_data->EnableChan(out_i);
+        out_datar[out_i].CopyFrom(in_datar[in_i]);
+      }
+    }
+
+    return out_data;
+  }
+
+  /// Converts an EEGDataDouble of electrode channels into EEGDataDouble of selected electrode channels
+  /** @param EEGDataDouble of electrode channels
+    * @return EEGDataDouble of electrode channels
+    */
+  RC::APtr<EEGDataDouble> FeatureFilters::ChannelSelector(RC::APtr<const EEGDataDouble>& in_data, RC::Data1D<size_t> indices) {
+    auto out_data = RC::MakeAPtr<EEGDataDouble>(in_data->sampling_rate, in_data->sample_len);
+    auto& in_datar = in_data->data;
+    auto& out_datar = out_data->data;
+
+    if (indices.size() == 0) {
+      out_datar.Resize(in_datar.size());
+      RC_ForIndex(i, out_datar) { // Iterate over channels
+        if (in_datar[i].IsEmpty()) { continue; }
+        out_data->EnableChan(i);
+        out_datar[i].CopyFrom(in_datar[i]);
+      }
+    }
+    else {
+      out_datar.Resize(indices.size());
+      RC_ForRange(out_i, 0, indices.size()) {
         size_t in_i = indices[out_i];
         if (in_datar[in_i].IsEmpty()) { continue; }
         out_data->EnableChan(out_i);
@@ -660,8 +690,8 @@ namespace CML {
     // This calculates the mirroring duration based on the minimum statistical morlet duration 
     size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
 
-    //auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
-    // For R1384J retrained testing only:
+//    //auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
+//    // For R1384J retrained testing only:
 //    RC::Data1D<size_t> indices{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
 //      14, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
 //      32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
@@ -674,7 +704,7 @@ namespace CML {
 //      146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
 //      160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
 //      174, 175, 176, 177};
-    // Un-retrained R1384J testing.
+//    // Un-retrained R1384J testing.
 //    RC::Data1D<size_t> indices{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
 //      14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
 //      32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
@@ -687,7 +717,9 @@ namespace CML {
 //      146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
 //      160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
 //      174, 175, 176, 177};
-//    auto bipolar_ref_data = BipolarSelector(data, indices).ExtractConst();
+//    auto selected_data = ChannelSelector(data, indices).ExtractConst();
+//
+//    auto mirrored_data = MirrorEnds(selected_data, mirroring_duration_ms).ExtractConst();
 
     auto mirrored_data = MirrorEnds(data, mirroring_duration_ms).ExtractConst();
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
@@ -714,11 +746,12 @@ namespace CML {
       case ClassificationType::SHAM:
       {
         auto norm_data = normalize_powers.ZScore(avg_data, true).ExtractConst();
-        //norm_data->Print(1, 10);
 
         // Perform 10th derivative test to find and remove artifact channels
         auto artifact_channel_mask = FindArtifactChannels(data, 10, 10).ExtractConst();
         auto cleaned_data = ZeroArtifactChannels(norm_data, artifact_channel_mask).ExtractConst();
+
+        //norm_data->Print(1, 10);
         //cleaned_data->Print(2, 10);
 
         callback(cleaned_data, task_classifier_settings);

@@ -77,7 +77,7 @@ namespace CML {
       // Bipolar reference data
       auto out_data_captr = [&] {
         if (bipolar_channels.IsEmpty()) { // Mono
-          return FeatureFilters::BipolarSelector(binned_data_captr).ExtractConst();
+          return FeatureFilters::MonoSelector(binned_data_captr).ExtractConst();
         }
         else { // Bipolar
           return FeatureFilters::BipolarReference(binned_data_captr, bipolar_channels).ExtractConst();
