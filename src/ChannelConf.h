@@ -76,9 +76,9 @@ namespace CML {
         case ChanType::None:
           Throw_RC_Error("EEGChan has not been set before trying to get channel name.");
         case ChanType::Mono:
-          return RC::RStr(channels[0]+1);
+          return RC::RStr(channels[0]);
         case ChanType::Bipolar:
-          return RC::RStr(channels[0]+1) + "_" + RC::RStr(channels[1]+1);
+          return RC::RStr(channels[0]) + "_" + RC::RStr(channels[1]);
       }   
     }   
 
