@@ -48,7 +48,10 @@ namespace CML {
       data_index = new_data_index;
       if (label.empty()) {
         this->label = RC::RStr(channel+1);
-      }   
+      }
+      else {
+        this->label = label;
+      }
     }   
 
     void SetBipolar(uint8_t pos, uint8_t neg, uint32_t new_data_index, RC::RStr label="") { 
@@ -58,7 +61,10 @@ namespace CML {
       data_index = new_data_index;
       if (label.empty()) {
         this->label = RC::RStr(pos+1) + "-" + RC::RStr(neg+1);
-      }   
+      }
+      else {
+        this->label = label;
+      }
     }   
 
     ChanType GetChanType() const {
@@ -126,18 +132,8 @@ namespace CML {
   };  
 
   inline std::ostream& operator<< (std::ostream& out, const EEGChan& chan) {
-    out << "(" << static_cast<int>(chan.GetChanType()) << "," << chan.GetName() << "," << chan.GetDataIndex() << "," << chan.GetLabel();
-    switch (chan.GetChanType()) {
-      case ChanType::None:
-        break;
-      case ChanType::Mono:
-        out << "," << chan.GetMonoChannel();
-        break;
-      case ChanType::Bipolar:
-        out << "," << chan.GetBipolarChannels();
-        break;
-    }
-    out << ")";
+    out << "(" << static_cast<int>(chan.GetChanType()) << "," << chan.GetName()
+        << "," << chan.GetDataIndex() << "," << chan.GetLabel() << ")";
     return out;
   }
 }

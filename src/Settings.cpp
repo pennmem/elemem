@@ -73,18 +73,24 @@ namespace CML {
     }
     RC::Data1D<EEGChan> new_chans(elec_config->data.size2());
     for (size_t r=0; r<elec_config->data.size2(); r++) {
-      uint32_t chan = elec_config->data[r][1].Get_u32() - 1;
+      uint32_t chan = elec_config->data[r][1].Get_u32();
+      RC::RStr label = elec_config->data[r][0];
       if (chan > 255) {
         Throw_RC_Type(File, ("Electrode channel (" + RC::RStr(chan) + ") "
               "in Montage CSV (item " + r + ") is greater than 255").c_str());
       }
-      new_chans[r] = EEGChan(static_cast<uint8_t>(chan), chan, elec_config->data[r][0]);
+      new_chans[r] = EEGChan(static_cast<uint8_t>(chan), chan, label);
     }
 
     return new_chans;
   }
 
-  RC::Data1D<EEGChan> Settings::LoadBipolarElecConfig(RC::RStr dir) {
+  bool Settings::BipolarElecConfigUsed() {
+    RStr elecfilename;
+    return exp_config->TryGet(elecfilename, "bipolar_electrode_config_file");
+  }
+
+  RC::Data1D<EEGChan> Settings::LoadBipolarElecConfig(RC::RStr dir, RC::Data1D<EEGChan> mono_chans) {
     RStr elecfilename =  exp_config->GetPath("bipolar_electrode_config_file");
     if (File::Basename(elecfilename) == elecfilename) {
       elecfilename = File::FullPath(dir, elecfilename);
@@ -105,18 +111,21 @@ namespace CML {
       RC::RStr pos_str = chan[1];
       RC::RStr neg_str = chan[2];
 
+      // Convert from string to u32
       if (! pos_str.Is_u32(10, true)) {
-        Throw_RC_Type(File, ("Invalid positive electrode (" + pos_str + ") of bipolar pair (" + RC::RStr(label) + ") "
-              "in Bipolar CSV").c_str());
+        Throw_RC_Type(File, ("Positive electrode (" + pos_str + ") of bipolar pair (" + RC::RStr(label) + ") "
+              "in Bipolar CSV (item " + r + ") is not a valid u32").c_str());
       }
+
       if (! neg_str.Is_u32(10, true)) {
-        Throw_RC_Type(File, ("Invalid negative electrode (" + neg_str + ") of bipolar pair (" + RC::RStr(label) + ") "
-              "in Bipolar CSV").c_str());
+        Throw_RC_Type(File, ("Negative electrode (" + neg_str + ") of bipolar pair (" + RC::RStr(label) + ") "
+              "in Bipolar CSV (item " + r + ") is not a valid u32").c_str());
       }
 
       uint32_t pos = pos_str.Get_u32();
       uint32_t neg = neg_str.Get_u32();
 
+      // Validate conversion to u8
       if (pos > 255) {
         Throw_RC_Type(File, ("Positive electrode (" + RC::RStr(pos) + ") of bipolar pair (" + RC::RStr(label) + ") "
               "in Bipolar CSV (item " + r + ") is greater than 255").c_str());
@@ -127,8 +136,20 @@ namespace CML {
               "in Bipolar CSV (item " + r + ") is greater than 255").c_str());
       }
 
-      // JPB: TODO: (need) Validate if electrode is present in main elecrode config
+      // Validate that bipolar electrodes are present in mono electrode config
+      auto check_pos = [&](const EEGChan& chan) { return chan.GetMonoChannel() == pos; };
+      if (std::none_of(mono_chans.begin(), mono_chans.end(), check_pos)) {
+        Throw_RC_Type(File, ("Positive electrode (" + RC::RStr(pos) + ") of bipolar pair (" + RC::RStr(label) + ") "
+              "in Bipolar CSV (item " + r + ") is not in the Mono CSV").c_str());
+      }
 
+      auto check_neg = [&](const EEGChan& chan) { return chan.GetMonoChannel() == neg; };
+      if (std::none_of(mono_chans.begin(), mono_chans.end(), check_neg)) {
+        Throw_RC_Type(File, ("Negative electrode (" + RC::RStr(neg) + ") of bipolar pair (" + RC::RStr(label) + ") "
+              "in Bipolar CSV (item " + r + ") is not in the Mono CSV").c_str());
+      }
+
+      // Construct EEG channel
       new_chans[r] = EEGChan(static_cast<uint8_t>(pos), static_cast<uint8_t>(neg), r, label);
     }
 
