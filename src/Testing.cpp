@@ -97,7 +97,7 @@ namespace CML {
   // Data Storing and Binning
   void TestEEGCircularData() {
     size_t sampling_rate = 1000;
-    RC::APtr<const EEGDataRaw> in_data = CreateTestingEEGDataRaw(sampling_rate, 4, 5);
+    RC::APtr<const EEGDataDouble> in_data = CreateTestingEEGDataDouble(sampling_rate, 4, 5);
     in_data->Print();
 
     EEGCircularData circular_data(sampling_rate, 10);

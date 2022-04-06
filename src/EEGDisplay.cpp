@@ -110,7 +110,7 @@ namespace CML {
     }
   }
 
-  void EEGDisplay::UpdateData_Handler(RC::APtr<const EEGData>& new_data_ptr) {
+  void EEGDisplay::UpdateData_Handler(RC::APtr<const EEGDataDouble>& new_data_ptr) {
     auto& new_data = new_data_ptr->data;
 
     // Switch display to new sampling rate.

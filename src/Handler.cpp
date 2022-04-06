@@ -541,7 +541,14 @@ namespace CML {
 
       InitializeChannels_Handler();
 
-      new_chans = settings.LoadElecConfig(base_dir);
+      try {
+        new_chans = settings.LoadBipolarElecConfig(base_dir);
+        eeg_acq.SetBipolarChannels(new_chans);
+        RC_DEBOUT(RC::RStr("Bipolar Electrodes"));
+      } catch (...) {
+        new_chans = settings.LoadElecConfig(base_dir);
+        RC_DEBOUT(RC::RStr("Mono Electrodes"));
+      }
       settings.LoadChannelSettings();
 
       if (settings.grid_exper) {
