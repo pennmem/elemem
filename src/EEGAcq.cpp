@@ -5,6 +5,7 @@
 #include "CerebusSim.h" // TODO Remove after moving injection to Handler.
 
 #include "FeatureFilters.h"
+#include "Utils.h"
 
 namespace CML {
   EEGAcq::EEGAcq() {
@@ -71,7 +72,17 @@ namespace CML {
         }
       }();
       rollover_data = binned_data->leftover_data.ExtractConst();
-      auto out_data_captr = binned_data->out_data.ExtractConst();
+      auto binned_data_captr = binned_data->out_data.ExtractConst();
+
+      // Bipolar reference data
+      auto out_data_captr = [&] {
+        if (bipolar_channels.IsEmpty()) { // Mono
+          return FeatureFilters::BipolarSelector(binned_data_captr).ExtractConst();
+        }
+        else { // Bipolar
+          return FeatureFilters::BipolarReference(binned_data_captr, bipolar_channels).ExtractConst();
+        }
+      }();
 
       for (size_t i=0; i<data_callbacks.size(); i++) {
         data_callbacks[i].callback(out_data_captr);
@@ -87,6 +98,11 @@ namespace CML {
 
   void EEGAcq::SetSource_Handler(RC::APtr<EEGSource>& new_source) {
     eeg_source = new_source;
+  }
+
+
+  void EEGAcq::SetBipolarChannels_Handler(RC::Data1D<EEGChan>& new_bipolar_channels) {
+    bipolar_channels = new_bipolar_channels;
   }
 
 
@@ -108,17 +124,17 @@ namespace CML {
   }
 
 
-  void EEGAcq::RegisterCallback_Handler(const RC::RStr& tag,
-                                        const EEGCallback& callback) {
-    RemoveCallback_Handler(tag);
+  void EEGAcq::RegisterEEGCallback_Handler(const RC::RStr& tag,
+                                           const EEGCallback& callback) {
+    RemoveEEGCallback_Handler(tag);
 
-    data_callbacks += TaggedCallback{tag, callback};
+    data_callbacks += TaggedCallback<EEGCallback>{tag, callback};
 
     BePollingIfCallbacks();
   }
 
 
-  void EEGAcq::RemoveCallback_Handler(const RC::RStr& tag) {
+  void EEGAcq::RemoveEEGCallback_Handler(const RC::RStr& tag) {
     for (size_t i=0; i<data_callbacks.size(); i++) {
       if (data_callbacks[i].tag == tag) {
         data_callbacks.Remove(i);
@@ -126,10 +142,35 @@ namespace CML {
       }
     }
 
-    if (data_callbacks.size() == 0 && acq_timer.IsSet()) {
+    if (data_callbacks.size() == 0 && mono_data_callbacks.size() == 0 && acq_timer.IsSet()) {
       acq_timer->stop();
     }
   }
+
+
+  void EEGAcq::RegisterEEGMonoCallback_Handler(const RC::RStr& tag,
+                                               const EEGMonoCallback& callback) {
+    RemoveEEGMonoCallback_Handler(tag);
+
+    mono_data_callbacks += TaggedCallback<EEGMonoCallback>{tag, callback};
+
+    BePollingIfCallbacks();
+  }
+
+
+  void EEGAcq::RemoveEEGMonoCallback_Handler(const RC::RStr& tag) {
+    for (size_t i=0; i<mono_data_callbacks.size(); i++) {
+      if (mono_data_callbacks[i].tag == tag) {
+        mono_data_callbacks.Remove(i);
+        i--;
+      }
+    }
+
+    if (data_callbacks.size() == 0 && mono_data_callbacks.size() == 0 && acq_timer.IsSet()) {
+      acq_timer->stop();
+    }
+  }
+
 
 
   void EEGAcq::CloseSource_Handler() {

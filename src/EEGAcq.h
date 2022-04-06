@@ -6,11 +6,13 @@
 #include "RCqt/Worker.h"
 #include "EEGData.h"
 #include "EEGSource.h"
+#include "ChannelConf.h"
 #include <QTimer>
 
 namespace CML {
-  using ChannelList = RC::Data1D<uint16_t>;
-  using EEGCallback = RCqt::TaskCaller<RC::APtr<const EEGData>>;
+  //using ChannelList = RC::Data1D<uint16_t>;
+  using EEGCallback = RCqt::TaskCaller<RC::APtr<const EEGDataDouble>>;
+  using EEGMonoCallback = RCqt::TaskCaller<RC::APtr<const EEGDataRaw>>;
 
   class EEGAcq : public RCqt::WorkerThread, public QObject {
     public:
@@ -25,6 +27,9 @@ namespace CML {
     RCqt::TaskCaller<RC::APtr<EEGSource>> SetSource =
       TaskHandler(EEGAcq::SetSource_Handler);
 
+    RCqt::TaskCaller<RC::Data1D<EEGChan>> SetBipolarChannels =
+      TaskHandler(EEGAcq::SetBipolarChannels_Handler);
+
     RCqt::TaskBlocker<const size_t, const size_t> InitializeChannels =
       TaskHandler(EEGAcq::InitializeChannels_Handler);
 
@@ -35,11 +40,18 @@ namespace CML {
       TaskHandler(EEGAcq::ExperimentReady_Handler);
 
     RCqt::TaskCaller<const RC::RStr, const EEGCallback>
-      RegisterCallback =
-      TaskHandler(EEGAcq::RegisterCallback_Handler);
+      RegisterEEGCallback =
+      TaskHandler(EEGAcq::RegisterEEGCallback_Handler);
 
-    RCqt::TaskBlocker<const RC::RStr> RemoveCallback =
-      TaskHandler(EEGAcq::RemoveCallback_Handler);
+    RCqt::TaskBlocker<const RC::RStr> RemoveEEGCallback =
+      TaskHandler(EEGAcq::RemoveEEGCallback_Handler);
+
+    RCqt::TaskCaller<const RC::RStr, const EEGMonoCallback>
+      RegisterEEGMonoCallback =
+      TaskHandler(EEGAcq::RegisterEEGMonoCallback_Handler);
+
+    RCqt::TaskBlocker<const RC::RStr> RemoveEEGMonoCallback =
+      TaskHandler(EEGAcq::RemoveEEGMonoCallback_Handler);
 
     RCqt::TaskBlocker<> CloseSource =
       TaskHandler(EEGAcq::CloseSource_Handler);
@@ -51,14 +63,18 @@ namespace CML {
     protected:
 
     void SetSource_Handler(RC::APtr<EEGSource>& new_source);
+    void SetBipolarChannels_Handler(RC::Data1D<EEGChan>& new_bipolar_channels);
     void InitializeChannels_Handler(const size_t& new_sampling_rate, const size_t& new_binned_sampling_rate);
     void StartingExperiment_Handler() { eeg_source->StartingExperiment(); }
     void ExperimentReady_Handler() { eeg_source->ExperimentReady(); }
 
     // All channels have either 0 data or the same amount.
-    void RegisterCallback_Handler(const RC::RStr& tag,
-                                  const EEGCallback& callback);
-    void RemoveCallback_Handler(const RC::RStr& tag);
+    void RegisterEEGCallback_Handler(const RC::RStr& tag,
+                                     const EEGCallback& callback);
+    void RemoveEEGCallback_Handler(const RC::RStr& tag);
+    void RegisterEEGMonoCallback_Handler(const RC::RStr& tag,
+                                         const EEGMonoCallback& callback);
+    void RemoveEEGMonoCallback_Handler(const RC::RStr& tag);
     void CloseSource_Handler();
 
     void StopEverything();
@@ -76,11 +92,15 @@ namespace CML {
     int polling_interval_ms = 5;
     bool channels_initialized = false;
 
+    RC::Data1D<EEGChan> bipolar_channels;
+
+    template <typename T>
     struct TaggedCallback {
       RC::RStr tag;
-      EEGCallback callback;
+      T callback;
     };
-    RC::Data1D<TaggedCallback> data_callbacks;
+    RC::Data1D<TaggedCallback<EEGCallback>> data_callbacks;
+    RC::Data1D<TaggedCallback<EEGMonoCallback>> mono_data_callbacks;
   };
 }
 

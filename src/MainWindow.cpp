@@ -165,7 +165,7 @@ namespace CML {
 
     channel_selector = new ChannelSelector(this);
     Data1D<EEGChan> demo_chans;
-    for (uint32_t i=32; i<32+16; i++) {
+    for (uint8_t i=32; i<32+16; i++) {
       demo_chans += EEGChan(i, i);
     }
     channel_selector->SetChannels(demo_chans);
@@ -187,7 +187,7 @@ namespace CML {
 
 
   void MainWindow::RegisterEEGDisplay_Handler() {
-    hndl->eeg_acq.RegisterCallback("EEGDisplay", eeg_disp->UpdateData);
+    hndl->eeg_acq.RegisterEEGCallback("EEGDisplay", eeg_disp->UpdateData);
   }
 
 
@@ -227,7 +227,7 @@ namespace CML {
   void MainWindow::closeEvent(QCloseEvent *event) {
     if (ConfirmWin("Are you sure you want to quit?", "Quit Elemem?")) {
       hndl->Shutdown();
-      hndl->eeg_acq.RemoveCallback("EEGDisplay");
+      hndl->eeg_acq.RemoveEEGCallback("EEGDisplay");
       Worker::ExitAllWorkers();
       event->accept();
     }

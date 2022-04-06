@@ -16,7 +16,7 @@ namespace CML {
     EEGDisplay(int width, int height);
     virtual ~EEGDisplay();
 
-    RCqt::TaskCaller<RC::APtr<const EEGData>> UpdateData =
+    RCqt::TaskCaller<RC::APtr<const EEGDataDouble>> UpdateData =
       TaskHandler(EEGDisplay::UpdateData_Handler);
 
     RCqt::TaskCaller<EEGChan> SetChannel =
@@ -30,7 +30,7 @@ namespace CML {
 
     protected:
 
-    void UpdateData_Handler(RC::APtr<const EEGData>& new_data);
+    void UpdateData_Handler(RC::APtr<const EEGDataDouble>& new_data);
     void SetChannel_Handler(EEGChan& chan);
     void UnsetChannel_Handler(EEGChan& chan);
     void Clear_Handler();
@@ -45,7 +45,7 @@ namespace CML {
 
     uint64_t window_seconds = 4;
 
-    EEGData data{1000, 0}; // TODO: JPB: (refactor) Maybe this should be changed to pointer (redo EnableChan)
+    EEGDataDouble data{1000, 0}; // TODO: JPB: (refactor) Maybe this should be changed to pointer (redo EnableChan)
     size_t data_offset = 0;
     RC::Data1D<EEGChan> eeg_channels;
 
