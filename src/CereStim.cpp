@@ -21,7 +21,7 @@ namespace CML {
 
   void CereStim::OpenHelper() {
     if (is_open) {
-      Close();
+      CloseInterface();
     }
 
     uint64_t num_devices = 1024;
@@ -63,7 +63,7 @@ namespace CML {
   }
 
   CereStim::~CereStim() {
-    Close();
+    CloseInterface();
   }
 
   void CereStim::CloseHelper() {
@@ -125,7 +125,7 @@ namespace CML {
 
   void CereStim::BeOpen() {
     if (!is_open) {
-      Open();
+      OpenInterface();
     }
   }
 
@@ -313,6 +313,7 @@ namespace CML {
 //    is_configured = true;
   }
 
+// TODO: JPB: (need) Remove all this old CereStim code 
 //  void CereStim::ConfigureStimulation(CSStimProfile profile) {
 //    is_configured = false;
 //    BeOpen();

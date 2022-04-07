@@ -210,13 +210,13 @@ namespace CML {
       is_configured = true;
     }
 
-    void Open() {
+    void OpenInterface() {
       is_configured = false;
 
       OpenHelper();
     }
 
-    void Close() {
+    void CloseInterface() {
       CloseHelper();
 
       is_configured = false;

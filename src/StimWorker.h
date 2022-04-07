@@ -30,9 +30,8 @@ namespace CML {
     RCqt::TaskCaller<> Stimulate =
       TaskHandler(StimWorker::Stimulate_Handler);
 
-	// TODO: JPB: (need) Change this name
-    RCqt::TaskBlocker<> CloseCereStim =
-      TaskHandler(StimWorker::CloseCereStim_Handler);
+    RCqt::TaskBlocker<> CloseStim =
+      TaskHandler(StimWorker::CloseStim_Handler);
 
     StimulatorType GetStimulatorType() const;
 
@@ -41,17 +40,17 @@ namespace CML {
       status_panel = set_panel;
     }
 
-	void Open_Handler();
-	void SetStimInterface_Handler(RC::APtr<StimInterface>& new_interface);
+    void Open_Handler();
+    void SetStimInterface_Handler(RC::APtr<StimInterface>& new_interface);
     void ConfigureStimulation_Handler(const StimProfile& profile);
     void Stimulate_Handler();
 
-    void CloseCereStim_Handler();
+    void CloseStim_Handler();
 
     RC::Ptr<Handler> hndl;
     RC::Ptr<StatusPanel> status_panel;
 
-	RC::APtr<StimInterface> stim_interface;
+    RC::APtr<StimInterface> stim_interface;
     StimProfile cur_profile;
 
     uint32_t max_duration = 0;

@@ -65,13 +65,12 @@ namespace CML {
   }
 
   void StimNetWorker::CloseHelper() {
-    // Other device closes on disconnect
-    // TODO: JPB: (need) Diamond Inheritance
-    //Close();
+    Close(); // Network device
+    CloseInterface(); // Stim Interface
   }
 
   void StimNetWorker::SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
-      status_panel = set_panel;
+    status_panel = set_panel;
   }
 
   void StimNetWorker::ProcessCommand(RC::RStr cmd) {

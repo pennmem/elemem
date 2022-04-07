@@ -28,8 +28,8 @@ namespace CML {
 	  Throw_RC_Error("The stim_interface in StimWorker is null on Configure");
 	}
 
-    stim_interface->Close();
-    stim_interface->Open();
+    stim_interface->CloseInterface();
+    stim_interface->OpenInterface();
   }
 
   void StimWorker::ConfigureStimulation_Handler(const StimProfile& profile) {
@@ -99,8 +99,8 @@ namespace CML {
     }
   }
 
-  void StimWorker::CloseCereStim_Handler() {
-    stim_interface->Close();
+  void StimWorker::CloseStim_Handler() {
+    stim_interface->CloseInterface();
   }
 }
 

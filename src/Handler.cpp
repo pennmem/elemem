@@ -122,7 +122,7 @@ namespace CML {
       Throw_RC_Type(File, "Unknown sys_config.json stim_system value");
     }
     stim_worker.SetStimInterface(stim_interface);
-    stim_worker.Open(); // TODO: JPB: (need) Move the stim_worker Open() call?
+    stim_worker.Open();
   }
 
   void Handler::Initialize_Handler() {
@@ -176,7 +176,7 @@ namespace CML {
       return;
     }
 
-    stim_worker.CloseCereStim();
+    stim_worker.CloseStim();
 
     APITests::CereStimTest();
   }
