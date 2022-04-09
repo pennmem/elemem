@@ -1,0 +1,8 @@
+#!/bin/bash
+
+while [ 1 ]
+do
+  nc -l 8901
+  echo "--- Disconnected. ---"
+done
+

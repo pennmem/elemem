@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd "$(dirname "$0")"/../dist
+./StimProc 127.0.0.1 8901 ../example/testconf.csv
+
