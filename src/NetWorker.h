@@ -48,7 +48,6 @@ namespace CML {
     virtual void DisconnectedBefore() {}
     virtual void DisconnectedAfter() {}
 
-
     void Listen_Handler(const RC::RStr& address, const uint16_t& port);
     void Close_Handler();
 
@@ -57,8 +56,6 @@ namespace CML {
 
     virtual void ProcessCommand(RC::RStr cmd) = 0;
     void Send(const RC::RStr& msg);
-    void StopExpIfShould();
-
 
     RC::Ptr<Handler> hndl;
     RC::APtr<QTcpServer> server;

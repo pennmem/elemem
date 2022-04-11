@@ -48,7 +48,7 @@ namespace CML {
   }
 
   bool NetWorker::IsConnected_Handler() {
-    return (con.IsSet() && con->isOpen());
+    return (con.IsSet() && con->isOpen() && connected);
   }
 
   void NetWorker::StopOnDisconnect_Handler(const bool& stop) {
@@ -87,11 +87,11 @@ namespace CML {
   void NetWorker::Disconnected() {
     DisconnectedBefore();
     buffer.clear();
-    StopExpIfShould();
     // Message required, unplanned disconnect.
     if (connected) {
       connected = false;
       if (stop_on_disconnect) {
+        hndl->StopExperiment();
         ErrorWin(netWorkerType + " disconnected.  Experiment stopped.");
       }
       else {
@@ -104,7 +104,7 @@ namespace CML {
 
   void NetWorker::Send(const RC::RStr& msg) {
     if ( ! IsConnected_Handler() ) {
-      StopExpIfShould();
+      hndl->StopExperiment();
       Throw_RC_Type(Net, "Tried to send something via NetWorker before "
           "connection was made");
     }
@@ -117,12 +117,6 @@ namespace CML {
     cout << (RC::RStr("Response time: ") +
              RC::RStr(timer.SinceStart()) + "\n");
 #endif // NETWORKER_TIMING
-  }
-
-  void NetWorker::StopExpIfShould() {
-    if (stop_on_disconnect) {
-      hndl->StopExperiment();
-    }
   }
 }
 

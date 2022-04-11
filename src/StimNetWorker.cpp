@@ -32,15 +32,17 @@ namespace CML {
     try {
       auto conf = hndl->GetConfig();
       conf.exp_config->Get(subject, "subject");
-    } catch (ErrorMsg& e){
+      subject += "\n";
+    }
+    catch (ErrorMsg& e){
       Throw_RC_Type(Net, ("Could not find subject in experiment config.  "
               "The experiment likely has not been loaded yet." +
                RStr(e.what()).SplitFirst("\n")[0]).c_str());
     }
 
     if ( ! IsConnected_Handler() ) {
-      StopExpIfShould();
-      Throw_RC_Type(Net, "Cannot configure stim.  Stim Network Process not "
+      hndl->StopExperiment();
+      Throw_RC_Type(Net ,"Cannot configure stim.  Stim Network Process not "
           "connected.");
     }
 
@@ -53,11 +55,12 @@ namespace CML {
       config += "," + RC::RStr::Join(RC::Data1D<uint32_t>
           {sc.electrode_pos, sc.electrode_neg, sc.amplitude, sc.frequency, sc.duration}, ",");
     }
+    config += "\n";
     LogAndSend(config);
   }
 
   void StimNetWorker::StimulateHelper() {
-    LogAndSend("SPSTIMSTART");
+    LogAndSend("SPSTIMSTART\n");
   }
 
   void StimNetWorker::OpenHelper() {
@@ -66,7 +69,7 @@ namespace CML {
 
   void StimNetWorker::CloseHelper() {
     Close(); // Network device
-    CloseInterface(); // Stim Interface
+    //CloseInterface(); // Stim Interface // TODO: JPB: (need) CloseInterface causes segfault
   }
 
   void StimNetWorker::SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
@@ -78,29 +81,33 @@ namespace CML {
     timer.Start();
 #endif // NETWORKER_TIMING
 
+    JSONFile cmdJson = MakeResp("STIMNETMSG");
+    cmdJson.Set(cmd, "data", "msg");
+    hndl->event_log.Log(cmdJson.Line());
+
     Data1D<RC::RStr> cmdParts = cmd.SplitFirst(",");
     RC::RStr& cmdName = cmdParts[0];
     RC::RStr& cmdVals = cmdParts[1];
 
-    hndl->event_log.Log(cmd);
-
-    if (cmdName == "SPREADY") {
+    RC_DEBOUT(cmdName);
+    if (cmdName == "SPREADY\n") {
       // Do Nothing
     }
-    else if (cmdName != "SPERROR") {
+    else if (cmdName == "SPERROR\n") {
       // TODO: JPB: (need) Make this stop the experiment
+      hndl->StopExperiment();
       ErrorWin("Stim client error: " + cmdVals);
     }
-    else if (cmdName != "SPSTIMCONFIGDONE") {
+    else if (cmdName == "SPSTIMCONFIGDONE\n") {
       // Do Nothing
     }
-    else if (cmdName != "SPSTIMCONFIGERROR") {
+    else if (cmdName == "SPSTIMCONFIGERROR\n") {
       ErrorWin("Stim client configure error: " + cmdVals);
     }
-    else if (cmdName != "SPSTIMSTARTDONE") {
+    else if (cmdName == "SPSTIMSTARTDONE\n") {
       // Do Nothing
     }
-    else if (cmdName != "SPSTIMSTARTERROR") {
+    else if (cmdName == "SPSTIMSTARTERROR\n") {
       ErrorWin("Stim client start error: " + cmdVals);
     }
     else {
