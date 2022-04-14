@@ -27,26 +27,29 @@ namespace CML {
   }
 
   void StimNetWorker::ConfigureStimulationHelper(StimProfile profile) {
-    // CONNECT (this is here because it needs the experiment to be loaded first)
-    RC::RStr subject;
-    try {
-      auto conf = hndl->GetConfig();
-      conf.exp_config->Get(subject, "subject");
-      subject += "\n";
-    }
-    catch (ErrorMsg& e){
-      Throw_RC_Type(Net, ("Could not find subject in experiment config.  "
-              "The experiment likely has not been loaded yet." +
-               RStr(e.what()).SplitFirst("\n")[0]).c_str());
-    }
-
     if ( ! IsConnected_Handler() ) {
       hndl->StopExperiment();
       Throw_RC_Type(Net ,"Cannot configure stim.  Stim Network Process not "
           "connected.");
     }
 
-    LogAndSend(subject); // Subject number
+    // CONNECT 
+    // This is here because it needs the experiment to be loaded first
+    if ( ! is_configured ) { // Only send connect message when first connecting 
+      RC::RStr subject;
+      try {
+        auto conf = hndl->GetConfig();
+        conf.exp_config->Get(subject, "subject");
+        subject += "\n";
+      }
+      catch (ErrorMsg& e){
+        Throw_RC_Type(Net, ("Could not find subject in experiment config.  "
+                "The experiment likely has not been loaded yet." +
+                 RStr(e.what()).SplitFirst("\n")[0]).c_str());
+      }
+    
+      LogAndSend(subject); // Subject number
+    } 
 
     // CONFIGURE
     RC::RStr config = "SPSTIMCONFIG," + RC::RStr(profile.size());
@@ -85,29 +88,29 @@ namespace CML {
     cmdJson.Set(cmd, "data", "msg");
     hndl->event_log.Log(cmdJson.Line());
 
-    Data1D<RC::RStr> cmdParts = cmd.SplitFirst(",");
+    Data1D<RC::RStr> cmdParts = cmd.Chomp().SplitFirst(",");
     RC::RStr& cmdName = cmdParts[0];
     RC::RStr& cmdVals = cmdParts[1];
 
     RC_DEBOUT(cmdName);
-    if (cmdName == "SPREADY\n") {
+    if (cmdName == "SPREADY") {
       // Do Nothing
     }
-    else if (cmdName == "SPERROR\n") {
-      // TODO: JPB: (need) Make this stop the experiment
+    else if (cmdName == "SPERROR") {
       hndl->StopExperiment();
       ErrorWin("Stim client error: " + cmdVals);
     }
-    else if (cmdName == "SPSTIMCONFIGDONE\n") {
+    else if (cmdName == "SPSTIMCONFIGDONE") {
       // Do Nothing
     }
-    else if (cmdName == "SPSTIMCONFIGERROR\n") {
+    else if (cmdName == "SPSTIMCONFIGERROR") {
+      hndl->StopExperiment();
       ErrorWin("Stim client configure error: " + cmdVals);
     }
-    else if (cmdName == "SPSTIMSTARTDONE\n") {
+    else if (cmdName == "SPSTIMSTARTDONE") {
       // Do Nothing
     }
-    else if (cmdName == "SPSTIMSTARTERROR\n") {
+    else if (cmdName == "SPSTIMSTARTERROR") {
       ErrorWin("Stim client start error: " + cmdVals);
     }
     else {

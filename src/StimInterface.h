@@ -97,8 +97,6 @@ namespace CML {
     }
 
     void ConfigureStimulation(StimProfile profile) {
-      is_configured = false;
-
       // Reset defaults. 
       burst_slow_freq = 0; 
       burst_frac = 1; 
