@@ -1,6 +1,7 @@
 #include "StimLoop.h"
 #include "SPUtils.h"
 #include "CereStim.h"
+#include <cmath>
 #include <string>
 
 namespace SP {
@@ -41,7 +42,10 @@ void StimLoop::Run() {
         StimStart();
       }
       else if (cmd.at(0) == "SPSTIMCONFIG") {
-        StimConfig(cmd);
+        StimConfig(cmd, false);
+      }
+      else if (cmd.at(0) == "SPSTIMTHETACONFIG") {
+        StimConfig(cmd, true);
       }
       else {
         soc.Send(std::string("SPERROR,") + CleanError("StimProc command not "
@@ -94,7 +98,8 @@ void StimLoop::StimStart() {
 }
 
 
-void StimLoop::StimConfig(const std::vector<std::string>& cmd) {
+void StimLoop::StimConfig(const std::vector<std::string>& cmd,
+    bool thetaburst) {
   stim_configured = false;
   if (cmd.size() < 2 || (cmd.size()==2 && cmd.at(1)=="")) {
     // No channels specified.  Configure for no-stim.
@@ -108,6 +113,7 @@ void StimLoop::StimConfig(const std::vector<std::string>& cmd) {
     return;
   }
 
+  const uint64_t elem_cnt = thetaburst ? 6 : 5;
   uint64_t pair_cnt = 0;
   try {
     pair_cnt = To_uint64(cmd.at(1));
@@ -117,7 +123,7 @@ void StimLoop::StimConfig(const std::vector<std::string>& cmd) {
           CleanError("Stim pair count ", pair_cnt, " exceeded maximum 6."));
     }
 
-    uint64_t expected = 2 + 5*pair_cnt;
+    uint64_t expected = 2 + pair_cnt*elem_cnt;
     if (cmd.size() != expected) {
       soc.Send(std::string("SPSTIMCONFIGERROR,") + CleanError("Expected ",
             expected, " stim config line elements and got ", cmd.size()));
@@ -126,16 +132,36 @@ void StimLoop::StimConfig(const std::vector<std::string>& cmd) {
 
     CML::CSStimProfile stim_profile;
     for (uint64_t p=0; p<pair_cnt; p++) {
-      uint64_t i = p*5 + 2;
+      uint64_t i = 2 + p*elem_cnt;
 
       CML::CSStimChannel csc;
       ConvertRange(cmd.at(i), csc.electrode_pos, 0, 255, true);
       ConvertRange(cmd.at(i+1), csc.electrode_neg, 0, 255, true);
+
       ChannelLimits limits = FindLimit(csc.electrode_pos, csc.electrode_neg);
+
       ConvertRange(cmd.at(i+2), csc.amplitude, 0, limits.max_amp_uA);
       ConvertRange(cmd.at(i+3), csc.frequency, limits.min_freq_Hz,
           limits.max_freq_Hz);
-      ConvertRange(cmd.at(i+4), csc.duration, 0, limits.max_dur_ms);
+
+      if (thetaburst) {
+        csc.burst_frac = To_float(cmd.at(i+5));
+        if (csc.burst_frac <= 0 || csc.burst_frac >= 1) {
+          soc.Send(std::string("SPSTIMCONFIGERROR,") + CleanError("Burst "
+            "fraction ", csc.burst_frac, " must be greater than 0 and less "
+            "than 1."));
+          return;
+        }
+        uint64_t min_slow_freq = uint64_t(
+            std::ceil(1000 * csc.burst_frac / limits.max_dur_ms));
+        ConvertRange(cmd.at(i+4), csc.burst_slow_freq, min_slow_freq,
+            csc.frequency);
+      }
+
+      else { // Conventional stim pattern, not theta-burst.
+        ConvertRange(cmd.at(i+4), csc.duration, 0, limits.max_dur_ms);
+      }
+
       csc.area = limits.area_mm_sq;
 
       stim_profile += csc;
