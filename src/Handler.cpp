@@ -159,6 +159,7 @@ namespace CML {
 
   void Handler::SetStimSettings_Handler(const size_t& index,
       const StimSettings& updated_settings) {
+    RC_DEBOUT(RC::RStr("Handler.cpp::SetStimSettings 1\n"));
     if (index >= settings.stimconf.size()) {
       return;
     }
@@ -209,6 +210,7 @@ namespace CML {
       return;
     }
 
+    RC_DEBOUT(RC::RStr("Handler.cpp::SetStimSettings 2\n"));
     settings.stimconf[index] = updated_settings;
 
     // set CPS parameter search ranges
@@ -219,9 +221,12 @@ namespace CML {
       settings.min_stimconf_range[index].params.amplitude = 100;
       settings.max_stimconf_range[index] = updated_settings;
     }
+    RC_DEBOUT(RC::RStr("Handler.cpp::SetStimSettings 3\n"));
   }
 
   void Handler::TestStim_Handler(const size_t& index) {
+    cout << "Handler::TestStim enter" << endl;
+
     if (experiment_running) {
       ErrorWin("Cannot test stim while experiment running.");
       return;
@@ -325,6 +330,7 @@ namespace CML {
   // SelectStim_Handler goes through settings.stimconf and extracts values
   // that are both approved and matching the given stimtag.
   void Handler::SelectStim_Handler(const RC::RStr& stimtag) {
+    RC_DEBOUT(RC::RStr("Handler.cpp::SelectStim \n"));
     if (stim_mode == StimMode::NONE) {
       Throw_RC_Error("Attempted to select a stim tag outside of a "
           "stimulation experiment.");
@@ -348,6 +354,7 @@ namespace CML {
   }
 
   void Handler::StartExperiment_Handler() {
+    RC_DEBOUT(RC::RStr("Handler.cpp::StartExperiment \n"));
     if (settings.exp_config.IsNull() || settings.elec_config.IsNull()) {
       ErrorWin("You must load a valid experiment configuration file before "
                "starting an experiment session.", "Unconfigured");
@@ -377,7 +384,7 @@ namespace CML {
           max_cnt_profile += settings.max_stimconf_range[c].params;
         }
       }
-      if (min_cnt_profile.size() == 0 && stim_mode != StimMode::NONE) {
+      if (max_cnt_profile.size() == 0 && stim_mode != StimMode::NONE) {
         if (!ConfirmWin("No stim channels approved on experiment configured "
              "with stimulation.  Proceed?")) {
           return;
@@ -395,6 +402,7 @@ namespace CML {
       for (size_t c=0; c<settings.max_stimconf_range.size(); c++) {
         if (settings.max_stimconf_range[c].approved &&
             settings.max_stimconf_range[c].stimtag.empty()) {
+          RC_DEBOUT(RC::RStr("Handler.cpp::StartExperiment select stim settings \n"));
           CSStimProfile min_profile;
           min_profile += settings.min_stimconf_range[c].params;
           min_discrete_stim_param_sets += min_profile;
@@ -403,6 +411,13 @@ namespace CML {
           max_discrete_stim_param_sets += max_profile;
         }
       }
+
+      cout << "settings.stimconf.size() " << settings.stimconf.size() << endl;
+      cout << "settings.max_stimconf_range.size() " << settings.max_stimconf_range.size() << endl;
+      cout << "settings.min_stimconf_range.size() " << settings.min_stimconf_range.size() << endl;
+
+      cout << "max_discrete_stim_param_sets.size() " << max_discrete_stim_param_sets.size() << endl;
+      cout << "min_discrete_stim_param_sets.size() " << min_discrete_stim_param_sets.size() << endl;
 
       exper_cps.SetCPSSpecs(settings.cps_specs);
       // discrete stim param sets only give fixed (non-optimized) stim parameters
@@ -467,6 +482,7 @@ namespace CML {
       settings.UpdateConfOPS(current_config);
     }
     else if (settings.exper.find("CPS") == 0) {
+      RC_DEBOUT(RC::RStr("Handler::StartExperiment UpdateConfCPS\n"));
       settings.UpdateConfCPS(current_config);
       settings.grid_exper = false;
       settings.task_driven = false;
@@ -506,6 +522,7 @@ namespace CML {
       exper_ops.Start();
     }
     else if (settings.exper.find("CPS") == 0) {
+      cout << "Handler::StartExperiment exper_cps.Start() " << endl;
       exper_cps.Start();
     }
     else { // Network experiment.
@@ -829,6 +846,7 @@ namespace CML {
 
 
   void Handler::SetupClassifier() {
+    cout << "Handler::SetupClassifier enter" << endl;
     size_t circ_buf_duration_ms;
     settings.exp_config->Get(circ_buf_duration_ms, "experiment", "classifier",
         "circular_buffer_duration_ms");

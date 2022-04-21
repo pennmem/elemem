@@ -87,8 +87,14 @@ namespace CML {
     if (new_min_stim_loc_profiles.size() != new_max_stim_loc_profiles.size()) {
       Throw_RC_Error("ExperCPS::SetStimProfiles: Min and max stimulation profiles must have the same length.");
     }
+    if (new_max_stim_loc_profiles.size() < 1) {
+      Throw_RC_Error("ExperCPS::SetStimProfiles: Must provide at least stimulation profile.");
+    }
     _init();
     n_searches = new_max_stim_loc_profiles.size();
+
+    cout << "n_searches " << n_searches << endl;
+
     // validation
     for (size_t i = 0; i < n_searches + 1; i++) {
       if (new_min_stim_loc_profiles[i].size() != 1 ||
@@ -162,10 +168,14 @@ namespace CML {
     max_stim_loc_profiles = new_max_stim_loc_profiles;
     stim_profiles = RC::Data1D<RC::Data1D<CSStimProfile>>(n_searches);
     // add initial stim profiles
+
+    RC_DEBOUT(RC::RStr("ExperCPS::SetStimProfiles before GetNextEvent\n"));
     for (int i = 0; i < n_searches; i++) { GetNextEvent(i); }
+    RC_DEBOUT(RC::RStr("ExperCPS::SetStimProfiles after GetNextEvent\n"));
   }
 
   void ExperCPS::GetNextEvent(const unsigned int model_idx) {
+    RC_DEBOUT(RC::RStr("ExperCPS::GetNextEvent\n"));
     #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::GetNextEvent\n"));
     #endif
@@ -296,6 +306,7 @@ namespace CML {
 
 
   void ExperCPS::Start_Handler() {
+    RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
     #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
     #endif
