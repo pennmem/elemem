@@ -47,16 +47,17 @@ namespace CML {
                 "The experiment likely has not been loaded yet." +
                  RStr(e.what()).SplitFirst("\n")[0]).c_str());
       }
-    
+
       LogAndSend(subject); // Subject number
-    } 
+    }
 
     // CONFIGURE
     RC::RStr config = "SPSTIMCONFIG," + RC::RStr(profile.size());
     RC_ForRange(i, 0, profile.size()) {
       const StimChannel& sc = profile[i];
       config += "," + RC::RStr::Join(RC::Data1D<uint32_t>
-          {sc.electrode_pos, sc.electrode_neg, sc.amplitude, sc.frequency, sc.duration}, ",");
+          {sc.electrode_pos, sc.electrode_neg, sc.amplitude, sc.frequency,
+          uint32_t(std::round(sc.duration/1000.0))}, ",");
     }
     config += "\n";
     LogAndSend(config);
