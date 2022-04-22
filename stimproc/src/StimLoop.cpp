@@ -18,6 +18,16 @@ void ConvertRange(const std::string& s, T& t,
   return;
 }
 
+template<class T1, class T2>
+T1 UnitScale(T1 val, T2 mult) {
+  if (val > std::numeric_limits<T1>::max() / mult) {
+    throw std::runtime_error(CleanError("Unit conversion of ", val, " by ",
+          mult, " would overflow its integer type."));
+  }
+  return val * mult;
+}
+
+
 
 void StimLoop::Run() {
   std::string line;
@@ -136,6 +146,7 @@ void StimLoop::StimConfig(const std::vector<std::string>& cmd) {
       ConvertRange(cmd.at(i+3), csc.frequency, limits.min_freq_Hz,
           limits.max_freq_Hz);
       ConvertRange(cmd.at(i+4), csc.duration, 0, limits.max_dur_ms);
+      csc.duration = UnitScale(csc.duration, 1000);  // To us.
       csc.area = limits.area_mm_sq;
 
       stim_profile += csc;
