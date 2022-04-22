@@ -72,7 +72,6 @@ namespace CML {
 
   void StimNetWorker::CloseHelper() {
     Close(); // Network device
-    //CloseInterface(); // Stim Interface // TODO: JPB: (need) CloseInterface causes segfault
   }
 
   void StimNetWorker::SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
