@@ -59,7 +59,7 @@ namespace SP {
 
       chan_limits.push_back(limit);
 
-#define TESTING
+//#define TESTING
 #ifdef TESTING
       std::cout << (unsigned int)(limit.chan_pos) << std::endl;
       std::cout << (unsigned int)(limit.chan_neg) << std::endl;
