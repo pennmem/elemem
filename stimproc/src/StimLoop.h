@@ -17,7 +17,7 @@ namespace SP {
     private:
     bool StimInitialize();
     void StimStart();
-    void StimConfig(const std::vector<std::string>& cmd);
+    void StimConfig(const std::vector<std::string>& cmd, bool thetaburst);
 
     ChannelLimits FindLimit(uint8_t pos, uint8_t neg);
 
