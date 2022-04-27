@@ -25,8 +25,8 @@ namespace CML {
 
   void StimWorker::Open_Handler() {
     if (stim_interface.IsNull()) {
-	  Throw_RC_Error("The stim_interface in StimWorker is null on Configure");
-	}
+      Throw_RC_Error("The stim_interface in StimWorker is null on Configure");
+    }
 
     stim_interface->CloseInterface();
     stim_interface->OpenInterface();
@@ -34,8 +34,8 @@ namespace CML {
 
   void StimWorker::ConfigureStimulation_Handler(const StimProfile& profile) {
     if (stim_interface.IsNull()) {
-	  Throw_RC_Error("The stim_interface in StimWorker is null on Configure");
-	}
+      Throw_RC_Error("The stim_interface in StimWorker is null on Configure");
+    }
 
     cur_profile = profile;
     stim_interface->ConfigureStimulation(profile);
@@ -49,9 +49,9 @@ namespace CML {
 
   void StimWorker::Stimulate_Handler() {
     if (stim_interface.IsNull()) {
-	  Throw_RC_Error("The stim_interface in StimWorker is null on Stimulate");
-	}
-	
+      Throw_RC_Error("The stim_interface in StimWorker is null on Stimulate");
+    }
+
     size_t num_bursts = 1;
     f64 burst_period = 0;
     if (stim_interface->GetBurstSlowFreq() != 0) {

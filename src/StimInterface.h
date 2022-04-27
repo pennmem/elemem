@@ -97,10 +97,10 @@ namespace CML {
     }
 
     void ConfigureStimulation(StimProfile profile) {
-      // Reset defaults. 
-      burst_slow_freq = 0; 
-      burst_frac = 1; 
-      burst_duration_us = 0; 
+      // Reset defaults.
+      burst_slow_freq = 0;
+      burst_frac = 1;
+      burst_duration_us = 0;
 
       struct FreqDurAmp {
       uint32_t frequency;

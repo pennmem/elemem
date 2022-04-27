@@ -33,9 +33,9 @@ namespace CML {
           "connected.");
     }
 
-    // CONNECT 
+    // CONNECT
     // This is here because it needs the experiment to be loaded first
-    if ( ! is_configured ) { // Only send connect message when first connecting 
+    if ( ! is_configured ) { // Only send connect message when first connecting
       RC::RStr subject;
       try {
         auto conf = hndl->GetConfig();
