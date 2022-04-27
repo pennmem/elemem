@@ -33,6 +33,9 @@ namespace CML {
             " server on address " + address + " port " +
             RC::RStr(port)).c_str());
     }
+    // Resolves initialization threading issue, pushing onto the right thread.
+    // Note, Qt requires this to come after the "listen" call.
+    AddToThread(server);
   }
 
   void NetWorker::Close_Handler() {

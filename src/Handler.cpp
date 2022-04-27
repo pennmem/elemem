@@ -498,6 +498,7 @@ namespace CML {
   void Handler::ExperimentExit_Handler() {
     if (exit_timer.IsNull()) {
       exit_timer = new QTimer();
+      AddToThread(exit_timer);  // For maintenance robustness.
       exit_timer->setTimerType(Qt::PreciseTimer);
       exit_timer->setSingleShot(true);
       // Okay because timer allocated within Handler thread here.

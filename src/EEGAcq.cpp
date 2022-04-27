@@ -152,6 +152,7 @@ namespace CML {
   void EEGAcq::BeAllocatedTimer() {
     if (acq_timer.IsNull()) {
       acq_timer = new QTimer();
+      AddToThread(acq_timer);  // For maintenance robustness.
       acq_timer->setTimerType(Qt::PreciseTimer);
 
       QObject::connect(acq_timer.Raw(), &QTimer::timeout, this,
