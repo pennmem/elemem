@@ -27,7 +27,7 @@ namespace CML {
     out << "(" << (unsigned int)(bp.pos) << ", "
                << (unsigned int)(bp.neg) << ")";
     return out;
-  } 
+  }
 
   enum class ChanType {None, Mono, Bipolar};
 
@@ -36,10 +36,10 @@ namespace CML {
     EEGChan() {}
     EEGChan(uint8_t channel, uint32_t data_index, RC::RStr label="") {
       SetMono(channel, data_index, label);
-    }   
+    }
     EEGChan(uint8_t pos, uint8_t neg, uint32_t data_index, RC::RStr label="") {
       SetBipolar(pos, neg, data_index, label);
-    }   
+    }
 
     void SetMono(uint8_t channel, uint32_t new_data_index, RC::RStr label="") {
       chan_type = ChanType::Mono;
@@ -52,7 +52,7 @@ namespace CML {
       else {
         this->label = label;
       }
-    }   
+    }
 
     void SetBipolar(uint8_t pos, uint8_t neg, uint32_t new_data_index, RC::RStr label="") { 
       chan_type = ChanType::Bipolar;
@@ -65,11 +65,11 @@ namespace CML {
       else {
         this->label = label;
       }
-    }   
+    }
 
     ChanType GetChanType() const {
       return chan_type;
-    }   
+    }
 
     RC::RStr GetName() const {
       switch (chan_type) {
@@ -79,8 +79,9 @@ namespace CML {
           return RC::RStr(channels[0]);
         case ChanType::Bipolar:
           return RC::RStr(channels[0]) + "_" + RC::RStr(channels[1]);
-      }   
-    }   
+      }
+      Throw_RC_Error("Unrecognized ChanType.");
+    }
 
     uint32_t GetDataIndex() const {
       switch (chan_type) {
@@ -89,8 +90,9 @@ namespace CML {
         case ChanType::Mono:
         case ChanType::Bipolar:
           return data_index;
-      }   
-    }   
+      }
+      Throw_RC_Error("Unrecognized ChanType.");
+    }
 
     RC::RStr GetLabel() const {
       switch (chan_type) {
@@ -99,8 +101,9 @@ namespace CML {
         case ChanType::Mono:
         case ChanType::Bipolar:
           return label;
-      }   
-    }   
+      }
+      Throw_RC_Error("Unrecognized ChanType.");
+    }
 
     uint8_t GetMonoChannel() const {
       switch (chan_type) {
@@ -110,8 +113,9 @@ namespace CML {
           return channels[0];
         case ChanType::Bipolar:
           Throw_RC_Error("Trying to get bipolar channel data from mono channel.");
-      }   
-    }   
+      }
+      Throw_RC_Error("Unrecognized ChanType.");
+    }
 
     BipolarPair GetBipolarChannels() const {
       switch (chan_type) {
@@ -121,15 +125,16 @@ namespace CML {
           Throw_RC_Error("Trying to get mono channel data from bipolar channel.");
         case ChanType::Bipolar:
           return {.pos=channels[0], .neg=channels[1]};
-      }   
-    }   
+      }
+      Throw_RC_Error("Unrecognized ChanType.");
+    }
 
     protected:
     ChanType chan_type = ChanType::None;
-    RC::Data1D<uint8_t> channels{0, 0}; 
+    RC::Data1D<uint8_t> channels{0, 0};
     uint32_t data_index = 0;
-    RC::RStr label = ""; 
-  };  
+    RC::RStr label = "";
+  };
 
   inline std::ostream& operator<< (std::ostream& out, const EEGChan& chan) {
     out << "(" << static_cast<int>(chan.GetChanType()) << "," << chan.GetName()
