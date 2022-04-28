@@ -1,0 +1,49 @@
+{
+  "electrode_config_file": "R1999J_17JAN2020L0M0NOSTIM.csv",
+  "experiment": {
+    "stim_mode": "open",
+    "stim_channels": [
+      {
+        "electrodes": "LA1_LA2",  // Splitter mode.
+        "amplitude_range_mA": [0, 0.5],
+        "amplitude_mA": 0.5,
+        "frequency_range_Hz": [200, 200],
+        "frequency_Hz": 200,
+        "duration_range_ms": [334, 3000],
+        "duration_ms": 3000,
+        "burst_fraction": 0.25,
+        "burst_slow_freq_Hz": 3,
+        "stimtag": "3Hz"
+      },
+      {
+        "electrodes": [3, 4],  // Channel number from montage.
+        "amplitude_range_mA": [0, 0.5],
+        "amplitude_mA": 0.5,
+        "frequency_range_Hz": [200, 200],
+        "frequency_Hz": 200,
+        "duration_range_ms": [125, 3000],
+        "duration_ms": 3000,
+        "burst_fraction": 0.25,
+        "burst_slow_freq_Hz": 8,
+        "stimtag": "8Hz"
+      }
+    ],
+    "experiment_specs": {},
+    "type": "Courier"
+  },
+  "global_settings": {
+    "connect_to_task_laptop": true,
+    "data_dir": "AUTOMATIC",
+    "experiment_config_filename": "AUTOMATIC",
+    "hardware_lnc": true,
+    "lnc_time_constant": 10,
+    "dc_offset_correction": true,
+    "plot_window_length": 6000,
+    "binned_sampling_rate": 1000,
+    # "micro_sampling_rate": 30000,
+    "macro_sampling_rate": 1000
+  },
+#  "montage_file": "config_files/contacts.json",
+#  "excluded_montage_file": "config_files/excluded_contacts.json",
+  "subject": "R1999J"
+}
