@@ -89,8 +89,11 @@ if (WIN32)
       "CereStimDLL library missing from ${PROJECT_SOURCE_DIR}/dist"
     )
   endif ()
+
+  set (WSOCK_LIB wsock32 ws2_32)
 else (WIN32)
   set (CSTIM_LIB "")
+  set (WSOCK_LIB "")
 endif (WIN32)
 
 
@@ -105,6 +108,7 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 target_link_libraries (${PROJECT_NAME}
   ${CSTIM_LIB}
+  ${WSOCK_LIB}
 )
 
 target_compile_definitions (${PROJECT_NAME} PUBLIC
