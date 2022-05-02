@@ -39,8 +39,8 @@ namespace SP {
 
       ChannelLimits limit;
 
-      ConvertString(split.at(0), limit.chan_pos, true);
-      ConvertString(split.at(1), limit.chan_neg, true);
+      ConvertString(split.at(0), limit.chan_pos);
+      ConvertString(split.at(1), limit.chan_neg);
       ConvertString(split.at(2), limit.max_amp_uA);
       ConvertString(split.at(3), limit.min_freq_Hz);
       ConvertString(split.at(4), limit.max_freq_Hz);

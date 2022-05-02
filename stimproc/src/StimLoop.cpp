@@ -144,8 +144,8 @@ void StimLoop::StimConfig(const std::vector<std::string>& cmd,
       uint64_t i = 2 + p*elem_cnt;
 
       CML::CSStimChannel csc;
-      ConvertRange(cmd.at(i), csc.electrode_pos, 0, 255, true);
-      ConvertRange(cmd.at(i+1), csc.electrode_neg, 0, 255, true);
+      ConvertRange(cmd.at(i), csc.electrode_pos, 0, 255);
+      ConvertRange(cmd.at(i+1), csc.electrode_neg, 0, 255);
 
       ChannelLimits limits = FindLimit(csc.electrode_pos, csc.electrode_neg);
 
