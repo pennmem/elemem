@@ -1,4 +1,5 @@
-#Label,#Lead1,#Lead2,#Surface Area
+#R1999J,v2.3,2022-03-24
+#Label,Lead1,Lead2,Surface Area (mm^2)
 LA1_LA2,1,2,5.024
 LA2_LA3,2,3,5.024
 LA3_LA4,3,4,5.024

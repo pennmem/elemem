@@ -1,6 +1,6 @@
 {
-  "electrode_config_file": "R1604J_20220324_mono_L0M0.csv",
-  "bipolar_electrode_config_file": "R1604J_20220324_bi_L0M0.csv",
+  "electrode_config_file": "R1999J_20220324_mono_L0M0.csv",
+  "bipolar_electrode_config_file": "R1999J_20220324_bi_L0M0.csv",
   "experiment": {
     "stim_mode": "none",
     "stim_channels": [],
@@ -19,9 +19,5 @@
     "macro_sampling_rate": 1000,
     "binned_sampling_rate": 1000
   },
-#  "montage_file": "config_files/contacts.json",
-#  "excluded_montage_file": "config_files/excluded_contacts.json",
-#  "ipaddress": "192.168.137.1", // Set this only if override needed.
-#  "port": 8889,  // Set this only if override needed.
-  "subject": "R1604J"
+  "subject": "R1999J"
 }
