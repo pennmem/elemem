@@ -17,6 +17,7 @@ namespace CML {
   struct FullConf {
     RC::APtr<const JSONFile> exp_config;
     RC::APtr<const CSVFile> elec_config;
+    RC::APtr<const CSVFile> bipolar_config;
   };
 
   class StimSettings {
@@ -51,6 +52,7 @@ namespace CML {
 
     RC::APtr<const JSONFile> exp_config;
     RC::APtr<const CSVFile> elec_config;
+    RC::APtr<const CSVFile> bipolar_config;
 
     RC::Data1D<StimSettings> stimconf;
     RC::Data1D<StimSettings> min_stimconf;

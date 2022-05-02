@@ -98,15 +98,15 @@ namespace CML {
 
     APtr<CSVFile> elecs = new CSVFile();
     elecs->Load(elecfilename);
-    elec_config = elecs.ExtractConst();
-    if (elec_config->data.size1() < 3) {
-      elec_config.Delete();
+    bipolar_config = elecs.ExtractConst();
+    if (bipolar_config->data.size1() < 3) {
+      bipolar_config.Delete();
       Throw_RC_Type(Note, "Bipolar CSV file has insufficient columns.");
     }
 
-    RC::Data1D<EEGChan> new_chans(elec_config->data.size2());
-    for (size_t r=0; r<elec_config->data.size2(); r++) {
-      auto& chan = elec_config->data[r];
+    RC::Data1D<EEGChan> new_chans(bipolar_config->data.size2());
+    for (size_t r=0; r<bipolar_config->data.size2(); r++) {
+      auto& chan = bipolar_config->data[r];
       RC::RStr label = chan[0];
       RC::RStr pos_str = chan[1];
       RC::RStr neg_str = chan[2];
