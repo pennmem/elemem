@@ -146,7 +146,8 @@ namespace CML {
 
     void OpenConfig_Handler(RC::FileRead& fr);
     FullConf GetConfig_Handler() {
-      return {settings.exp_config, settings.elec_config};
+      return {settings.exp_config, settings.elec_config,
+        settings.bipolar_config};
     }
     void Shutdown_Handler();
 

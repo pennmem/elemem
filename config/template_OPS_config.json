@@ -1,5 +1,6 @@
 {
-  "electrode_config_file": "R1999J_17JAN2020L0M0NOSTIM.csv",
+  "electrode_config_file": "R1999J_20220324_mono_L0M0.csv",
+  "bipolar_electrode_config_file": "R1999J_20220324_bi_L0M0.csv",
   "experiment": {
     "stim_mode": "open",
     "stim_channels": [
@@ -47,9 +48,5 @@
     #"micro_sampling_rate": 30000,
     "macro_sampling_rate": 1000
   },
-#  "montage_file": "config_files/contacts.json",
-#  "excluded_montage_file": "config_files/excluded_contacts.json",
-  "ipaddress": "192.168.215.1", // Second ethernet port for Mac laptop connection.
-#  "port": 8889,  // Set this only if override needed.
   "subject": "R1999J"
 }

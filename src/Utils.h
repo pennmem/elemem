@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include "RC/RStr.h"
+#include "RC/Data1D.h"
 
 namespace CML {
   RC::RStr GetHomeDir();

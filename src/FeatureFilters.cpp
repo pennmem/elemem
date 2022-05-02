@@ -246,11 +246,11 @@ namespace CML {
     return out_data;
   }
 
-  /// Converts an EEGDataRaw of electrode channels into EEGDataDouble of electrode channels
+  /// Converts an EEGDataRaw of electrode channels into EEGDataDouble of selected electrode channels, 
   /** @param EEGDataRaw of electrode channels
     * @return EEGDataDouble of electrode channels
     */
-  RC::APtr<EEGDataDouble> FeatureFilters::BipolarSelector(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<size_t> indices) {
+  RC::APtr<EEGDataDouble> FeatureFilters::MonoSelector(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<size_t> indices) {
     auto out_data = RC::MakeAPtr<EEGDataDouble>(in_data->sampling_rate, in_data->sample_len);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
@@ -265,7 +265,37 @@ namespace CML {
     }
     else {
       out_datar.Resize(indices.size());
-      for (size_t out_i=0; out_i<indices.size(); out_i++) {
+      RC_ForRange(out_i, 0, indices.size()) {
+        size_t in_i = indices[out_i];
+        if (in_datar[in_i].IsEmpty()) { continue; }
+        out_data->EnableChan(out_i);
+        out_datar[out_i].CopyFrom(in_datar[in_i]);
+      }
+    }
+
+    return out_data;
+  }
+
+  /// Converts an EEGDataDouble of electrode channels into EEGDataDouble of selected electrode channels
+  /** @param EEGDataDouble of electrode channels
+    * @return EEGDataDouble of electrode channels
+    */
+  RC::APtr<EEGDataDouble> FeatureFilters::ChannelSelector(RC::APtr<const EEGDataDouble>& in_data, RC::Data1D<size_t> indices) {
+    auto out_data = RC::MakeAPtr<EEGDataDouble>(in_data->sampling_rate, in_data->sample_len);
+    auto& in_datar = in_data->data;
+    auto& out_datar = out_data->data;
+
+    if (indices.size() == 0) {
+      out_datar.Resize(in_datar.size());
+      RC_ForIndex(i, out_datar) { // Iterate over channels
+        if (in_datar[i].IsEmpty()) { continue; }
+        out_data->EnableChan(i);
+        out_datar[i].CopyFrom(in_datar[i]);
+      }
+    }
+    else {
+      out_datar.Resize(indices.size());
+      RC_ForRange(out_i, 0, indices.size()) {
         size_t in_i = indices[out_i];
         if (in_datar[in_i].IsEmpty()) { continue; }
         out_data->EnableChan(out_i);
@@ -291,6 +321,56 @@ namespace CML {
     RC_ForIndex(i, out_datar) { // Iterate over channels
       uint8_t pos = bipolar_reference_channels[i].pos;
       uint8_t neg = bipolar_reference_channels[i].neg;
+
+      if (pos >= in_datar.size()) { // Pos channel not in data
+        Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
+              " is not a valid channel. The number of channels available is " +
+              RC::RStr(in_datar.size())).c_str());
+      } else if (neg >= in_datar.size()) { // Neg channel not in data
+        Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
+              " is not a valid channel. The number of channels available is " +
+              RC::RStr(in_datar.size())).c_str());
+      } else if (in_datar[pos].IsEmpty()) { // Pos channel is empty
+        Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
+              " does not have any data.").c_str());
+      } else if (in_datar[neg].IsEmpty()) { // Neg channel is empty
+        Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
+              " does not have any data.").c_str());
+      } else if (in_datar[pos].size() != in_datar[neg].size()) { // Pos and Neg channel sizes don't match
+        Throw_RC_Error(("Size of positive channel " + RC::RStr(pos) +
+              " (" + RC::RStr(in_datar[pos].size()) + ") " +
+              "and size of negitive channel " + RC::RStr(neg) +
+              " (" + RC::RStr(in_datar[neg].size()) + ") " +
+              "are different").c_str());
+      }
+
+      // Don't skip empty channels, they are errors above
+      out_data->EnableChan(i);
+
+      auto& out_events = out_datar[i];
+      RC_ForIndex(j, out_events) {
+        out_events[j] = static_cast<double>(in_datar[pos][j]) - static_cast<double>(in_datar[neg][j]);
+      }
+    }
+
+    return out_data;
+  }
+
+  /// Converts an EEGDataRaw of electrode channels into EEGDataDouble of bipolar pair channels
+  /** @param EEGDataRaw of electrode channels
+    * @param List of bipolar channel info
+    * @return EEGDataDouble of bipolar pair channels
+    */
+  RC::APtr<EEGDataDouble> FeatureFilters::BipolarReference(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<EEGChan> bipolar_reference_channels) {
+    auto out_data = RC::MakeAPtr<EEGDataDouble>(in_data->sampling_rate, in_data->sample_len);
+    auto& in_datar = in_data->data;
+    auto& out_datar = out_data->data;
+    size_t chanlen = bipolar_reference_channels.size();
+    out_datar.Resize(chanlen);
+
+    RC_ForIndex(i, out_datar) { // Iterate over channels
+      uint8_t pos = bipolar_reference_channels[i].GetBipolarChannels().pos;
+      uint8_t neg = bipolar_reference_channels[i].GetBipolarChannels().neg;
 
       if (pos >= in_datar.size()) { // Pos channel not in data
         Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
@@ -604,14 +684,14 @@ namespace CML {
   /** @param data The EEGDataDouble to be run through all the filters
     * @param task_classifier_settings The settings for this classification chain
     */
-  void FeatureFilters::Process_Handler(RC::APtr<const EEGDataRaw>& data, const TaskClassifierSettings& task_classifier_settings) {
+  void FeatureFilters::Process_Handler(RC::APtr<const EEGDataDouble>& data, const TaskClassifierSettings& task_classifier_settings) {
     if (!callback.IsSet()) Throw_RC_Error("FeatureFilters callback not set");
 
     // This calculates the mirroring duration based on the minimum statistical morlet duration 
     size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
 
-    auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
-    // For R1384J retrained testing only:
+//    //auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
+//    // For R1384J retrained testing only:
 //    RC::Data1D<size_t> indices{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
 //      14, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
 //      32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
@@ -624,7 +704,7 @@ namespace CML {
 //      146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
 //      160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
 //      174, 175, 176, 177};
-    // Un-retrained R1384J testing.
+//    // Un-retrained R1384J testing.
 //    RC::Data1D<size_t> indices{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
 //      14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
 //      32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
@@ -637,9 +717,11 @@ namespace CML {
 //      146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
 //      160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
 //      174, 175, 176, 177};
-//    auto bipolar_ref_data = BipolarSelector(data, indices).ExtractConst();
+//    auto selected_data = ChannelSelector(data, indices).ExtractConst();
+//
+//    auto mirrored_data = MirrorEnds(selected_data, mirroring_duration_ms).ExtractConst();
 
-    auto mirrored_data = MirrorEnds(bipolar_ref_data, mirroring_duration_ms).ExtractConst();
+    auto mirrored_data = MirrorEnds(data, mirroring_duration_ms).ExtractConst();
     auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
     auto unmirrored_data = RemoveMirrorEnds(morlet_data, mirroring_duration_ms).ExtractConst();
 
@@ -664,11 +746,12 @@ namespace CML {
       case ClassificationType::SHAM:
       {
         auto norm_data = normalize_powers.ZScore(avg_data, true).ExtractConst();
-        //norm_data->Print(1, 10);
 
         // Perform 10th derivative test to find and remove artifact channels
-        auto artifact_channel_mask = FindArtifactChannels(bipolar_ref_data, 10, 10).ExtractConst();
+        auto artifact_channel_mask = FindArtifactChannels(data, 10, 10).ExtractConst();
         auto cleaned_data = ZeroArtifactChannels(norm_data, artifact_channel_mask).ExtractConst();
+
+        //norm_data->Print(1, 10);
         //cleaned_data->Print(2, 10);
 
         callback(cleaned_data, task_classifier_settings);

@@ -17,6 +17,7 @@ namespace CML {
   struct FullConf {
     RC::APtr<const JSONFile> exp_config;
     RC::APtr<const CSVFile> elec_config;
+    RC::APtr<const CSVFile> bipolar_config;
   };
 
   class StimSettings {
@@ -37,6 +38,8 @@ namespace CML {
 
     void Clear();
     RC::Data1D<EEGChan> LoadElecConfig(RC::RStr dir);
+    bool BipolarElecConfigUsed();
+    RC::Data1D<EEGChan> LoadBipolarElecConfig(RC::RStr dir, RC::Data1D<EEGChan> mono_chans);
     void LoadStimParamGrid();
     void LoadChannelSettings();
 
@@ -49,6 +52,7 @@ namespace CML {
 
     RC::APtr<const JSONFile> exp_config;
     RC::APtr<const CSVFile> elec_config;
+    RC::APtr<const CSVFile> bipolar_config;
 
     RC::Data1D<StimSettings> stimconf;
     RC::Data1D<StimSettings> min_stimconf;

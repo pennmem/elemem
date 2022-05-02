@@ -3,7 +3,7 @@
 #include "RC/RStr.h"
 
 namespace CML {
-  RC::APtr<EEGData> EEGCircularData::GetRecentData(size_t amnt) {
+  RC::APtr<EEGDataDouble> EEGCircularData::GetRecentData(size_t amnt) {
     if (amnt > circular_data.sample_len) {
       Throw_RC_Error(("The amount of data requested "
             "(" + RC::RStr(amnt) + ") " +
@@ -11,7 +11,7 @@ namespace CML {
             "(" + RC::RStr(circular_data.sample_len) + ")").c_str());
     }
 
-    RC::APtr<EEGData> out_data = new EEGData(circular_data.sampling_rate, amnt);
+    RC::APtr<EEGDataDouble> out_data = new EEGDataDouble(circular_data.sampling_rate, amnt);
     auto& circ_datar = circular_data.data;
     auto& out_datar = out_data->data;
     out_datar.Resize(circ_datar.size());
@@ -39,11 +39,11 @@ namespace CML {
   }
 
   // TODO: JPB: (refactor) Should these old GetData entries even exist?
-  RC::APtr<EEGData> EEGCircularData::GetData() {
+  RC::APtr<EEGDataDouble> EEGCircularData::GetData() {
     return GetData(circular_data_end);
   }
 
-  RC::APtr<EEGData> EEGCircularData::GetData(size_t amnt) {
+  RC::APtr<EEGDataDouble> EEGCircularData::GetData(size_t amnt) {
     if (amnt > circular_data.sample_len) {
       Throw_RC_Error(("The amount of data requested "
             "(" + RC::RStr(amnt) + ") " +
@@ -51,7 +51,7 @@ namespace CML {
             "(" + RC::RStr(circular_data.sample_len) + ")").c_str());
     }
 
-    RC::APtr<EEGData> out_data = new EEGData(circular_data.sampling_rate, amnt);
+    RC::APtr<EEGDataDouble> out_data = new EEGDataDouble(circular_data.sampling_rate, amnt);
     auto& circ_datar = circular_data.data;
     auto& out_datar = out_data->data;
     out_datar.Resize(circ_datar.size());
@@ -75,14 +75,14 @@ namespace CML {
     return out_data;
   }
 
-  RC::APtr<EEGData> EEGCircularData::GetDataAll() {
+  RC::APtr<EEGDataDouble> EEGCircularData::GetDataAll() {
     return GetData(circular_data_len);
   }
 
   /// This gets the data as a timeline, meaning that if the data isn't full yet
   /// then the 0s go before the data instead of after
-  RC::APtr<EEGData> EEGCircularData::GetDataAllAsTimeline() {
-    RC::APtr<EEGData> out_data = new EEGData(circular_data.sampling_rate, circular_data.sample_len);
+  RC::APtr<EEGDataDouble> EEGCircularData::GetDataAllAsTimeline() {
+    RC::APtr<EEGDataDouble> out_data = new EEGDataDouble(circular_data.sampling_rate, circular_data.sample_len);
     auto& circ_datar = circular_data.data;
     auto& out_datar = out_data->data;
     out_datar.Resize(circ_datar.size());
@@ -116,13 +116,13 @@ namespace CML {
     circular_data.Print();
   }
 
-  void EEGCircularData::Append(RC::APtr<const EEGData>& new_data) {
+  void EEGCircularData::Append(RC::APtr<const EEGDataDouble>& new_data) {
     size_t start = 0;
     size_t amnt = new_data->data[0].size();
     Append(new_data, start, amnt);
   }
 
-  void EEGCircularData::Append(RC::APtr<const EEGData>& new_data, size_t start) {
+  void EEGCircularData::Append(RC::APtr<const EEGDataDouble>& new_data, size_t start) {
     size_t amnt = new_data->data[0].size() - start;
     Append(new_data, start, amnt);
   }
@@ -132,7 +132,7 @@ namespace CML {
     * @param start The start location in the new_data
     * @param amnt The amount of data from new_data to be added
     */
-  void EEGCircularData::Append(RC::APtr<const EEGData>& new_data, size_t start, size_t amnt) {
+  void EEGCircularData::Append(RC::APtr<const EEGDataDouble>& new_data, size_t start, size_t amnt) {
     auto& new_datar = new_data->data;
     auto& circ_datar = circular_data.data;
 
