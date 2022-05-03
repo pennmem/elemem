@@ -26,7 +26,9 @@ namespace CML {
     Send(msg);
   }
 
-  void StimNetWorker::ConfigureStimulationHelper(StimProfile profile) {
+  void StimNetWorker::ConfigureStimulation_Handler(const StimProfile& profile) {
+    ConfigureStimulationHelper(profile);
+
     if ( ! IsConnected_Handler() ) {
       hndl->StopExperiment();
       Throw_RC_Type(Net ,"Cannot configure stim.  Stim Network Process not "
@@ -61,18 +63,34 @@ namespace CML {
     }
     config += "\n";
     LogAndSend(config);
+
+    is_configured = true;
   }
 
-  void StimNetWorker::StimulateHelper() {
+  void StimNetWorker::Stimulate_Handler() {
+    if ( ! is_configured ) {
+      throw std::runtime_error("Stimulation attempted when no stim pattern "
+          "was internally configured.");
+    }
     LogAndSend("SPSTIMSTART\n");
   }
 
-  void StimNetWorker::OpenHelper() {
+  void StimNetWorker::Open_Handler() {
+    is_configured = false;
     Listen(settings.ip, settings.port); // ip and port
   }
 
-  void StimNetWorker::CloseHelper() {
+  void StimNetWorker::Close_Handler() {
     Close(); // Network device
+    is_configured = false;
+  }
+
+  uint32_t StimNetWorker::GetBurstSlowFreq_Handler() {
+    return burst_slow_freq;
+  }
+
+  uint32_t StimNetWorker::GetBurstDuration_us_Handler() {
+    return burst_duration_us;
   }
 
   void StimNetWorker::SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {

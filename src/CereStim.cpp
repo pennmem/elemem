@@ -19,7 +19,7 @@ namespace CML {
   CereStim::CereStim() {
   }
 
-  void CereStim::OpenHelper() {
+  void CereStim::Open_Handler() {
     if (is_open) {
       CloseInterface();
     }
@@ -57,7 +57,7 @@ namespace CML {
     max_vals.phase_charge = 20000000; // Won't go above 1.05e6 with 300us
     max_vals.frequency = 1000; // Hz
     was_active = false;
-//    is_configured = false;
+    is_configured = false;
 
     SetMaxValues(max_vals);
   }
@@ -66,7 +66,7 @@ namespace CML {
     CloseInterface();
   }
 
-  void CereStim::CloseHelper() {
+  void CereStim::Close_Handler() {
     if (is_open) {
       if (was_active) {
         CS_Stop();
@@ -74,7 +74,7 @@ namespace CML {
       CS_Disconnect();
 
       is_open = false;
-//      is_configured = false;
+      is_configured = false;
     }
   }
 
@@ -151,7 +151,9 @@ namespace CML {
     );
   }
 
-  void CereStim::ConfigureStimulationHelper(StimProfile profile) {
+  void CereStim::ConfigureStimulation_Handler(const StimProfile& profile) {
+    ConfigureStimulationHelper(profile);
+
 //    is_configured = false;
     BeOpen();
 
@@ -183,31 +185,31 @@ namespace CML {
     }
 
     // Verify electrodes are all unique.
-    std::vector<uint8_t> uniqueness_check(256);
-    for (size_t i=0; i<profile.size(); i++) {
-      auto& prof =  profile[i];
+    //std::vector<uint8_t> uniqueness_check(256);
+    //for (size_t i=0; i<profile.size(); i++) {
+    //  auto& prof =  profile[i];
 
-      if (uniqueness_check.at(prof.electrode_pos) ||
-          uniqueness_check.at(prof.electrode_neg) ||
-          prof.electrode_pos == prof.electrode_neg) {
-        throw std::runtime_error("Stimulation channels must be unique");
-      }
-      uniqueness_check.at(prof.electrode_pos) = 1;
-      uniqueness_check.at(prof.electrode_neg) = 1;
+    //  if (uniqueness_check.at(prof.electrode_pos) ||
+    //      uniqueness_check.at(prof.electrode_neg) ||
+    //      prof.electrode_pos == prof.electrode_neg) {
+    //    throw std::runtime_error("Stimulation channels must be unique");
+    //  }
+    //  uniqueness_check.at(prof.electrode_pos) = 1;
+    //  uniqueness_check.at(prof.electrode_neg) = 1;
 
-      if (i==0) {  // Save first burst setting.
-        burst_slow_freq = prof.burst_slow_freq;
-        burst_frac = prof.burst_frac;
-        burst_duration_us = prof.duration;
-      }  // All burst settings must be identical.
-      else if ((burst_slow_freq != prof.burst_slow_freq) ||
-               (std::abs(burst_frac - prof.burst_frac) > 0.001) ||
-               (burst_duration_us != prof.duration)) {
-        throw std::runtime_error("Simultaneous stim channels must be all "
-            "identical duration and burst stim settings, or all not burst "
-            "stim.");
-      }
-    }
+    //  if (i==0) {  // Save first burst setting.
+    //    burst_slow_freq = prof.burst_slow_freq;
+    //    burst_frac = prof.burst_frac;
+    //    burst_duration_us = prof.duration;
+    //  }  // All burst settings must be identical.
+    //  else if ((burst_slow_freq != prof.burst_slow_freq) ||
+    //           (std::abs(burst_frac - prof.burst_frac) > 0.001) ||
+    //           (burst_duration_us != prof.duration)) {
+    //    throw std::runtime_error("Simultaneous stim channels must be all "
+    //        "identical duration and burst stim settings, or all not burst "
+    //        "stim.");
+    //  }
+    //}
 
     // Sensible burst settings only.
     if (burst_frac > 1) {
@@ -310,7 +312,7 @@ namespace CML {
       CS_EndOfSequence()
     );
 
-//    is_configured = true;
+    is_configured = true;
   }
 
 // TODO: JPB: (need) Remove all this old CereStim code 
@@ -493,7 +495,12 @@ namespace CML {
 //    );
 //  }
 
-  void CereStim::StimulateHelper() {
+  void CereStim::Stimulate_Handler() {
+    if ( ! is_configured ) { 
+      throw std::runtime_error("Stimulation attempted when no stim pattern "
+          "was internally configured.");
+    }   
+
     BeOpen();
 
     StopStimulation();
@@ -502,6 +509,15 @@ namespace CML {
     ErrorCheck(
       CS_Play(1)
     );
+  }
+
+
+  uint32_t CereStim::GetBurstSlowFreq_Handler() {
+    return burst_slow_freq;
+  }
+
+  uint32_t CereStim::GetBurstDuration_us_Handler() {
+    return burst_duration_us;
   }
 
   void CereStim::StopStimulation() {

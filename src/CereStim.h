@@ -34,11 +34,14 @@ namespace CML {
     // Rule of 3.
     CereStim(const CereStim& other) = delete;
     CereStim& operator=(const CereStim& other) = delete;
+ 
+    void ConfigureStimulation(const StimProfile& profile) override { ConfigureStimulation_Handler(profile); }
+    void OpenInterface() override { Open_Handler(); }
+    void CloseInterface() override { Close_Handler(); }
+    void Stimulate() override { Stimulate_Handler(); }
 
-    void OpenHelper() override;  // Automatic at first use.
-    void CloseHelper() override;
-    void ConfigureStimulationHelper(StimProfile profile) override;
-    void StimulateHelper() override;
+    uint32_t GetBurstSlowFreq() override { return GetBurstSlowFreq_Handler(); }
+    uint32_t GetBurstDuration_us() override { return GetBurstDuration_us_Handler(); }
 
     CSMaxValues GetMaxValues();
     void SetMaxValues(CSMaxValues max_vals);
@@ -52,21 +55,30 @@ namespace CML {
 //    void ShannonAssert(float area_mmsq, uint16_t amplitude_uA);
 //    void ShannonAssert(const StimChannel& chan);
 //
-//    uint32_t GetBurstSlowFreq() const override { return burst_slow_freq; }
-//    uint32_t GetBurstDuration_us() const override { return burst_duration_us; }
+//    uint32_t GetBurstSlowFreq() const { return burst_slow_freq; }
+//    uint32_t GetBurstDuration_us() const { return burst_duration_us; }
+
+    protected:
+    void ConfigureStimulation_Handler(const StimProfile& profile) override;
+    void Open_Handler() override;  // Automatic at first use.
+    void Close_Handler() override;
+    void Stimulate_Handler() override;
+
+    uint32_t GetBurstSlowFreq_Handler() override;
+    uint32_t GetBurstDuration_us_Handler() override;
 
     private:
     void BeOpen();
     void ErrorCheck(int err);
 
-    uint32_t burst_slow_freq = 0; // Unit Hz.  Slower envelope freq of bursts.
-    float burst_frac = 1; // Fraction of 1/burst_slow_freq to stimulate for.
-    uint32_t burst_duration_us = 0;
+//    uint32_t burst_slow_freq = 0; // Unit Hz.  Slower envelope freq of bursts.
+//    float burst_frac = 1; // Fraction of 1/burst_slow_freq to stimulate for.
+//    uint32_t burst_duration_us = 0;
 
 //    uint16_t stim_width_us = 300;
+//    bool is_configured = false;
     bool was_active = false;
     bool is_open = false;
-//    bool is_configured = false;
   };
 
 
