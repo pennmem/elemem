@@ -1,7 +1,7 @@
 {
   "data_dir": "$DESKTOP/ElememData",
   "eeg_system": "CerebusSim",
-  "stim_system": "CereStim",
+  "stim_system": "StimNetWorker",
   "channel_count": 256,
   "taskcom_ip": "0.0.0.0",
   "taskcom_port": 8889,
