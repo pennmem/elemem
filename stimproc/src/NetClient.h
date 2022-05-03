@@ -16,6 +16,7 @@
 #endif
 #include <atomic>
 #include <cstdint>
+#include <iostream>
 #include <sys/types.h>
 #include <string.h>
 #include <string>
@@ -322,6 +323,7 @@ namespace SP {
       }
 
       str = inp;
+      std::cout << "Recv: " << str << std::endl;  // Testing
 
       return count;
     }
@@ -338,6 +340,13 @@ namespace SP {
       if (add_newline) {
         str += "\n";
       }
+      std::cout << "Send: " << str;  // Testing
+      if (add_newline) {             // Testing
+        std::cout.flush();           // Testing
+      }                              // Testing
+      else {                         // Testing
+        std::cout << std::endl;      // Testing
+      }                              // Testing
       return helper->SendData(str.c_str(), str.size(), do_block);
     }
   };
