@@ -40,14 +40,13 @@ namespace CML {
       try {
         auto conf = hndl->GetConfig();
         conf.exp_config->Get(subject, "subject");
-        subject += "\n";
       }
       catch (ErrorMsg& e){
         Throw_RC_Type(Net, ("Could not find subject in experiment config.  "
                 "The experiment likely has not been loaded yet." +
                  RStr(e.what()).SplitFirst("\n")[0]).c_str());
       }
-
+      subject += "\n";
       LogAndSend(subject); // Subject number
     }
 
