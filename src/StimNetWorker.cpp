@@ -26,7 +26,7 @@ namespace CML {
     Send(msg);
   }
 
-  void StimNetWorker::ConfigureStimulation_Helper(const StimProfile& profile) {
+  void StimNetWorker::ConfigureStimulation_Helper(StimProfile profile) {
     if ( ! IsConnected_Handler() ) {
       hndl->StopExperiment();
       Throw_RC_Type(Net ,"Cannot configure stim.  Stim Network Process not "

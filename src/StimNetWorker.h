@@ -26,7 +26,7 @@ namespace CML {
     RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
       TaskHandler(StimNetWorker::SetStatusPanel_Handler);
 
-    void ConfigureStimulation(const StimProfile& profile) override { RCqt::TaskCaller<const StimProfile&> configure = TaskHandler(StimNetWorker::ConfigureStimulation_Handler); configure(profile); }
+    void ConfigureStimulation(StimProfile profile) override { RCqt::TaskCaller<const StimProfile&> configure = TaskHandler(StimNetWorker::ConfigureStimulation_Handler); configure(profile); }
     void OpenInterface() override { RCqt::TaskCaller<> open = TaskHandler(StimNetWorker::OpenInterface_Handler); open(); }
     void CloseInterface() override { RCqt::TaskCaller<> close = TaskHandler(StimNetWorker::CloseInterface_Handler); close(); }
     void Stimulate() override { RCqt::TaskCaller<> stim = TaskHandler(StimNetWorker::Stimulate_Handler); stim(); }
@@ -42,7 +42,7 @@ namespace CML {
 
 
     protected:
-    void ConfigureStimulation_Helper(const StimProfile& profile) override;
+    void ConfigureStimulation_Helper(StimProfile profile) override;
     void Stimulate_Helper() override;
     void OpenInterface_Helper() override;
     void CloseInterface_Helper() override;

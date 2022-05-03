@@ -151,7 +151,7 @@ namespace CML {
     );
   }
 
-  void CereStim::ConfigureStimulation_Helper(const StimProfile& profile) {
+  void CereStim::ConfigureStimulation_Helper(StimProfile profile) {
 //    is_configured = false;
     BeOpen();
 
