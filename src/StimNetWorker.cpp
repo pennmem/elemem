@@ -115,9 +115,11 @@ namespace CML {
       // Do Nothing
     }
     else if (cmdName == "SPSTIMSTARTERROR") {
+      hndl->StopExperiment();
       ErrorWin("Stim client start error: " + cmdVals);
     }
     else {
+      hndl->StopExperiment();
       ErrorWin("Unapproved command received from stim client: " + cmd);
     }
   }
