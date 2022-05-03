@@ -45,8 +45,29 @@ namespace CML {
   void StimInterface::ShannonAssert(const StimChannel& chan) {
     ShannonAssert(chan.area, chan.amplitude);
   }
+  
+  void StimInterface::OpenInterface_Handler() {
+    is_configured = false;
 
-  void StimInterface::ConfigureStimulationHelper(const StimProfile& profile) {
+    OpenInterface_Helper();
+  }
+
+  void StimInterface::CloseInterface_Handler() {
+    is_configured = false;
+
+    CloseInterface_Helper();
+  }
+
+  void StimInterface::Stimulate_Handler() {
+    if ( ! is_configured ) {
+      throw std::runtime_error("Stimulation attempted when no stim pattern "
+          "was internally configured.");
+    }
+
+    Stimulate_Helper();
+  }
+
+  void StimInterface::ConfigureStimulation_Handler(const StimProfile& profile) {
     // Reset defaults.
     burst_slow_freq = 0;
     burst_frac = 1;
@@ -153,9 +174,17 @@ namespace CML {
       }
     }
 
-    ConfigureStimulationHelper(profile);
+    ConfigureStimulation_Helper(profile);
 
     is_configured = true;
+  }
+
+  uint32_t StimInterface::GetBurstSlowFreq_Handler() {
+    return burst_slow_freq;
+  }
+
+  uint32_t StimInterface::GetBurstDuration_us_Handler() {
+    return burst_duration_us;
   }
 }
 

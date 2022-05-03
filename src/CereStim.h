@@ -36,10 +36,9 @@ namespace CML {
     CereStim& operator=(const CereStim& other) = delete;
  
     void ConfigureStimulation(const StimProfile& profile) override { ConfigureStimulation_Handler(profile); }
-    void OpenInterface() override { Open_Handler(); }
-    void CloseInterface() override { Close_Handler(); }
+    void OpenInterface() override { OpenInterface_Handler(); }
+    void CloseInterface() override { CloseInterface_Handler(); }
     void Stimulate() override { Stimulate_Handler(); }
-
     uint32_t GetBurstSlowFreq() override { return GetBurstSlowFreq_Handler(); }
     uint32_t GetBurstDuration_us() override { return GetBurstDuration_us_Handler(); }
 
@@ -59,13 +58,11 @@ namespace CML {
 //    uint32_t GetBurstDuration_us() const { return burst_duration_us; }
 
     protected:
-    void ConfigureStimulation_Handler(const StimProfile& profile) override;
-    void Open_Handler() override;  // Automatic at first use.
-    void Close_Handler() override;
-    void Stimulate_Handler() override;
+    void ConfigureStimulation_Helper(const StimProfile& profile) override;
+    void OpenInterface_Helper() override;  // Automatic at first use.
+    void CloseInterface_Helper() override;
+    void Stimulate_Helper() override;
 
-    uint32_t GetBurstSlowFreq_Handler() override;
-    uint32_t GetBurstDuration_us_Handler() override;
 
     private:
     void BeOpen();
