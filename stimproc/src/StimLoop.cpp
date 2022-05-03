@@ -182,7 +182,7 @@ void StimLoop::StimConfig(const std::vector<std::string>& cmd,
     soc.Send("SPSTIMCONFIGDONE");
   }
   catch(std::exception& ex) {
-    soc.Send(std::string("SPSTIMCONFIGEROR,") + CleanStr(ex.what()));
+    soc.Send(std::string("SPSTIMCONFIGERROR,") + CleanStr(ex.what()));
     return;
   }
 }
