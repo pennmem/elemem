@@ -71,11 +71,3 @@ Other error conditions from the stim process:
 
 SPERROR,One-line other condition comma-free error message.
 
-
------
-TODO:
------
-
- - Specify theta burst.
-
-
