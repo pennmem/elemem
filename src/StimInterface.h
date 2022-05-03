@@ -68,13 +68,17 @@ namespace CML {
 
 
     protected:
-    virtual void ConfigureStimulation_Handler(const StimProfile& profile) = 0;
-    virtual void Open_Handler() = 0;
-    virtual void Close_Handler() = 0;
-    virtual void Stimulate_Handler() = 0;
+    virtual void ConfigureStimulation_Helper(const StimProfile& profile) = 0;
+    virtual void OpenInterface_Helper() = 0;
+    virtual void CloseInterface_Helper() = 0;
+    virtual void Stimulate_Helper() = 0;
 
-    virtual uint32_t GetBurstSlowFreq_Handler() = 0;
-    virtual uint32_t GetBurstDuration_us_Handler() = 0;
+    void ConfigureStimulation_Handler(const StimProfile& profile);
+    void OpenInterface_Handler();
+    void CloseInterface_Handler();
+    void Stimulate_Handler();
+    uint32_t GetBurstSlowFreq_Handler();
+    uint32_t GetBurstDuration_us_Handler();
 
     uint16_t ShannonCriteria(float area_mmsq);
     uint16_t ShannonCriteria(const StimChannel& chan);
@@ -82,11 +86,6 @@ namespace CML {
     bool ShannonSafe(const StimChannel& chan);
     void ShannonAssert(float area_mmsq, uint16_t amplitude_uA);
     void ShannonAssert(const StimChannel& chan);
-
-    // TODO: JPB: (refactor) This Helper is a hack for code reuse
-    // This needs to be included in the top of every ConfigureStimulation()
-    // function in the derived class
-    void ConfigureStimulationHelper(const StimProfile& profile);
 
     bool is_configured = false;
 

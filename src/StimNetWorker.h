@@ -27,8 +27,8 @@ namespace CML {
       TaskHandler(StimNetWorker::SetStatusPanel_Handler);
 
     void ConfigureStimulation(const StimProfile& profile) override { RCqt::TaskCaller<const StimProfile&> configure = TaskHandler(StimNetWorker::ConfigureStimulation_Handler); configure(profile); }
-    void OpenInterface() override { RCqt::TaskCaller<> open = TaskHandler(StimNetWorker::Open_Handler); open(); }
-    void CloseInterface() override { RCqt::TaskCaller<> close = TaskHandler(StimNetWorker::Close_Handler); close(); }
+    void OpenInterface() override { RCqt::TaskCaller<> open = TaskHandler(StimNetWorker::OpenInterface_Handler); open(); }
+    void CloseInterface() override { RCqt::TaskCaller<> close = TaskHandler(StimNetWorker::CloseInterface_Handler); close(); }
     void Stimulate() override { RCqt::TaskCaller<> stim = TaskHandler(StimNetWorker::Stimulate_Handler); stim(); }
 
     uint32_t GetBurstSlowFreq() override { RCqt::TaskGetter<uint32_t> getFreq = TaskHandler(StimNetWorker::GetBurstSlowFreq_Handler); return getFreq(); }
@@ -42,13 +42,19 @@ namespace CML {
 
 
     protected:
-    void ConfigureStimulation_Handler(const StimProfile& profile) override;
-    void Stimulate_Handler() override;
-    void Open_Handler() override;
-    void Close_Handler() override;
+    void ConfigureStimulation_Helper(const StimProfile& profile) override;
+    void Stimulate_Helper() override;
+    void OpenInterface_Helper() override;
+    void CloseInterface_Helper() override;
 
-    uint32_t GetBurstSlowFreq_Handler() override;
-    uint32_t GetBurstDuration_us_Handler() override;
+    // TODO: JPB: (feature) Fix MakeCaller to handle Base Class types
+    // This is a temporary redeclaration
+    void ConfigureStimulation_Handler(const StimProfile& profile) { StimInterface::ConfigureStimulation_Handler(profile); }
+    void Stimulate_Handler() { StimInterface::Stimulate_Handler(); }
+    void OpenInterface_Handler() { StimInterface::OpenInterface_Handler(); }
+    void CloseInterface_Handler() { StimInterface::CloseInterface_Handler(); }
+    uint32_t GetBurstSlowFreq_Handler() { return StimInterface::GetBurstSlowFreq_Handler(); }
+    uint32_t GetBurstDuration_us_Handler() { return StimInterface::GetBurstDuration_us_Handler(); }
 
     void ProcessCommand(RC::RStr cmd) override;
 

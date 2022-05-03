@@ -19,7 +19,11 @@ namespace CML {
   CereStim::CereStim() {
   }
 
-  void CereStim::Open_Handler() {
+  CereStim::~CereStim() {
+    CloseInterface();
+  }
+
+  void CereStim::OpenInterface_Helper() {
     if (is_open) {
       CloseInterface();
     }
@@ -57,16 +61,12 @@ namespace CML {
     max_vals.phase_charge = 20000000; // Won't go above 1.05e6 with 300us
     max_vals.frequency = 1000; // Hz
     was_active = false;
-    is_configured = false;
+//    is_configured = false;
 
     SetMaxValues(max_vals);
   }
 
-  CereStim::~CereStim() {
-    CloseInterface();
-  }
-
-  void CereStim::Close_Handler() {
+  void CereStim::CloseInterface_Helper() {
     if (is_open) {
       if (was_active) {
         CS_Stop();
@@ -74,7 +74,7 @@ namespace CML {
       CS_Disconnect();
 
       is_open = false;
-      is_configured = false;
+//      is_configured = false;
     }
   }
 
@@ -151,9 +151,7 @@ namespace CML {
     );
   }
 
-  void CereStim::ConfigureStimulation_Handler(const StimProfile& profile) {
-    ConfigureStimulationHelper(profile);
-
+  void CereStim::ConfigureStimulation_Helper(const StimProfile& profile) {
 //    is_configured = false;
     BeOpen();
 
@@ -312,7 +310,7 @@ namespace CML {
       CS_EndOfSequence()
     );
 
-    is_configured = true;
+//    is_configured = true;
   }
 
 // TODO: JPB: (need) Remove all this old CereStim code 
@@ -495,7 +493,7 @@ namespace CML {
 //    );
 //  }
 
-  void CereStim::Stimulate_Handler() {
+  void CereStim::Stimulate_Helper() {
     if ( ! is_configured ) { 
       throw std::runtime_error("Stimulation attempted when no stim pattern "
           "was internally configured.");
@@ -511,14 +509,6 @@ namespace CML {
     );
   }
 
-
-  uint32_t CereStim::GetBurstSlowFreq_Handler() {
-    return burst_slow_freq;
-  }
-
-  uint32_t CereStim::GetBurstDuration_us_Handler() {
-    return burst_duration_us;
-  }
 
   void CereStim::StopStimulation() {
     BeOpen();
