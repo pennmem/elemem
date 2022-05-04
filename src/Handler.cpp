@@ -247,6 +247,7 @@ namespace CML {
     profile += settings.stimconf[index].params;
 
     stim_worker.ConfigureStimulation(profile);
+    RC::Time::Sleep(0.5); // Allow time to configure.
     stim_worker.Stimulate();
   }
 

@@ -85,6 +85,7 @@ namespace CML {
       hndl->event_log.Log(event.Line());
     }
 
+    // Theta-burst stimulation loop
     for (size_t b=1; (b<num_bursts) && KeepGoing(); b++) {
       f64 burst_time_left = burst_period*b - timer.SinceStart();
       if (burst_time_left > 0) {

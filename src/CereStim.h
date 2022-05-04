@@ -58,7 +58,7 @@ namespace CML {
 //    uint32_t GetBurstDuration_us() const { return burst_duration_us; }
 
     protected:
-    void ConfigureStimulation_Helper(StimProfile profile) override;
+    void ConfigureStimulation_Helper(const StimProfile& profile) override;
     void OpenInterface_Helper() override;  // Automatic at first use.
     void CloseInterface_Helper() override;
     void Stimulate_Helper() override;

@@ -70,7 +70,7 @@ namespace CML {
 
 
     protected:
-    virtual void ConfigureStimulation_Helper(StimProfile profile) = 0;
+    virtual void ConfigureStimulation_Helper(const StimProfile& profile) = 0;
     virtual void OpenInterface_Helper() = 0;
     virtual void CloseInterface_Helper() = 0;
     virtual void Stimulate_Helper() = 0;

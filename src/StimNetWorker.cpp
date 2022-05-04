@@ -26,7 +26,7 @@ namespace CML {
     Send(msg);
   }
 
-  void StimNetWorker::ConfigureStimulation_Helper(StimProfile profile) {
+  void StimNetWorker::ConfigureStimulation_Helper(const StimProfile& profile) {
     if ( ! IsConnected_Handler() ) {
       hndl->StopExperiment();
       Throw_RC_Type(Net ,"Cannot configure stim.  Stim Network Process not "
@@ -51,12 +51,25 @@ namespace CML {
     }
 
     // CONFIGURE
-    RC::RStr config = "SPSTIMCONFIG," + RC::RStr(profile.size());
+    RC::RStr config;
+    if (burst_frac < 1) { // Theta-burst
+      config = "SPSTIMTHETACONFIG," + RC::RStr(profile.size());
+    }
+    else {
+      config = "SPSTIMCONFIG," + RC::RStr(profile.size());
+    }
     RC_ForRange(i, 0, profile.size()) {
       const StimChannel& sc = profile[i];
       config += "," + RC::RStr::Join(RC::Data1D<uint32_t>
-          {sc.electrode_pos, sc.electrode_neg, sc.amplitude, sc.frequency,
-          uint32_t(std::round(sc.duration/1000.0))}, ",");
+          {sc.electrode_pos, sc.electrode_neg, sc.amplitude, sc.frequency}
+          , ",");
+      if (burst_frac < 1) { // Theta-burst
+        config += "," + RC::RStr(burst_slow_freq) +
+                  "," + RC::RStr(burst_frac);
+      }
+      else {
+        config += "," + RC::RStr(uint32_t(std::round(sc.duration/1000.0)));
+      }
     }
     config += "\n";
     LogAndSend(config);

@@ -151,16 +151,11 @@ namespace CML {
     );
   }
 
-  void CereStim::ConfigureStimulation_Helper(StimProfile profile) {
+  void CereStim::ConfigureStimulation_Helper(const StimProfile& profile) {
 //    is_configured = false;
     BeOpen();
 
     StopStimulation();
-
-    // Reset defaults.
-    burst_slow_freq = 0;
-    burst_frac = 1;
-    burst_duration_us = 0;
 
     struct FreqDurAmp {
       uint32_t frequency;
