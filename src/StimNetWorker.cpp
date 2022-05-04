@@ -14,6 +14,10 @@ namespace CML {
     : NetWorker(hndl, "Stim"), hndl(hndl), settings(settings) {
   }
 
+  void StimNetWorker::DisconnectedAfter() {
+    is_configured = false;
+  }
+
   void StimNetWorker::LogAndSend(const RC::RStr &msg) {
     JSONFile response = MakeResp("STIMNETMSG");
     response.Set(msg, "data", "msg");

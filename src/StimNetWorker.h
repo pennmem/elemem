@@ -51,6 +51,7 @@ namespace CML {
     uint32_t GetBurstDuration_us_Handler() { return StimInterface::GetBurstDuration_us_Handler(); }
 
     void ProcessCommand(RC::RStr cmd) override;
+    void DisconnectedAfter() override;
 
     void LogAndSend(const RC::RStr& msg);
 
