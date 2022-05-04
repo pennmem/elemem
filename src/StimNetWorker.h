@@ -23,9 +23,6 @@ namespace CML {
     StimNetWorker(const StimNetWorker&) = delete;
     StimNetWorker& operator=(const StimNetWorker&) = delete;
 
-    RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
-      TaskHandler(StimNetWorker::SetStatusPanel_Handler);
-
     void ConfigureStimulation(StimProfile profile) override { RCqt::TaskCaller<const StimProfile> configure = TaskHandler(StimNetWorker::ConfigureStimulation_Handler); configure(profile); }
     void OpenInterface() override { RCqt::TaskCaller<> open = TaskHandler(StimNetWorker::OpenInterface_Handler); open(); }
     void CloseInterface() override { RCqt::TaskCaller<> close = TaskHandler(StimNetWorker::CloseInterface_Handler); close(); }
@@ -36,9 +33,6 @@ namespace CML {
     
     //typedef uint32_t (StimNetWorker::*FooType)() const;
     //uint32_t GetBurstDuration_us() const override { auto getDur = &StimNetWorker::Foo_Handler; return (this->*getDur)(); }
-
-    protected slots:
-    void DisconnectedBefore() override;
 
 
     protected:
@@ -59,9 +53,7 @@ namespace CML {
     void ProcessCommand(RC::RStr cmd) override;
 
     void LogAndSend(const RC::RStr& msg);
-    void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel);
 
-    RC::Ptr<StatusPanel> status_panel;
     RC::Ptr<Handler> hndl;
 
     StimNetWorkerSettings settings;

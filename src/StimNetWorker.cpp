@@ -14,10 +14,6 @@ namespace CML {
     : NetWorker(hndl, "Stim"), hndl(hndl), settings(settings) {
   }
 
-  void StimNetWorker::DisconnectedBefore() {
-    status_panel->Clear();
-  }
-
   void StimNetWorker::LogAndSend(const RC::RStr &msg) {
     JSONFile response = MakeResp("STIMNETMSG");
     response.Set(msg, "data", "msg");
@@ -89,10 +85,6 @@ namespace CML {
 
   void StimNetWorker::CloseInterface_Helper() {
     Close(); // Network device
-  }
-
-  void StimNetWorker::SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
-    status_panel = set_panel;
   }
 
   void StimNetWorker::ProcessCommand(RC::RStr cmd) {
