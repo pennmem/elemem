@@ -5,7 +5,7 @@
     "stim_mode": "none",
     "stim_channels": [],
     "experiment_specs": {},
-    "type": "RepFR1"
+    "type": "FR1"
   },
   "global_settings": {
     "connect_to_task_laptop": true,
@@ -15,9 +15,9 @@
     "lnc_time_constant": 10,
     "dc_offset_correction": true,
     "plot_window_length": 6000,
-    "binned_sampling_rate": 1000,
     # "micro_sampling_rate": 30000,
-    "macro_sampling_rate": 1000
+    "macro_sampling_rate": 1000,
+    "binned_sampling_rate": 1000
   },
   "subject": "R1999J"
 }

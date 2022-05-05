@@ -14,7 +14,7 @@
 
 
 namespace CML {
-  using TaskClassifierCallback = RCqt::TaskCaller<RC::APtr<const EEGDataRaw>, const TaskClassifierSettings>;
+  using TaskClassifierCallback = RCqt::TaskCaller<RC::APtr<const EEGDataDouble>, const TaskClassifierSettings>;
   using FeatureCallback = RCqt::TaskCaller<RC::APtr<const EEGPowers>, const TaskClassifierSettings>;
 
   struct BinnedData {
@@ -39,8 +39,10 @@ namespace CML {
     static RC::APtr<BinnedData> BinData(RC::APtr<const EEGDataRaw> rollover_data, RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate);
     static RC::APtr<EEGDataRaw> BinDataAvgRollover(RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate);
 
-    static RC::APtr<EEGDataDouble> BipolarSelector(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<size_t> indices={});
+    static RC::APtr<EEGDataDouble> MonoSelector(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<size_t> indices={});
     static RC::APtr<EEGDataDouble> BipolarReference(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels);
+    static RC::APtr<EEGDataDouble> BipolarReference(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<EEGChan> bipolar_reference_channels);
+    static RC::APtr<EEGDataDouble> ChannelSelector(RC::APtr<const EEGDataDouble>& in_data, RC::Data1D<size_t> indices={});
 
     static RC::APtr<EEGDataDouble> MirrorEnds(RC::APtr<const EEGDataDouble>& in_data, size_t duration_ms);
     static RC::APtr<EEGPowers> RemoveMirrorEnds(RC::APtr<const EEGPowers>& in_data, size_t mirrored_duration_ms);
@@ -58,7 +60,7 @@ namespace CML {
 
 
     protected:
-    void Process_Handler(RC::APtr<const EEGData>&, const TaskClassifierSettings&);
+    void Process_Handler(RC::APtr<const EEGDataDouble>&, const TaskClassifierSettings&);
     void SetCallback_Handler(const FeatureCallback &new_callback);
 
     MorletTransformer morlet_transformer;

@@ -19,23 +19,23 @@ namespace CML {
     size_t duration_ms = 0;
     size_t circular_data_len = 1000;  // Set this in constructor
 
-    EEGData circular_data;
+    EEGDataDouble circular_data;
     size_t circular_data_start = 0;
     size_t circular_data_end = 0;
     bool has_wrapped = false;
 
-    RC::APtr<EEGData> GetRecentData(size_t amnt);
+    RC::APtr<EEGDataDouble> GetRecentData(size_t amnt);
 
-    RC::APtr<EEGData> GetData();
-    RC::APtr<EEGData> GetData(size_t amnt);
-    RC::APtr<EEGData> GetDataAll();
-    RC::APtr<EEGData> GetDataAllAsTimeline();
+    RC::APtr<EEGDataDouble> GetData();
+    RC::APtr<EEGDataDouble> GetData(size_t amnt);
+    RC::APtr<EEGDataDouble> GetDataAll();
+    RC::APtr<EEGDataDouble> GetDataAllAsTimeline();
     void PrintData();
     void PrintRawData();
 
-    void Append(RC::APtr<const EEGData>& new_data);
-    void Append(RC::APtr<const EEGData>& new_data, size_t start);
-    void Append(RC::APtr<const EEGData>& new_data, size_t start, size_t amnt);
+    void Append(RC::APtr<const EEGDataDouble>& new_data);
+    void Append(RC::APtr<const EEGDataDouble>& new_data, size_t start);
+    void Append(RC::APtr<const EEGDataDouble>& new_data, size_t start, size_t amnt);
   };
 }
 

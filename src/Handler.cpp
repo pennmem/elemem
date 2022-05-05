@@ -569,6 +569,14 @@ namespace CML {
       InitializeChannels_Handler();
 
       new_chans = settings.LoadElecConfig(base_dir);
+      if (settings.BipolarElecConfigUsed()) {
+        new_chans = settings.LoadBipolarElecConfig(base_dir, new_chans);
+        eeg_acq.SetBipolarChannels(new_chans);
+      }
+      else {
+        RC::Data1D<EEGChan> empty;
+        eeg_acq.SetBipolarChannels(empty);
+      }
       settings.LoadChannelSettings();
 
       if (settings.grid_exper) {

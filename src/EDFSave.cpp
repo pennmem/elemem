@@ -78,12 +78,12 @@ namespace CML {
     amount_written = 0;
     amount_buffered = 0;
     buffer.data.Clear();
-    hndl->eeg_acq.RegisterCallback(callback_ID, SaveData);
+    hndl->eeg_acq.RegisterEEGMonoCallback(callback_ID, SaveData);
   }
 
 
   void EDFSave::StopSaving_Handler() {
-    hndl->eeg_acq.RemoveCallback(callback_ID);
+    hndl->eeg_acq.RemoveEEGMonoCallback(callback_ID);
 
     if (edf_hdl >= 0) {
       // No error check, can be a destructor cleanup call.
