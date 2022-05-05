@@ -1,9 +1,9 @@
 {
   "data_dir": "$DESKTOP/ElememData",
-  "eeg_system": "CerebusSim",
-  "stim_system": "StimNetWorker",
+  "eeg_system": "Cerebus",
+  "stim_system": "CereStim",
   "channel_count": 256,
-  "taskcom_ip": "0.0.0.0",
+  "taskcom_ip": "192.168.215.1",
   "taskcom_port": 8889,
   "closed_loop_thread_level": 2,
   "stimcom_ip": "127.0.0.1",
