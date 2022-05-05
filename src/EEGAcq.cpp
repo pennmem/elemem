@@ -61,9 +61,14 @@ namespace CML {
           chan[d] = 0;
         }
       }
+      auto data_captr = data_aptr.ExtractConst();
+
+      // Report Original Data
+      for (size_t i=0; i<mono_data_callbacks.size(); i++) {
+        mono_data_callbacks[i].callback(data_captr);
+      }
 
       // Bin data
-      auto data_captr = data_aptr.ExtractConst();
       RC::APtr<BinnedData> binned_data = [&] {
         if (rollover_data.IsSet()) {
           return FeatureFilters::BinData(rollover_data, data_captr, binned_sampling_rate);
@@ -84,6 +89,7 @@ namespace CML {
         }
       }();
 
+      // Report bipolar binned data
       for (size_t i=0; i<data_callbacks.size(); i++) {
         data_callbacks[i].callback(out_data_captr);
       }
