@@ -8,7 +8,30 @@
 
 #include "Cerebus.h"
 
+#include <ctime>
+#ifdef WIN32
+#include <winsock2.h>
+#include <windows.h>
+#include <winbase.h>
+#endif
+
 namespace CML {
+  /// Sleeps for a floating point number of seconds, with sub-second
+  /// precision to the limit of the system.
+  static inline void CSleep(double seconds) {
+    if (seconds <= 0) {
+      return;
+    }
+  #ifdef WIN32
+    ::Sleep(seconds*1000);
+  #else // POSIX
+    struct timespec req;
+    req.tv_sec = time_t(seconds);
+    req.tv_nsec = long(1e9*(seconds-u64(seconds)));
+    nanosleep(&req, NULL);
+  #endif
+  }
+
   CBException::~CBException() { }
 
   std::string CBException::CodeToString(cbSdkResult err) {
@@ -166,7 +189,11 @@ namespace CML {
       ConfigureChannel(c, samprate_index);
     }
 
+    CSleep(0.5);
+
     SetTrialConfig();
+
+    CSleep(0.5);
   }
 
 
