@@ -176,13 +176,19 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Settings.cpp
   src/StatusPanel.h
   src/StatusPanel.cpp
+  src/StimInterface.h
+  src/StimInterface.cpp
   src/StimGUIConfig.h
   src/StimGUIConfig.cpp
+  src/StimNetWorker.h
+  src/StimNetWorker.cpp
   src/StimWorker.h
   src/StimWorker.cpp
   src/TaskClassifierManager.h
   src/TaskClassifierManager.cpp
   src/TaskClassifierSettings.h
+  src/TaskNetWorker.h
+  src/TaskNetWorker.cpp
   src/TaskStimManager.h
   src/TaskStimManager.cpp
   src/Utils.h

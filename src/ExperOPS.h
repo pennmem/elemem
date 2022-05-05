@@ -30,7 +30,7 @@ namespace CML {
     RCqt::TaskCaller<const OPSSpecs> SetOPSSpecs =
       TaskHandler(ExperOPS::SetOPSSpecs_Handler);
 
-    RCqt::TaskCaller<const RC::Data1D<CSStimProfile>> SetStimProfiles =
+    RCqt::TaskCaller<const RC::Data1D<StimProfile>> SetStimProfiles =
       TaskHandler(ExperOPS::SetStimProfiles_Handler);
 
     RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
@@ -48,7 +48,7 @@ namespace CML {
     }
 
     void SetStimProfiles_Handler(
-        const RC::Data1D<CSStimProfile>& new_stim_profiles);
+        const RC::Data1D<StimProfile>& new_stim_profiles);
 
 
     void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
@@ -73,7 +73,7 @@ namespace CML {
     RC::Ptr<StatusPanel> status_panel;
     RC::RStr buffer;
 
-    RC::Data1D<CSStimProfile> stim_profiles;
+    RC::Data1D<StimProfile> stim_profiles;
     RC::Data1D<ExpEvent> exp_events;
     uint64_t event_time;
     f64 exp_start;

@@ -340,7 +340,8 @@ namespace RC {
     inline virtual ~FileBase() {
       try{
         Flush();
-      } catch(...) {}
+      }
+      catch(...) {}
       helper->Del();
     }
 

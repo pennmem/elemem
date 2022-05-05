@@ -19,6 +19,16 @@ void ConvertRange(const std::string& s, T& t,
   return;
 }
 
+template<class T1, class T2>
+T1 UnitScale(T1 val, T2 mult) {
+  if (val > std::numeric_limits<T1>::max() / mult) {
+    throw std::runtime_error(CleanError("Unit conversion of ", val, " by ",
+          mult, " would overflow its integer type."));
+  }
+  return val * mult;
+}
+
+
 
 void StimLoop::Run() {
   std::string line;
@@ -64,17 +74,16 @@ bool StimLoop::StimInitialize() {
   std::string line;
 
   soc.Recv(line);
-  if (line == conf.subject) {
-    soc.Send(std::string("SPREADY,StimProc,") + CleanStr(version));
-    return true;
-  }
-  else {
+
+  if (line != conf.subject) {
     soc.Send(std::string("SPERROR,") +
         CleanError("Subject code ", line, " does not match configuration "
           "code ", conf.subject));
     return false;
   }
-  return false;
+
+  soc.Send(std::string("SPREADY,StimProc,") + CleanStr(version));
+  return true;
 }
 
 
@@ -135,8 +144,8 @@ void StimLoop::StimConfig(const std::vector<std::string>& cmd,
       uint64_t i = 2 + p*elem_cnt;
 
       CML::CSStimChannel csc;
-      ConvertRange(cmd.at(i), csc.electrode_pos, 0, 255, true);
-      ConvertRange(cmd.at(i+1), csc.electrode_neg, 0, 255, true);
+      ConvertRange(cmd.at(i), csc.electrode_pos, 0, 255);
+      ConvertRange(cmd.at(i+1), csc.electrode_neg, 0, 255);
 
       ChannelLimits limits = FindLimit(csc.electrode_pos, csc.electrode_neg);
 
@@ -160,6 +169,7 @@ void StimLoop::StimConfig(const std::vector<std::string>& cmd,
 
       else { // Conventional stim pattern, not theta-burst.
         ConvertRange(cmd.at(i+4), csc.duration, 0, limits.max_dur_ms);
+        csc.duration = UnitScale(csc.duration, 1000ul);  // To us.
       }
 
       csc.area = limits.area_mm_sq;
@@ -172,7 +182,7 @@ void StimLoop::StimConfig(const std::vector<std::string>& cmd,
     soc.Send("SPSTIMCONFIGDONE");
   }
   catch(std::exception& ex) {
-    soc.Send(std::string("SPSTIMCONFIGEROR,") + CleanStr(ex.what()));
+    soc.Send(std::string("SPSTIMCONFIGERROR,") + CleanStr(ex.what()));
     return;
   }
 }

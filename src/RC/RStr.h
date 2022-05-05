@@ -134,7 +134,7 @@ namespace RC {
     }
     /// @endcond
     public:
-  
+
     /// \name Wrapper methods for std::string
     /// @{
 
@@ -197,7 +197,7 @@ namespace RC {
     }
 
     /// Moves other to this RStr.
-    inline RStr(RStr&& other) noexcept 
+    inline RStr(RStr&& other) noexcept
       : str (other.str) {
     }
 #endif
@@ -633,7 +633,7 @@ namespace RC {
     inline std::allocator<char> get_allocator() const {
       return str.get_allocator();
     }
-    
+
 
     /// Copies n characters to s, starting from pos_this.
     /** Warning:  If n is greater than the length of s, this routine can
@@ -1083,7 +1083,7 @@ namespace RC {
     }
 #endif
 
-    
+
     /// Convert the beginning characters of this string to a float.
     /** Note, these detect hexadecimal float numbers formatted like like
      *  0xF.8 = 15.5, but they do not process octal.
@@ -1426,7 +1426,7 @@ namespace RC {
     inline Data1D<RStr> Wrap(const size_t width) {
       Data1D<RStr> wrapped;
       size_t pos = 0;
-      
+
       do {
         size_t this_width, end_pos;
         size_t search_end = pos + width;
@@ -1450,7 +1450,7 @@ namespace RC {
       } while(pos < length());
 
       return wrapped;
-    } 
+    }
 
 
     /// Wraps each line in this RStr to be no longer than width, but tries
@@ -1459,7 +1459,7 @@ namespace RC {
       Data1D<RStr> wrapped;
       size_t pos = 0;
       size_t this_width;
-      
+
       do {
         size_t end_pos;
         size_t search_end = pos + width;
@@ -1498,7 +1498,7 @@ namespace RC {
       } while(pos < length());
 
       return wrapped;
-    } 
+    }
 
     /// @}  alignment/arrangement
 

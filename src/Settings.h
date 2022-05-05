@@ -22,7 +22,7 @@ namespace CML {
 
   class StimSettings {
     public:
-    CSStimChannel params;
+    StimChannel params;
     RC::RStr label;
     RC::RStr stimtag;
     bool approved;

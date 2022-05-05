@@ -13,10 +13,11 @@
 #include <string>
 #include <vector>
 #include "CereStimDLL.h"
-#include "ChannelConf.h"
+#include "StimInterface.h"
 
 
 namespace CML {
+  // TODO: JPB: (refactor) Remove CSMaxValues?
   class CSMaxValues {
     public:
     uint8_t voltage; // [7,15], (0.5 + 0.6*voltage) = value in volts.
@@ -25,9 +26,7 @@ namespace CML {
     uint32_t frequency; // Unit Hz.
   };
 
-  class CSStimProfile;
-
-  class CereStim {
+  class CereStim : public StimInterface {
     public:
     CereStim();
     ~CereStim();
@@ -35,39 +34,48 @@ namespace CML {
     // Rule of 3.
     CereStim(const CereStim& other) = delete;
     CereStim& operator=(const CereStim& other) = delete;
-
-    void Open();  // Automatic at first use.
-    void Close();
+ 
+    void ConfigureStimulation(StimProfile profile) override { ConfigureStimulation_Handler(profile); }
+    void OpenInterface() override { OpenInterface_Handler(); }
+    void CloseInterface() override { CloseInterface_Handler(); }
+    void Stimulate() override { Stimulate_Handler(); }
+    uint32_t GetBurstSlowFreq() override { return GetBurstSlowFreq_Handler(); }
+    uint32_t GetBurstDuration_us() override { return GetBurstDuration_us_Handler(); }
 
     CSMaxValues GetMaxValues();
     void SetMaxValues(CSMaxValues max_vals);
 
-    void ConfigureStimulation(CSStimProfile profile);
-    void Stimulate();
     void StopStimulation();
 
-    uint16_t ShannonCriteria(float area_mmsq);
-    uint16_t ShannonCriteria(const CSStimChannel& chan);
-    bool ShannonSafe(float area_mmsq, uint16_t amplitude_uA);
-    bool ShannonSafe(const CSStimChannel& chan);
-    void ShannonAssert(float area_mmsq, uint16_t amplitude_uA);
-    void ShannonAssert(const CSStimChannel& chan);
+//    uint16_t ShannonCriteria(float area_mmsq);
+//    uint16_t ShannonCriteria(const StimChannel& chan);
+//    bool ShannonSafe(float area_mmsq, uint16_t amplitude_uA);
+//    bool ShannonSafe(const StimChannel& chan);
+//    void ShannonAssert(float area_mmsq, uint16_t amplitude_uA);
+//    void ShannonAssert(const StimChannel& chan);
+//
+//    uint32_t GetBurstSlowFreq() const { return burst_slow_freq; }
+//    uint32_t GetBurstDuration_us() const { return burst_duration_us; }
 
-    uint32_t GetBurstSlowFreq() const { return burst_slow_freq; }
-    uint32_t GetBurstDuration_us() const { return burst_duration_us; }
+    protected:
+    void ConfigureStimulation_Helper(const StimProfile& profile) override;
+    void OpenInterface_Helper() override;  // Automatic at first use.
+    void CloseInterface_Helper() override;
+    void Stimulate_Helper() override;
+
 
     private:
     void BeOpen();
     void ErrorCheck(int err);
 
-    uint32_t burst_slow_freq = 0; // Unit Hz.  Slower envelope freq of bursts.
-    float burst_frac = 1; // Fraction of 1/burst_slow_freq to stimulate for.
-    uint32_t burst_duration_us = 0;
+//    uint32_t burst_slow_freq = 0; // Unit Hz.  Slower envelope freq of bursts.
+//    float burst_frac = 1; // Fraction of 1/burst_slow_freq to stimulate for.
+//    uint32_t burst_duration_us = 0;
 
-    uint16_t stim_width_us = 300;
+//    uint16_t stim_width_us = 300;
+//    bool is_configured = false;
     bool was_active = false;
     bool is_open = false;
-    bool is_configured = false;
   };
 
 
@@ -91,21 +99,6 @@ namespace CML {
     int error_code;
     std::string error_message;
   };
-
-
-  class CSStimProfile {
-    public:
-    CSStimProfile& operator+=(const CSStimChannel& chan);
-    size_t size() const { return stim_profile.size(); }
-    const CSStimChannel& operator[](size_t i) const {
-      return stim_profile[i];
-    }
-
-    private:
-    std::vector<CSStimChannel> stim_profile;
-    friend class CereStim;
-  };
-
 }
 
 #endif

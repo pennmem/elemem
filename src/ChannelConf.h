@@ -5,7 +5,7 @@
 #include "RC/RStr.h"
 
 namespace CML {
-  class CSStimChannel {
+  class StimChannel {
     public:
     uint8_t electrode_pos = 0;  // Goes positive first / anodic
     uint8_t electrode_neg = 0;  // Goes negative first / cathodic
