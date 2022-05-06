@@ -437,10 +437,18 @@ namespace CML {
           "experiment_config.json"));
 
     // Save copy of loaded electrode config.
-    FileWrite fw(File::FullPath(session_dir,
+    FileWrite fw_mono(File::FullPath(session_dir,
           File::Basename(settings.elec_config->GetFilename())));
-    fw.Put(settings.elec_config->file_lines, true);
-    fw.Close();
+    fw_mono.Put(settings.elec_config->file_lines, true);
+    fw_mono.Close();
+
+    // Save copy of bipolar electrode config if available.
+    if (settings.bipolar_config.IsSet()) {
+      FileWrite fw_bi(File::FullPath(session_dir,
+            File::Basename(settings.bipolar_config->GetFilename())));
+      fw_bi.Put(settings.bipolar_config->file_lines, true);
+      fw_bi.Close();
+    }
 
     eeg_acq.StartingExperiment();  // notify, replay needs this.
     event_log.StartFile(File::FullPath(session_dir, "event.log"));

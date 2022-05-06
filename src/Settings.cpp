@@ -32,6 +32,7 @@ namespace CML {
   void Settings::Clear() {
     exp_config = nullptr;
     elec_config = nullptr;
+    bipolar_config = nullptr;
     stimconf.Clear();
     min_stimconf.Clear();
     max_stimconf.Clear();
