@@ -33,7 +33,7 @@ Add unreleased user-relevant updates to Dev section at end.
  - Introduced sys_config.json system for system level settings.
  - Added closed-loop functionality.
 
-2022-05-05
+2022-05-06
  - Added bipolar montage and bipolar display support.
  - Added network stimulator and StimProc.
 
