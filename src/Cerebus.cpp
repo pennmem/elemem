@@ -8,6 +8,7 @@
 
 #include "Cerebus.h"
 
+#include <cstdint>
 #include <ctime>
 #ifdef WIN32
 #include <winsock2.h>
@@ -27,7 +28,7 @@ namespace CML {
   #else // POSIX
     struct timespec req;
     req.tv_sec = time_t(seconds);
-    req.tv_nsec = long(1e9*(seconds-u64(seconds)));
+    req.tv_nsec = long(1e9*(seconds-(uint64_t)(seconds)));
     nanosleep(&req, NULL);
   #endif
   }
