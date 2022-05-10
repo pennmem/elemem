@@ -1,5 +1,6 @@
 {
-  "electrode_config_file": "R1999J_17JAN2020L0M0NOSTIM.csv",
+  "electrode_config_file": "R1999J_20220324_mono_L0M0.csv",
+  "bipolar_electrode_config_file": "R1999J_20220324_bi_L0M0.csv",
   "experiment": {
     "stim_mode": "open",
     "stim_channels": [
