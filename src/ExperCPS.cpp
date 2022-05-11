@@ -4,6 +4,7 @@
 #include "Popup.h"
 #include "StatusPanel.h"
 #include "RC/Data1D.h"
+#include "../include/BayesGPc/CMatrix.h"
 
 using namespace RC;
 
@@ -89,8 +90,9 @@ namespace CML {
     }
     _init();
     n_searches = new_max_stim_loc_profiles.size();
+    search_order += 0;
     // validation
-    for (size_t i = 0; i < n_searches + 1; i++) {
+    for (size_t i = 0; i < n_searches; i++) {
       if (new_min_stim_loc_profiles[i].size() != 1 ||
           new_max_stim_loc_profiles[i].size() != 1) {
         Throw_RC_Error("ExperCPS::SetStimProfiles: Only single-channel stimulation profiles supported.");
@@ -104,7 +106,7 @@ namespace CML {
           new_min_stim_loc_profiles[i][0].burst_slow_freq != new_max_stim_loc_profiles[i][0].burst_slow_freq) {
         Throw_RC_Error("ExperCPS::SetStimProfiles: Min and max stimulation profiles do not match for fixed parameters.");
       }
-      search_order += i;
+      search_order += i + 1;
     }
     // TODO: RDD: determine adequate number of sham events
     // add extra sham events for stability
@@ -220,6 +222,15 @@ namespace CML {
 
     CMatrix biomarker_mat(biomarker);
     search.add_sample(model_idx, stim_pars, biomarker_mat);
+
+    // log
+    JSONFile update_event = MakeResp("UPDATE SEARCH");
+    update_event.Set(JSONifyCSStimProfile(stim_info), "data", "stim_profile");
+    vector<vector<double>> x_vec = to_vector(stim_pars);
+    update_event.Set(model_idx, "data", "profile_index");
+    update_event.Set(x_vec, "data", "x");
+    update_event.Set(biomarker, "data", "y");
+    hndl->event_log.Log(update_event.Line());
   }
 
 
@@ -235,9 +246,6 @@ namespace CML {
 
 
   void ExperCPS::UpdateSearchPanel(const CSStimProfile& profile) {
-    JSONFile update_event = MakeResp("UPDATE SEARCH");
-    update_event.Set(JSONifyCSStimProfile(profile), "data");
-    hndl->event_log.Log(update_event.Line());
     status_panel->SetEvent("UPDATE SEARCH");
   }
 
@@ -380,6 +388,7 @@ namespace CML {
       for (int j = 0; j < stim_profiles[i].size(); j++) {
         data_log.json["analysis_data"]["stim_profiles"][i].push_back(JSONifyCSStimProfile(stim_profiles[i][j]).json);
       }
+      // data_log.json["analsis_data"]
     }
 
     // TODO: RDD: move these log statements and all others to be as early as possible? then can't have a single JSON line
@@ -460,9 +469,9 @@ namespace CML {
 
 
   void ExperCPS::HandleNormalization_Handler(RC::APtr<const EEGPowers>& data, const TaskClassifierSettings& task_classifier_settings) {
-    #ifdef DEBUG_EXPERCPS
-    RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler\n"));
-    #endif
+    // #ifdef DEBUG_EXPERCPS
+    // RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler\n"));
+    // #endif
 
     // TODO: RDD: confirm that last events in all saved event arrays can be disambiguated 
     // (i.e., if any array is longer than another because the experiment stopped in some particular place, 
@@ -584,9 +593,9 @@ namespace CML {
         }
       }
       else {  // good memory state detected and stim event would not have occurred
-        #ifdef DEBUG_EXPERCPS
-        RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: good memory state\n"));
-        #endif
+        // #ifdef DEBUG_EXPERCPS
+        // RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: good memory state\n"));
+        // #endif
         // keep classifying until a poor memory state is detected
         next_min_event_time = cur_time_ms;
         next_classif_state = classif_state;
@@ -706,7 +715,8 @@ namespace CML {
     CMatrix best_sol_mat = *(sol.xs[sol.idx_best]);
     // assume single-site stim for now (last index indicates one stim site out of many active in a profile)
     CSStimChannel chan = stim_profiles[sol.idx_best][0][0];
-    chan.amplitude = best_sol_mat.getVal(0);
+    // convert from mA to uA
+    chan.amplitude = (uint16_t)(best_sol_mat.getVal(0) * 1000);
     best_stim_profile += chan;
 
     // compare best stim parameter set with sham events
