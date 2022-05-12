@@ -10,6 +10,7 @@
 #include "Cerebus.h"
 #endif
 #include "CerebusSim.h"
+#include "StimNetWorker.h"
 #include "ClassifierLogReg.h"
 #include "EDFReplay.h"
 #include "EDFSynch.h"
@@ -46,7 +47,7 @@ namespace CML {
 
   Handler::Handler()
     : stim_worker(this),
-      net_worker(this),
+      task_net_worker(this),
       exper_ops(this),
       exper_cps(this) {
     // For error management, everything that could error must go into
@@ -59,7 +60,7 @@ namespace CML {
 
   void Handler::SetMainWindow(Ptr<MainWindow> new_main) {
     main_window = new_main;
-    net_worker.SetStatusPanel(main_window->GetStatusPanel());
+    task_net_worker.SetStatusPanel(main_window->GetStatusPanel());
     stim_worker.SetStatusPanel(main_window->GetStatusPanel());
     exper_ops.SetStatusPanel(main_window->GetStatusPanel());
     exper_cps.SetStatusPanel(main_window->GetStatusPanel());
@@ -73,6 +74,7 @@ namespace CML {
 
     settings.LoadSystemConfig();
 
+    // EEG System
     RC::RStr eeg_system;
     settings.sys_config->Get(eeg_system, "eeg_system");
     RC::APtr<EEGSource> eeg_source;
@@ -99,6 +101,29 @@ namespace CML {
     }
     eeg_acq.SetSource(eeg_source);
     InitializeChannels_Handler();
+
+    // Stim System
+    RC::RStr stim_system;
+    settings.sys_config->Get(stim_system, "stim_system");
+    RC::APtr<StimInterface> stim_interface;
+    if (stim_system == "CereStim") {
+      stim_interface = new CereStim();
+    }
+    else if (stim_system == "StimNetWorker") {
+      std::string stim_ip;
+      uint16_t stim_port;
+      settings.sys_config->Get(stim_ip, "stimcom_ip");
+      settings.sys_config->Get(stim_port, "stimcom_port");
+      RC::Ptr<StimNetWorker> stim_net_worker =
+        new StimNetWorker(this, {.ip=stim_ip, .port=stim_port});
+      stim_net_worker->StopOnDisconnect(true);
+      stim_interface = stim_net_worker;
+    }
+    else {
+      Throw_RC_Type(File, "Unknown sys_config.json stim_system value");
+    }
+    stim_worker.SetStimInterface(stim_interface);
+    stim_worker.Open();
   }
 
   void Handler::Initialize_Handler() {
@@ -152,7 +177,7 @@ namespace CML {
       return;
     }
 
-    stim_worker.CloseCereStim();
+    stim_worker.CloseStim();
 
     APITests::CereStimTest();
   }
@@ -232,10 +257,11 @@ namespace CML {
       return;
     }
 
-    CSStimProfile profile;
+    StimProfile profile;
     profile += settings.stimconf[index].params;
 
     stim_worker.ConfigureStimulation(profile);
+    RC::Time::Sleep(0.5); // Allow time to configure.
     stim_worker.Stimulate();
   }
 
@@ -254,8 +280,8 @@ namespace CML {
       return;
     }
 
-    CSStimProfile profile;
-    CSStimChannel stimchan =
+    StimProfile profile;
+    StimChannel stimchan =
       settings.stimconf[settings.stimloctest_chanind].params;
     stimchan.amplitude = settings.stimgrid_amp_uA[settings.stimloctest_amp];
     stimchan.frequency = settings.stimgrid_freq_Hz[settings.stimloctest_freq];
@@ -330,7 +356,7 @@ namespace CML {
           "stimulation experiment.");
     }
 
-    CSStimProfile profile;
+    StimProfile profile;
     for (size_t c=0; c<settings.stimconf.size(); c++) {
       if (settings.stimconf[c].approved &&
           (settings.stimconf[c].stimtag == stimtag)) {
@@ -363,14 +389,14 @@ namespace CML {
         return;
       }
 
-      Data1D<CSStimProfile> grid_profiles = CreateGridProfiles();
+      Data1D<StimProfile> grid_profiles = CreateGridProfiles();
       exper_ops.SetOPSSpecs(settings.ops_specs);
       exper_ops.SetStimProfiles(grid_profiles);
     }
     else if (settings.exper.find("CPS") == 0) {
       // Count all approved.
-      CSStimProfile max_cnt_profile;
-      CSStimProfile min_cnt_profile;
+      StimProfile max_cnt_profile;
+      StimProfile min_cnt_profile;
       for (size_t c=0; c<settings.max_stimconf_range.size(); c++) {
         if (settings.max_stimconf_range[c].approved) {
           min_cnt_profile += settings.min_stimconf_range[c].params;
@@ -390,15 +416,15 @@ namespace CML {
       }
 
       // But default select only those with no stimtag.
-      Data1D<CSStimProfile> max_discrete_stim_param_sets;
-      Data1D<CSStimProfile> min_discrete_stim_param_sets;
+      Data1D<StimProfile> max_discrete_stim_param_sets;
+      Data1D<StimProfile> min_discrete_stim_param_sets;
       for (size_t c=0; c<settings.max_stimconf_range.size(); c++) {
         if (settings.max_stimconf_range[c].approved &&
             settings.max_stimconf_range[c].stimtag.empty()) {
-          CSStimProfile min_profile;
+          StimProfile min_profile;
           min_profile += settings.min_stimconf_range[c].params;
           min_discrete_stim_param_sets += min_profile;
-          CSStimProfile max_profile;
+          StimProfile max_profile;
           max_profile += settings.max_stimconf_range[c].params;
           max_discrete_stim_param_sets += max_profile;
         }
@@ -410,7 +436,7 @@ namespace CML {
     }
     else {
       // Count all approved.
-      CSStimProfile cnt_profile;
+      StimProfile cnt_profile;
       for (size_t c=0; c<settings.stimconf.size(); c++) {
         if (settings.stimconf[c].approved) {
           cnt_profile += settings.stimconf[c].params;
@@ -429,7 +455,7 @@ namespace CML {
       }
 
       // But default select only those with no stimtag.
-      CSStimProfile profile;
+      StimProfile profile;
       for (size_t c=0; c<settings.stimconf.size(); c++) {
         if (settings.stimconf[c].approved &&
             settings.stimconf[c].stimtag.empty()) {
@@ -481,10 +507,18 @@ namespace CML {
           "experiment_config.json"));
 
     // Save copy of loaded electrode config.
-    FileWrite fw(File::FullPath(session_dir,
+    FileWrite fw_mono(File::FullPath(session_dir,
           File::Basename(settings.elec_config->GetFilename())));
-    fw.Put(settings.elec_config->file_lines, true);
-    fw.Close();
+    fw_mono.Put(settings.elec_config->file_lines, true);
+    fw_mono.Close();
+
+    // Save copy of bipolar electrode config if available.
+    if (settings.bipolar_config.IsSet()) {
+      FileWrite fw_bi(File::FullPath(session_dir,
+            File::Basename(settings.bipolar_config->GetFilename())));
+      fw_bi.Put(settings.bipolar_config->file_lines, true);
+      fw_bi.Close();
+    }
 
     eeg_acq.StartingExperiment();  // notify, replay needs this.
     event_log.StartFile(File::FullPath(session_dir, "event.log"));
@@ -519,7 +553,7 @@ namespace CML {
       settings.sys_config->Get(ipaddress, "taskcom_ip");
       settings.sys_config->Get(port, "taskcom_port");
 
-      net_worker.Listen(ipaddress, port);
+      task_net_worker.Listen(ipaddress, port);
       main_window->GetStatusPanel()->SetEvent("WAITING");
     }
   }
@@ -549,6 +583,7 @@ namespace CML {
   void Handler::ExperimentExit_Handler() {
     if (exit_timer.IsNull()) {
       exit_timer = new QTimer();
+      AddToThread(exit_timer);  // For maintenance robustness.
       exit_timer->setTimerType(Qt::PreciseTimer);
       exit_timer->setSingleShot(true);
       // Okay because timer allocated within Handler thread here.
@@ -621,6 +656,14 @@ namespace CML {
       InitializeChannels_Handler();
 
       new_chans = settings.LoadElecConfig(base_dir);
+      if (settings.BipolarElecConfigUsed()) {
+        new_chans = settings.LoadBipolarElecConfig(base_dir, new_chans);
+        eeg_acq.SetBipolarChannels(new_chans);
+      }
+      else {
+        RC::Data1D<EEGChan> empty;
+        eeg_acq.SetBipolarChannels(empty);
+      }
       settings.LoadChannelSettings();
 
       if (settings.grid_exper) {
@@ -760,8 +803,8 @@ namespace CML {
   }
 
 
-  RC::Data1D<CSStimProfile> Handler::CreateGridProfiles() {
-    Data1D<CSStimProfile> grid_profiles;
+  RC::Data1D<StimProfile> Handler::CreateGridProfiles() {
+    Data1D<StimProfile> grid_profiles;
 
     for (size_t c=0; c<settings.stimgrid_chan_on.size(); c++) {
       if (!settings.stimgrid_chan_on[c]) { continue; }
@@ -776,12 +819,12 @@ namespace CML {
             if (!settings.stimgrid_dur_on[d]) { continue; }
             auto& dur = settings.stimgrid_dur_us[d];
 
-            CSStimChannel target = chan.params;
+            StimChannel target = chan.params;
             target.amplitude = amp;
             target.frequency = freq;
             target.duration = dur;
 
-            CSStimProfile profile;
+            StimProfile profile;
             profile += target;
 
             grid_profiles += profile;
@@ -794,8 +837,8 @@ namespace CML {
   }
 
 
-  RC::Data1D<CSStimProfile> Handler::CreateDiscreteStimProfiles() {
-    Data1D<CSStimProfile> profiles;
+  RC::Data1D<StimProfile> Handler::CreateDiscreteStimProfiles() {
+    Data1D<StimProfile> profiles;
 
     for (size_t c=0; c<settings.stimgrid_chan_on.size(); c++) {
       if (!settings.stimgrid_chan_on[c]) { continue; }
@@ -811,12 +854,12 @@ namespace CML {
           if (!settings.stimgrid_dur_on[d]) { continue; }
           auto& dur = settings.stimgrid_dur_us[d];
 
-          CSStimChannel target = chan.params;
+          StimChannel target = chan.params;
           target.amplitude = 0;
           target.frequency = freq;
           target.duration = dur;
 
-          CSStimProfile profile;
+          StimProfile profile;
           profile += target;
 
           profiles += profile;
@@ -922,7 +965,7 @@ namespace CML {
 
   void Handler::CloseExperimentComponents() {
     ShutdownClassifier();
-    net_worker.Close();
+    task_net_worker.Close();
     exper_ops.Stop();
     exper_cps.Stop();
 

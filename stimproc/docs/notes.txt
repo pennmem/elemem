@@ -1,0 +1,73 @@
+-------------------
+Config file format:
+-------------------
+
+Subject code on the first line.
+Each subsequent line, 6 comma separated unsigned integers describing stimulation limits on a bipolar pair:
+first_channel_one_indexed,second_channel_one_indexed,max_amplitude_in_uA,min_frequency_in_Hz,max_frequency_in_Hz,max_duration_in_ms,area_in_mm_squared
+
+R1999J
+1,2,1000,0,200,1000,6.31
+3,4,500,200,200,2000,6.31
+
+
+----------------------------------
+Communication protocol, port 8901:
+----------------------------------
+
+Initialization procedure:
+
+Elemem sends subject code:
+R1999J
+
+Stim process sends either:
+SPREADY,StimProc,Fri Apr  8 13:25:50 2022
+or
+SPERROR,Subject code R1999T does not match configuration code R1999J
+
+Afterward, Elemem configures stim with:
+
+SPSTIMCONFIG,1,1,2,500,200,2000
+ - Note:  Number sequence is:
+    - Number of channels to stimulate on when started.
+      - Channel number in bipolar pair which should go positive first.
+      - Channel number in bipolar pair which should go negative first.
+      - Amplitude in microamps.
+      - Frequency in Hertz.
+      - Duration in milliseconds.
+
+SPSTIMTHETACONFIG,1,1,2,500,200,3,0.25
+ - For configuring theta-burst stim.
+ - Note:  Number sequence is:
+    - Number of channels to stimulate on when started.
+      - Channel number in bipolar pair which should go positive first.
+      - Channel number in bipolar pair which should go negative first.
+      - Amplitude in microamps.
+      - Frequency in Hertz of the FAST component, usually 200Hz.  Note that
+        this is NOT the theta-burst frequency, which is produced externally by
+        calling SPSTIMSTART multiple times.
+      - Theta-burst envelope frequency, e.g. 3Hz.
+      - Burst-on fraction within each theta-burst envelope, usually 0.25.
+        e.g. for a 3Hz theta burst SPTIMSTART is called every 1/3 of a second,
+        approximately 333ms, and for 0.25 each SPSTIMSTART should trigger a
+        single 0.25*(1/3) seconds of stimulation pulses, or about 83.3ms at
+        the fast frequency (e.g. 200Hz).
+
+Valid responses:
+
+SPSTIMCONFIGDONE
+SPSTIMCONFIGERROR,One-line comma-free error message.
+
+Stim is initiated with:
+
+SPSTIMSTART
+
+Valid responses:
+
+SPSTIMSTARTDONE
+SPSTIMSTARTERROR,One-line comma-free error message.
+
+Other error conditions from the stim process:
+
+SPERROR,One-line other condition comma-free error message.
+

@@ -7,7 +7,8 @@
 #include "RC/RND.h"
 #include "RCqt/Worker.h"
 #include "ConfigFile.h"
-#include "CereStim.h"
+#include "StimInterface.h"
+// #include "CereStim.h"
 #include "ExpEvent.h"
 #include "CPSSpecs.h"
 #include "TaskClassifierSettings.h"
@@ -40,7 +41,7 @@ namespace CML {
     RCqt::TaskCaller<const CPSSpecs> SetCPSSpecs =
       TaskHandler(ExperCPS::SetCPSSpecs_Handler);
 
-    RCqt::TaskCaller<const RC::Data1D<CSStimProfile>, const RC::Data1D<CSStimProfile>> SetStimProfiles =
+    RCqt::TaskCaller<const RC::Data1D<StimProfile>, const RC::Data1D<StimProfile>> SetStimProfiles =
       TaskHandler(ExperCPS::SetStimProfiles_Handler);
 
     RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
@@ -67,8 +68,8 @@ namespace CML {
     }
 
     void SetStimProfiles_Handler(
-        const RC::Data1D<CSStimProfile>& new_min_stim_loc_profiles,
-        const RC::Data1D<CSStimProfile>& new_max_stim_loc_profiles);
+        const RC::Data1D<StimProfile>& new_min_stim_loc_profiles,
+        const RC::Data1D<StimProfile>& new_max_stim_loc_profiles);
 
 
     void SetStatusPanel_Handler(const RC::Ptr<StatusPanel>& set_panel) {
@@ -76,16 +77,16 @@ namespace CML {
     }
 
     void GetNextEvent(const unsigned int model_idx);
-    void UpdateSearch(const unsigned int model_idx, const CSStimProfile stim_info, const ExpEvent ev, const double biomarker);
+    void UpdateSearch(const unsigned int model_idx, const StimProfile stim_info, const ExpEvent ev, const double biomarker);
     void ComputeBestStimProfile();
 
-    void UpdateSearchPanel(const CSStimProfile& profile);
+    void UpdateSearchPanel(const StimProfile& profile);
     void NormalizingPanel();
     void ClassifyingPanel();
-    void DoConfigEvent(const CSStimProfile& profile);
-    void DoStimEvent(const CSStimProfile& profile);
+    void DoConfigEvent(const StimProfile& profile);
+    void DoStimEvent(const StimProfile& profile);
     void DoShamEvent();
-    JSONFile JSONifyCSStimProfile(const CSStimProfile& profile);
+    JSONFile JSONifyStimProfile(const StimProfile& profile);
 
     void Start_Handler();
     void Stop_Handler();
@@ -136,14 +137,14 @@ namespace CML {
 
     // set of stimulation profiles used to indicate unique stim locations
     // ordered by testing priority (unknown number of stim events per experiment)
-    RC::Data1D<CSStimProfile> min_stim_loc_profiles;
-    RC::Data1D<CSStimProfile> max_stim_loc_profiles;
+    RC::Data1D<StimProfile> min_stim_loc_profiles;
+    RC::Data1D<StimProfile> max_stim_loc_profiles;
     CPSSpecs cps_specs;
-    CSStimProfile best_stim_profile;
+    StimProfile best_stim_profile;
     bool beat_sham;
 
     // logging
-    RC::Data1D<RC::Data1D<CSStimProfile>> stim_profiles;
+    RC::Data1D<RC::Data1D<StimProfile>> stim_profiles;
     RC::Data1D<double> classif_results;
     vector<double> sham_results;
 

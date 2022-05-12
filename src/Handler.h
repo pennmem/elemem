@@ -13,7 +13,7 @@
 #include "EventLog.h"
 #include "ExperCPS.h"
 #include "ExperOPS.h"
-#include "NetWorker.h"
+#include "TaskNetWorker.h"
 #include "Settings.h"
 #include "StimWorker.h"
 #include "LocGUIConfig.h"
@@ -109,7 +109,7 @@ namespace CML {
     RC::APtr<FeatureFilters> feature_filters;
     RC::APtr<Classifier> classifier;
     RC::APtr<TaskStimManager> task_stim_manager;
-    NetWorker net_worker;
+    TaskNetWorker task_net_worker;
     EventLog event_log;
 
     private:
@@ -147,14 +147,15 @@ namespace CML {
 
     void OpenConfig_Handler(RC::FileRead& fr);
     FullConf GetConfig_Handler() {
-      return {settings.exp_config, settings.elec_config};
+      return {settings.exp_config, settings.elec_config,
+        settings.bipolar_config};
     }
     void Shutdown_Handler();
 
     void NewEEGSave();
     void SaveDefaultEEG();
-    RC::Data1D<CSStimProfile> CreateGridProfiles();
-    RC::Data1D<CSStimProfile> CreateDiscreteStimProfiles();
+    RC::Data1D<StimProfile> CreateGridProfiles();
+    RC::Data1D<StimProfile> CreateDiscreteStimProfiles();
     void SetupClassifier();
     void ShutdownClassifier();
 

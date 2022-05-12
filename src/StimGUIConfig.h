@@ -1,7 +1,7 @@
 #ifndef STIMGUICONFIG_H
 #define STIMGUICONFIG_H
 
-#include "CereStim.h"
+#include "ChannelConf.h"
 #include "RC/RC.h"
 #include "RCqt/Worker.h"
 #include "Settings.h"
@@ -21,18 +21,18 @@ namespace CML {
       RC::Caller<void, const size_t&> test_stim_callback);
 
     protected:
-    void SetChannel_Handler(const CSStimChannel& minvals,
-      const CSStimChannel& maxvals, const RC::RStr& label="",
+    void SetChannel_Handler(const StimChannel& minvals,
+      const StimChannel& maxvals, const RC::RStr& label="",
       const RC::RStr& stimtag="", const size_t& index=0);
-    void SetParameters_Handler(const CSStimChannel& stim_params);
+    void SetParameters_Handler(const StimChannel& stim_params);
     void Clear_Handler();
     void SetEnabled_Handler(const bool& enabled);
 
     public:
-    RCqt::TaskCaller<const CSStimChannel, const CSStimChannel,
+    RCqt::TaskCaller<const StimChannel, const StimChannel,
       const RC::RStr, const RC::RStr, const size_t>
       SetChannel = TaskHandler(StimConfigBox::SetChannel_Handler);
-    RCqt::TaskCaller<const CSStimChannel> SetParameters =
+    RCqt::TaskCaller<const StimChannel> SetParameters =
       TaskHandler(StimConfigBox::SetParameters_Handler);
     RCqt::TaskCaller<> Clear = TaskHandler(StimConfigBox::Clear_Handler);
     RCqt::TaskCaller<const bool> SetEnabled =
@@ -96,18 +96,18 @@ namespace CML {
       RC::Caller<void, const size_t&> test_stim_callback);
 
     protected:
-    void SetChannel_Handler(const CSStimChannel& minvals,
-      const CSStimChannel& maxvals, const RC::RStr& label="",
+    void SetChannel_Handler(const StimChannel& minvals,
+      const StimChannel& maxvals, const RC::RStr& label="",
       const RC::RStr& stimtag="", const size_t& index=0);
-    void SetParameters_Handler(const CSStimChannel& stim_params);
+    void SetParameters_Handler(const StimChannel& stim_params);
     void Clear_Handler();
     void SetEnabled_Handler(const bool& enabled);
 
     public:
-    RCqt::TaskCaller<const CSStimChannel, const CSStimChannel,
+    RCqt::TaskCaller<const StimChannel, const StimChannel,
       const RC::RStr, const RC::RStr, const size_t>
       SetChannel = TaskHandler(MinMaxStimConfigBox::SetChannel_Handler);
-    RCqt::TaskCaller<const CSStimChannel> SetParameters =
+    RCqt::TaskCaller<const StimChannel> SetParameters =
       TaskHandler(MinMaxStimConfigBox::SetParameters_Handler);
     RCqt::TaskCaller<> Clear = TaskHandler(MinMaxStimConfigBox::Clear_Handler);
     RCqt::TaskCaller<const bool> SetEnabled =

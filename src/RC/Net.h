@@ -197,7 +197,7 @@ namespace RC {
             if (RC_SockErrorAt == RC_WouldBlock) {
               continue;
             }
-            Throw_RC_Type(Net, "Socket receive error");
+            Throw_RC_Type(Net, "Socket send error");
           }
 
           arr_current += bytes_sent;
