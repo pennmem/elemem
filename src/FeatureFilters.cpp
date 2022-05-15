@@ -381,9 +381,11 @@ namespace CML {
               " is not a valid channel. The number of channels available is " +
               RC::RStr(in_datar.size())).c_str());
       } else if (in_datar[pos].IsEmpty()) { // Pos channel is empty
+        DEBLOG_OUT(in_datar);
         Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
               " does not have any data.").c_str());
       } else if (in_datar[neg].IsEmpty()) { // Neg channel is empty
+        DEBLOG_OUT(in_datar);
         Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
               " does not have any data.").c_str());
       } else if (in_datar[pos].size() != in_datar[neg].size()) { // Pos and Neg channel sizes don't match
