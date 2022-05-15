@@ -180,7 +180,7 @@ namespace CML {
       case 2000:  samprate_index = 3; break;
       case 10000: samprate_index = 4; break;
       case 30000: samprate_index = 5; break;
-      default: std::runtime_error("Configuration selected invalid sampling "
+      default: throw std::runtime_error("Configuration selected invalid sampling "
                  "rate.  Allowed values are 500, 1000, 2000, 10000, 30000.");
     }
 
