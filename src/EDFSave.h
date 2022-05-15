@@ -17,6 +17,7 @@ namespace CML {
         sampling_rate(sampling_rate) {
       callback_ID = RC::RStr("EDFSave_") + RC::RStr(sampling_rate);
       buffer.sampling_rate = sampling_rate;
+      datarecord_len = sampling_rate;
     }
 
     RC::RStr GetExt() const override { return "edf"; }
@@ -39,6 +40,7 @@ namespace CML {
     size_t amount_buffered = 0;
     size_t amount_written = 0;
     size_t sampling_rate;
+    size_t datarecord_len;
     RC::RStr callback_ID;
   };
 }
