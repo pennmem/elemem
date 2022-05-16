@@ -22,7 +22,7 @@ namespace CML {
   }
 
 
-  // TODO: JPB: (maint) Consolidate BinData implementations under DRY principle.
+  // TODO: JPB: (refactor) Consolidate BinData implementations under DRY principle.
   /// Bins EEGDataRaw from one sampling rate to another
   /** Note: new_sampling_rate must be a true multiple of in_data->sampling_rate
     * @param in_data the EEGDataRaw to be binned
@@ -91,7 +91,7 @@ namespace CML {
     return binned_data;
   }
 
-  // TODO: JPB: (maint) Consolidate BinData implementations under DRY principle.
+  // TODO: JPB: (refactor) Consolidate BinData implementations under DRY principle.
   /// Bins EEGDataRaw from one sampling rate to another
   /** Note: new_sampling_rate must be a true multiple of in_data->sampling_rate
     * @param in_data the EEGDataRaw to be binned
@@ -181,7 +181,7 @@ namespace CML {
     return binned_data;
   }
 
-  // TODO: JPB: (maint) Consolidate BinData implementations under DRY principle.
+  // TODO: JPB: (refactor) Consolidate BinData implementations under DRY principle.
   /// Bins EEGDataRaw from one sampling rate to another
   /** Note: new_sampling_rate must be a true multiple of in_data->sampling_rate 
     * @param in_data the EEGDataRaw to be binned
@@ -419,18 +419,15 @@ namespace CML {
             "(" + RC::RStr(in_data.size()) + ")").c_str());
     }
 
-    // Take derivative
-    auto out_data = RC::Data1D<T>();
-    out_data.Resize(in_data.size() - 1);
-    RC_ForRange(i, 0, out_data.size()) { // Iterate over events
-      out_data[i] = in_data[i+1] - in_data[i];
+    auto out_data = in_data.Copy();
+    RC_ForRange(n, 0, order) { // Loop for order of derivative iterations
+      RC_DEBOUT(out_data);
+      RC_ForRange(i, 0, out_data.size()-1) { // Iterate over events
+        out_data[i] = out_data[i+1] - out_data[i];
+      }
     }
-
-    // Base case
-    if (order == 1) { return out_data; }
-    // TODO: JPB: (perf) out_data(in_data.size()-order) and nested loop, 10 allocs saved per epoch + cache efficiency
-    // Recurse for next order
-    return Differentiate(out_data, order-1);
+    out_data.Resize(in_data.size() - order);
+    return out_data;
   }
 
   /// Find the channels with artifacting using a ordered derivate test

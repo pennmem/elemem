@@ -144,7 +144,7 @@ namespace CML {
 
     NewEEGSave();
 
-    //#define TESTING
+    #define TESTING
     #ifdef TESTING
     std::cerr << "TESTING ENABLED:" << std::endl;
     TestAllCode();
