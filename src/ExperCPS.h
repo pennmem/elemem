@@ -50,6 +50,12 @@ namespace CML {
     RCqt::TaskCaller<> Start =
       TaskHandler(ExperCPS::Start_Handler);
 
+    RCqt::TaskCaller<> Restart =
+      TaskHandler(ExperCPS::Restart_Handler);
+
+    RCqt::TaskBlocker<> Pause =
+      TaskHandler(ExperCPS::Pause_Handler);
+
     RCqt::TaskBlocker<> Stop =
       TaskHandler(ExperCPS::Stop_Handler);
 
@@ -89,6 +95,8 @@ namespace CML {
     JSONFile JSONifyStimProfile(const StimProfile& profile);
 
     void Start_Handler();
+    void Restart_Handler();
+    void Pause_Handler();
     void Stop_Handler();
     void InternalStop();
 
@@ -163,8 +171,11 @@ namespace CML {
     bool prev_sham;
     RC::Data1D<size_t> search_order;
     size_t search_order_idx;
+    // store parameters for next classification event for simple restart after pauses in the task
+    ClassificationType next_classif_state;
     uint64_t next_min_event_time;
     uint64_t classif_id;
+    bool stopped = true;
 
     RC::RND rng;
     RC::APtr<QTimer> timer;

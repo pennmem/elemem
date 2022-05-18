@@ -308,10 +308,6 @@ namespace CML {
     RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
     #endif
 
-    cur_ev = 0;
-    event_time = 0;
-    next_min_event_time = 0;
-
     // Total run time (ms), fixes experiment length for CPS.
     experiment_duration = cps_specs.experiment_duration_secs * 1000;
 
@@ -322,6 +318,11 @@ namespace CML {
       return;
     }
 
+    cur_ev = 0;
+    event_time = 0;
+    next_min_event_time = 0;
+    stopped = false;
+
     exp_start = RC::Time::Get();
 
     JSONFile startlog = MakeResp("START");
@@ -330,11 +331,24 @@ namespace CML {
     // initial time through searches/stim locations simply go through in order; location 0 comes first
     model_idxs += 0;
     model_idxs += 1;
-    TriggerAt(0, ClassificationType::NORMALIZE);
+
+    next_min_event_time = 0;
+    next_classif_state = ClassificationType::NORMALIZE;
+    TriggerAt(next_min_event_time, next_classif_state);
   }
 
+  void ExperCPS::Restart_Handler() {
+    TriggerAt(next_min_event_time, next_classif_state);
+  }
+
+  void ExperCPS::Pause_Handler() {
+    // TODO: RDD/James: are all handlers run on separate thread?
+    stopped = true;
+  }
 
   void ExperCPS::Stop_Handler() {
+    stopped = true;
+    // TODO: RDD: doesn't make sense to pause the timers; the absolute time is something an experimenter would want to know
     if (timer.IsSet()) {
       timer->stop();
     }
@@ -451,20 +465,22 @@ namespace CML {
 
 
   // handles the timing of setting off the next event; handles pre-event general logging
-  void ExperCPS::TriggerAt(const uint64_t& next_min_event_time, const ClassificationType& next_classif_state) {
+  void ExperCPS::TriggerAt(const uint64_t& min_event_time, const ClassificationType& classif_state) {
     // run next classification result (which conditionally calls for stimulation events)
     // #ifdef DEBUG_EXPERCPS
     // RC_DEBOUT(RC::RStr("ExperCPS::TriggerAt\n"));
     // #endif
-    if (next_min_event_time > experiment_duration) {
-      // TODO: RDD/RC: preferred method for ending experiments?
+    if (min_event_time > experiment_duration) {
       InternalStop();
     }
-    abs_EEG_collection_times += WaitUntil(next_min_event_time);
-    // TODO: RDD/JPB: use id = 0 for now, how much performance improvement would classifier queueing add?
-    // TODO: RDD: remove classify_ms
-    hndl->task_classifier_manager->ProcessClassifierEvent(
-        next_classif_state, classify_ms, classif_id);
+    // TODO: RDD: should post-stim events be completed after a pause? More data, question of validity. Pauses should be rare
+    else if ((!stopped) || (classif_state == ClassificationType::NOSTIM)) {  // only trigger if experiment is not paused or next event is post-stim
+      abs_EEG_collection_times += WaitUntil(min_event_time);
+      // TODO: RDD/JPB: use id = 0 for now, how much performance improvement would classifier queueing add?
+      // TODO: RDD: remove classify_ms
+      hndl->task_classifier_manager->ProcessClassifierEvent(
+          classif_state, classify_ms, classif_id);
+    }
   }
 
 
@@ -479,12 +495,12 @@ namespace CML {
     ClassificationType classif_state = task_classifier_settings.cl_type;
     exper_classif_settings += task_classifier_settings;
 
-    ClassificationType next_classif_state;
     if (classif_state == ClassificationType::NORMALIZE) {
       // record times for normalization events separately here
       f64 cur_time_sec = RC::Time::Get();
       uint64_t cur_time_ms = uint64_t(1000*(cur_time_sec - exp_start)+0.5);
 
+      // request normalization events for first n_normalize_events
       NormalizingPanel();
       next_min_event_time = cur_time_ms + normalize_lockout_ms;
       if (abs_EEG_collection_times.size() < n_normalize_events) {
@@ -564,7 +580,6 @@ namespace CML {
     // store stim event results
     stim_event_flags += stim_event;
 
-    ClassificationType next_classif_state;
     // #ifdef DEBUG_EXPERCPS
     // RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler just before states\n"));
     // #endif
