@@ -82,6 +82,15 @@ Build Elemem
         cmake -DCEREBUS_HW=OFF -DCERESTIM_STUB=ON ..
         make -j
 
+   * Testing with System 3 classifier (Medtronic)
+
+     .. code:: bash
+
+        cd build
+        rm -rf CMakeCache.txt CMakeFiles cmake_install.cmake Elemem_autogen Makefile
+        cmake -DTESTING_SYS3_R1384J ..
+        make -j
+
 **********************
 How To Use The Program
 **********************
