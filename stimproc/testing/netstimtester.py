@@ -4,6 +4,7 @@ from random import randint
 import logging
 import sys
 import csv
+import os
 
 
 class Tester:
@@ -14,6 +15,16 @@ class Tester:
         self.initTime = asctime(localtime())
         self.conn = None
         self.addr = None
+
+        try:
+            os.makedirs('logs')
+        except OSError:
+            pass
+
+        try:
+            os.makedirs('csv')
+        except OSError:
+            pass
 
         targets = logging.StreamHandler(sys.stdout), logging.FileHandler(f'logs/{self.initTime}.txt')
         logging.basicConfig(format='%(message)s', level=logging.INFO, handlers=targets)
