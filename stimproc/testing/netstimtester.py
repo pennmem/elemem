@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import socket
 from time import sleep, time, localtime, asctime
 from random import randint
@@ -112,7 +114,7 @@ class Tester:
                 max = n
 
         logging.info(
-            "Min: " + str(round(min, 3)) + " ms\t\t\t\tMax: " + str(round(max, 3)) + " ms\t\t\t\tAvg: " + str(round(avg, 3)) + " ms")
+            "Min: " + str(round(min, 3)) + " ms\t\tMax: " + str(round(max, 3)) + " ms\t\tAvg: " + str(round(avg, 3)) + " ms")
 
     # Writes csv file
     def writeCSV(self):
