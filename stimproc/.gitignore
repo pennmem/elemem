@@ -1,0 +1,16 @@
+build*
+*~
+*.sw?
+CMakeLists.txt.user
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+Elemem_autogen
+Makefile
+tags
+html
+latex
+
+# Dist folder (build dir)
+dist/**
+

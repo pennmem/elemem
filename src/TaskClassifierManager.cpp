@@ -11,7 +11,7 @@ namespace CML {
     : hndl(hndl), circular_data(sampling_rate, circ_buf_duration_ms),
       sampling_rate(sampling_rate) {
     callback_ID = RC::RStr("TaskClassifierManager_") + sampling_rate;
-    hndl->eeg_acq.RegisterCallback(callback_ID, ClassifyData);
+    hndl->eeg_acq.RegisterEEGCallback(callback_ID, ClassifyData);
   }
 
   TaskClassifierManager::~TaskClassifierManager() {
@@ -20,7 +20,7 @@ namespace CML {
 
   void TaskClassifierManager::Shutdown_Handler() {
     if (callback_ID.size() > 0) {
-      hndl->eeg_acq.RemoveCallback(callback_ID);
+      hndl->eeg_acq.RemoveEEGCallback(callback_ID);
       callback_ID = "";
     }
   }
@@ -35,14 +35,14 @@ namespace CML {
 
     size_t num_samples = task_classifier_settings.duration_ms *
       sampling_rate / 1000;
-    RC::APtr<const EEGData> data =
+    RC::APtr<const EEGDataDouble> data =
       circular_data.GetRecentData(num_samples).ExtractConst();
 
     callback(data, task_classifier_settings);
   }
 
   void TaskClassifierManager::ClassifyData_Handler(
-      RC::APtr<const EEGData>& data) {
+      RC::APtr<const EEGDataDouble>& data) {
 
     if (stim_event_waiting) {
       if (num_eeg_events_before_stim <= data->sample_len) {

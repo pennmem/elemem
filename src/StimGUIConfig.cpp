@@ -51,8 +51,8 @@ namespace CML {
   }
 
 
-  void StimConfigBox::SetChannel_Handler(const CSStimChannel& minvals,
-      const CSStimChannel& maxvals, const RC::RStr& label,
+  void StimConfigBox::SetChannel_Handler(const StimChannel& minvals,
+      const StimChannel& maxvals, const RC::RStr& label,
       const RC::RStr& stimtag, const size_t& index) {
     disabled = true;
     RC::RStr new_title = RStr(minvals.electrode_pos) + "_" +
@@ -76,7 +76,7 @@ namespace CML {
     SetEnabled_Handler(true);
   }
 
-  void StimConfigBox::SetParameters_Handler(const CSStimChannel& params) {
+  void StimConfigBox::SetParameters_Handler(const StimChannel& params) {
     disabled = true;
     settings.params = params;
     amp->Set(params.amplitude * 1e-3);
@@ -154,8 +154,8 @@ namespace CML {
     return QSize(100, 100);
   }
 
-  void MinMaxStimConfigBox::SetChannel_Handler(const CSStimChannel& minvals,
-      const CSStimChannel& maxvals, const RC::RStr& label,
+  void MinMaxStimConfigBox::SetChannel_Handler(const StimChannel& minvals,
+      const StimChannel& maxvals, const RC::RStr& label,
       const RC::RStr& stimtag, const size_t& index) {
     RC_DEBOUT(RC::RStr("StimGUIConfig.cpp::SetChannel \n"));
     disabled = true;
@@ -180,7 +180,7 @@ namespace CML {
     SetEnabled_Handler(true);
   }
 
-  void MinMaxStimConfigBox::SetParameters_Handler(const CSStimChannel& params) {
+  void MinMaxStimConfigBox::SetParameters_Handler(const StimChannel& params) {
     disabled = true;
     RC_DEBOUT(RC::RStr("StimGUIConfig.cpp::SetParameters \n"));
     settings.params = params;

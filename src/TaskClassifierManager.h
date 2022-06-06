@@ -13,9 +13,8 @@ namespace CML {
 
   using ClassifierEvent = RCqt::TaskCaller<const ClassificationType, const uint64_t, const uint64_t>;
   using ClassifierCallback = RCqt::TaskCaller<const double, const TaskClassifierSettings>;
-  using TaskClassifierCallback = RCqt::TaskCaller<RC::APtr<const EEGData>, const TaskClassifierSettings>;
+  using TaskClassifierCallback = RCqt::TaskCaller<RC::APtr<const EEGDataDouble>, const TaskClassifierSettings>;
 
-  // TODO: JPB: (refactor) Make this a base class
   class TaskClassifierManager : public RCqt::WorkerThread {
     public:
     TaskClassifierManager(RC::Ptr<Handler> hndl, size_t sampling_rate,
@@ -36,10 +35,10 @@ namespace CML {
       TaskHandler(TaskClassifierManager::Shutdown_Handler);
 
     protected:
-    RCqt::TaskCaller<RC::APtr<const EEGData>> ClassifyData =
+    RCqt::TaskCaller<RC::APtr<const EEGDataDouble>> ClassifyData =
       TaskHandler(TaskClassifierManager::ClassifyData_Handler);
 
-    void ClassifyData_Handler(RC::APtr<const EEGData>& data);
+    void ClassifyData_Handler(RC::APtr<const EEGDataDouble>& data);
 
     void ProcessClassifierEvent_Handler(const ClassificationType& cl_type,
         const uint64_t& duration_ms, const uint64_t& classif_id);

@@ -3,7 +3,6 @@
 #include "EventLog.h"
 #include "Handler.h"
 #include "JSONLines.h"
-#include "NetWorker.h"
 #include "StatusPanel.h"
 
 namespace CML {
@@ -20,9 +19,26 @@ namespace CML {
 
   }
 
-  void StimWorker::ConfigureStimulation_Handler(const CSStimProfile& profile) {
+  void StimWorker::SetStimInterface_Handler(RC::APtr<StimInterface>& new_interface) {
+    stim_interface = new_interface;
+  }
+
+  void StimWorker::Open_Handler() {
+    if (stim_interface.IsNull()) {
+      Throw_RC_Error("The stim_interface in StimWorker is null on Configure");
+    }
+
+    stim_interface->CloseInterface();
+    stim_interface->OpenInterface();
+  }
+
+  void StimWorker::ConfigureStimulation_Handler(const StimProfile& profile) {
+    if (stim_interface.IsNull()) {
+      Throw_RC_Error("The stim_interface in StimWorker is null on Configure");
+    }
+
     cur_profile = profile;
-    cerestim.ConfigureStimulation(profile);
+    stim_interface->ConfigureStimulation(profile);
 
     max_duration = 0;
     for (size_t i=0; i<profile.size(); i++) {
@@ -32,16 +48,20 @@ namespace CML {
 
 
   void StimWorker::Stimulate_Handler() {
+    if (stim_interface.IsNull()) {
+      Throw_RC_Error("The stim_interface in StimWorker is null on Stimulate");
+    }
+
     size_t num_bursts = 1;
     f64 burst_period = 0;
-    if (cerestim.GetBurstSlowFreq() != 0) {
-      num_bursts = std::round(1e-6*cerestim.GetBurstDuration_us() *
-          cerestim.GetBurstSlowFreq());
-      burst_period = 1.0 / cerestim.GetBurstSlowFreq();
+    if (stim_interface->GetBurstSlowFreq() != 0) {
+      num_bursts = std::round(1e-6 * stim_interface->GetBurstDuration_us() *
+          stim_interface->GetBurstSlowFreq());
+      burst_period = 1.0 / stim_interface->GetBurstSlowFreq();
     }
 
     RC::Time timer;
-    cerestim.Stimulate();
+    stim_interface->Stimulate();
     status_panel->SetStimming(max_duration);
 
     JSONFile event_base = MakeResp("STIMMING");
@@ -65,6 +85,7 @@ namespace CML {
       hndl->event_log.Log(event.Line());
     }
 
+    // Theta-burst stimulation loop
     for (size_t b=1; (b<num_bursts) && KeepGoing(); b++) {
       f64 burst_time_left = burst_period*b - timer.SinceStart();
       if (burst_time_left > 0) {
@@ -75,12 +96,12 @@ namespace CML {
         return;
       }
 
-      cerestim.Stimulate();
+      stim_interface->Stimulate();
     }
   }
 
-  void StimWorker::CloseCereStim_Handler() {
-    cerestim.Close();
+  void StimWorker::CloseStim_Handler() {
+    stim_interface->CloseInterface();
   }
 }
 
