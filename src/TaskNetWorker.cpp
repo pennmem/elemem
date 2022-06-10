@@ -33,7 +33,10 @@ namespace CML {
     timer.Start();
 #endif // NETWORKER_TIMING
 
+// #define TESTING
+#if TESTING
     RC_DEBOUT(cmd);
+#endif // TESTING
 
     JSONFile inp;
     inp.SetFilename("TaskLaptopCommand");
