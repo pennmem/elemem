@@ -4,7 +4,7 @@
 Network Protocol & Logged Events
 #############
 
-This is the network protocol document for Elemem
+This is the network protocol document for Elemem.
 
 .. contents:: **Table of Contents**
     :depth: 2
@@ -20,25 +20,25 @@ Communication on the task side is handled by sending JSON strings over a tcp con
 Network Protocol
 *************
 
-This section contains the key and the messsages
+This section contains the key and the messsages.
 
 =============
 Important Notes
 =============
 
-Important notes about the networking system
+Important notes about the networking system.
 
-* Return communication times out after 1000ms.
+* Return communication times out after 1000ms
 
 =============
 Key
 =============
 
-The key information for understanding the protocol below
+The key information for understanding the protocol below.
 
 * Each message sent from the task side has a numerically increasing id number (unsigned 64-bit)
 
-* Host (Elemem) responses should carry the id of the message they are responding to.
+* Host (Elemem) responses should carry the id of the message they are responding to
 
 * The StatusPanel flag indicates that it changes the status panel
 
@@ -71,7 +71,7 @@ These messages are required for Elemem to function
 Handled Messages
 =============
 
-These are messages that Elemem does something as a result of receiving them
+These are messages that Elemem does something as a result of receiving them.
 
 * EXIT:
     * Message: {“type”: “EXIT”, “data”: {}, “id”: 42, “time”: <float>}
@@ -187,8 +187,10 @@ Event Logging
 Elemem logs all messages from the network protocol and the following listed events.
 
 =============
-Logged Messages
+Logged Events
 =============
+
+These are the events that are logged.
 
 * ELEMEM:
     * Message: {“type”: “ELEMEM”, “data”: {“version”: <string>}, “id”: 0, “time”: <float>}
