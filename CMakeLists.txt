@@ -57,7 +57,6 @@ if(WIN32)
   # CBayes dependencies
   # FORTRAN
   set(CMAKE_FC_COMPILER "${CMAKE_COMPILER_DIR}/gfortran.exe")
-  set (F2CLIB "-L${CMAKE_COMPILER_DIR} -lgfortran")
   
   set_source_files_properties( include/BayesGPc/ndlfortran_timer.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
   set_source_files_properties( include/BayesGPc/ndlfortran_linpack.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
@@ -428,27 +427,27 @@ if(WIN32)
   endif()
   # copy into dll, lib64, and dist
   execute_process(
-    COMMAND cp bin/libblas64.dll ../../../dll/libblas64.dll
+    COMMAND cp bin/libblas64.dll ${CMAKE_CURRENT_SOURCE_DIR}/dll/libblas64.dll
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
     RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
   execute_process(
-    COMMAND cp bin/libblas64.dll ../../../dist/libblas64.dll
+    COMMAND cp bin/libblas64.dll ${CMAKE_CURRENT_SOURCE_DIR}/dist/libblas64.dll
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
     RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
   execute_process(
-    COMMAND cp lib/libblas64.dll.a ../../../lib64/libblas64.dll.a
+    COMMAND cp lib/libblas64.dll.a ${CMAKE_CURRENT_SOURCE_DIR}/lib64/libblas64.dll.a
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
     RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
   execute_process(
-    COMMAND cp bin/liblapack64.dll ../../../dll/liblapack64.dll
+    COMMAND cp bin/liblapack64.dll ${CMAKE_CURRENT_SOURCE_DIR}/dll/liblapack64.dll
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
     RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
   execute_process(
-    COMMAND cp bin/liblapack64.dll ../../../dist/liblapack64.dll
+    COMMAND cp bin/liblapack64.dll ${CMAKE_CURRENT_SOURCE_DIR}/dist/liblapack64.dll
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
     RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
   execute_process(
-    COMMAND cp lib/liblapack64.dll.a ../../../lib64/liblapack64.dll.a
+    COMMAND cp lib/liblapack64.dll.a ${CMAKE_CURRENT_SOURCE_DIR}/lib64/liblapack64.dll.a
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
     RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
 

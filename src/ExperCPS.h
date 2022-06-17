@@ -8,15 +8,13 @@
 #include "RCqt/Worker.h"
 #include "ConfigFile.h"
 #include "StimInterface.h"
-// #include "CereStim.h"
 #include "ExpEvent.h"
 #include "CPSSpecs.h"
 #include "TaskClassifierSettings.h"
 #include "EEGPowers.h"
-#include <QTimer>
 #include <QThread>
-#include "../include/BayesGPc/CBayesianSearch.h"
-#include "../include/BayesGPc/CSearchComparison.h"
+#include "BayesGPc/CBayesianSearch.h"
+#include "BayesGPc/CSearchComparison.h"
 
 #define DEBUG_EXPERCPS
 
@@ -77,7 +75,11 @@ namespace CML {
     }
 
     void GetNextEvent(const unsigned int model_idx);
-    void UpdateSearch(const unsigned int model_idx, const StimProfile stim_info, const ExpEvent ev, const double biomarker);
+    void UpdateSearch(
+        const unsigned int model_idx,
+        const StimProfile stim_info,
+        const ExpEvent ev,
+        const double biomarker);
     void ComputeBestStimProfile();
 
     void UpdateSearchPanel(const StimProfile& profile);
@@ -92,27 +94,44 @@ namespace CML {
     void Stop_Handler();
     void InternalStop();
 
-    void HandleNormalization_Handler(RC::APtr<const EEGPowers>& data, const TaskClassifierSettings& task_classifier_settings);
-    void ClassifierDecision_Handler(const double& result, const TaskClassifierSettings& task_classifier_settings);
-    void StimDecision_Handler(const bool& stim_event, const TaskClassifierSettings& task_classifier_settings, const f64& stim_time_from_start_sec);
+    // experimental event handlers
+    void HandleNormalization_Handler(
+        RC::APtr<const EEGPowers>& data,
+        const TaskClassifierSettings& task_classifier_settings);
+    void ClassifierDecision_Handler(
+        const double& result,
+        const TaskClassifierSettings& task_classifier_settings);
+    void StimDecision_Handler(
+        const bool& stim_event,
+        const TaskClassifierSettings& task_classifier_settings,
+        const f64& stim_time_from_start_sec);
+
     protected slots:
     void RunEvent();
     protected:
     uint64_t WaitUntil(uint64_t target_ms);
-    void TriggerAt(const uint64_t& next_min_event_time, const ClassificationType& next_classif_state);
+    void TriggerAt(
+        const uint64_t& next_min_event_time,
+        const ClassificationType& next_classif_state);
     void BeAllocatedTimer();
+
+    // core logic for handling incoming stim event and triggering next stim event
+    // ProcessEvent() avoids race condition between ClassifierDecision() and StimDecision() vs. just putting logic in StimDecision()
+    void ProcessEvent();
+    // state variables for triggering ProcessEvent()
+    bool classif_decision_arrived = false;
+    bool stim_decision_arrived = false;
 
     // experiment configuration variables
     uint64_t experiment_duration; // in seconds
+    // number of events for normalizing EEG features
     size_t n_normalize_events;
     uint64_t classify_ms;
-    // for conservative estimate of duration for sham "lockouts" (want roughly the same lockouts between for stim and sham events for comparability)
-    // uint64_t max_stim_duration_ms;
+    // TODO: RDD: replace normalize_lockout_ms with just lockout for stim events?
     uint64_t normalize_lockout_ms;
-    uint64_t stim_lockout_ms;
+//    uint64_t stim_lockout_ms;
+    // lockout period between stim offset and post-stim classification interval onset
     uint64_t poststim_classif_lockout_ms;
-
-    bool search_amplitude = true;
 
     // TODO: RDD: link to general Elemem seed
     int seed;
@@ -121,7 +140,7 @@ namespace CML {
     double obsNoise;
     double exp_bias;
     int n_init_samples;
-    // number of discrete search locations (or more precisely, number of continuous discrete search spaces, 
+    // number of distinct search locations (or more precisely, number of continuous distinct search spaces,
     // i.e. a single location could have different isolated blocks of stim parameters allowed for search, e.g.
     // search is allowed from 1-10 Hz and from 50-100 Hz for a single stim location. Both ranges are searched
     // separately)
@@ -148,26 +167,31 @@ namespace CML {
     RC::Data1D<double> classif_results;
     vector<double> sham_results;
 
-    RC::Data1D<ExpEvent> exp_events;
+    // ExpEvent structs effectively only store ISIs
+    RC::Data1D<RC::Data1D<ExpEvent>> exp_events;
+    // indices into exp_events for latest events added for each stim profile in stim_profiles
+    RC::Data1D<size_t> exp_event_idxs;
     RC::Data1D<bool> stim_event_flags;
     RC::Data1D<TaskClassifierSettings> exper_classif_settings;
     // absolute (relative to start of the experiment) times of EEG collection for each event in ms
     RC::Data1D<uint64_t> abs_EEG_collection_times;
     RC::Data1D<uint64_t> abs_stim_event_times;
+    // array of distinct stim profile indices in order of event selection; index zero indicates sham
     RC::Data1D<unsigned int> model_idxs;
 
     // temp
     uint64_t event_time;
     f64 exp_start;
-    size_t cur_ev;
+//    size_t cur_ev;
     bool prev_sham;
+    // holds shuffled indices of stim profiles to stimulate with
     RC::Data1D<size_t> search_order;
+    // index into search_order to obtain index of stim profile to stimulate with next
     size_t search_order_idx;
     uint64_t next_min_event_time;
     uint64_t classif_id;
 
     RC::RND rng;
-    RC::APtr<QTimer> timer;
   };
 }
 
