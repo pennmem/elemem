@@ -45,6 +45,9 @@ namespace CML {
     RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
       TaskHandler(ExperCPS::SetStatusPanel_Handler);
 
+    RCqt::TaskCaller<> Setup =
+      TaskHandler(ExperCPS::Setup_Handler);
+
     RCqt::TaskCaller<> Start =
       TaskHandler(ExperCPS::Start_Handler);
 
@@ -90,6 +93,7 @@ namespace CML {
     void DoShamEvent();
     JSONFile JSONifyStimProfile(const StimProfile& profile);
 
+    void Setup_Handler();
     void Start_Handler();
     void Stop_Handler();
     void InternalStop();

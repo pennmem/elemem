@@ -46,13 +46,15 @@ enable_language(Fortran)
 
 if(APPLE)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1 -mmacosx-version-min=11.0")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
 
   # CBayes dependencies
   set (BLAS_LIB "-lblas -lc")
   set (LAPACK_LIB "-llapack")
 
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=11.0 -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
 endif(APPLE)
+
 if(WIN32)
   # CBayes dependencies
   # FORTRAN
@@ -71,7 +73,12 @@ set (BOOST_DIR "include/boost")
 include_directories(${BAYES_DIR}
                     ${BOOST_DIR}
                     )
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ffp-contract=fast -DBOOST_MATH_STANDALONE -DDBG")
+if (APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=apple-m1")
+else (APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+endif (APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffp-contract=fast -DBOOST_MATH_STANDALONE -DDBG")
 set(CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
 
 set (BAYES_FILES
@@ -356,6 +363,15 @@ else (WIN32)
   include_directories(PkgConfig::FFTW)
   set(FFTW_LIB PkgConfig::FFTW)
 endif (WIN32)
+
+
+if (APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+  set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+  set(CMAKE_HAVE_THREADS_LIBRARY 1)
+  set(CMAKE_USE_WIN32_THREADS_INIT 0)
+  set(CMAKE_USE_PTHREADS_INIT 1)
+  set(THREADS_PREFER_PTHREAD_FLAG ON)
+endif (APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

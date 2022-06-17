@@ -324,10 +324,9 @@ namespace CML {
   }
 
 
-  void ExperCPS::Start_Handler() {
-    RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
+  void ExperCPS::Setup_Handler() {
     #ifdef DEBUG_EXPERCPS
-    RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
+    RC_DEBOUT(RC::RStr("ExperCPS::Setup_Handler\n"));
     #endif
 
 //    cur_ev = 0;
@@ -343,6 +342,13 @@ namespace CML {
       hndl->StopExperiment();
       return;
     }
+  }
+
+
+  void ExperCPS::Start_Handler() {
+    #ifdef DEBUG_EXPERCPS
+    RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
+    #endif
 
     exp_start = RC::Time::Get();
 

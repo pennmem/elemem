@@ -555,8 +555,7 @@ namespace CML {
       exper_ops.Start();
     }
     else if (settings.exper.find("CPS") == 0) {
-      cout << "Handler::StartExperiment exper_cps.Start() " << endl;
-      exper_cps.Start();
+      exper_cps.Setup();
     }
     else { // Network experiment.
       // Note:  Binding to a specific LAN address is a safety feature.
@@ -575,6 +574,10 @@ namespace CML {
   }
 
   void Handler::StopExperiment_Handler() {
+    if (settings.exper.find("CPS") == 0) {
+      exper_cps.Stop();
+    }
+
     stim_worker.Abort();
     CloseExperimentComponents();
     stim_worker.Abort();
