@@ -113,7 +113,8 @@ namespace CML {
     protected slots:
     void RunEvent();
     protected:
-    uint64_t WaitUntil(uint64_t target_ms);
+    uint64_t TimeSinceExpStartMs();
+    uint64_t WaitUntil(uint64_t target_time_ms);
     void TriggerAt(
         const uint64_t& next_min_event_time,
         const ClassificationType& next_classif_state);
@@ -125,6 +126,7 @@ namespace CML {
     // state variables for triggering ProcessEvent()
     bool classif_decision_arrived = false;
     bool stim_decision_arrived = false;
+    bool stop_experiment = false;
 
     // experiment configuration variables
     uint64_t experiment_duration; // in seconds
