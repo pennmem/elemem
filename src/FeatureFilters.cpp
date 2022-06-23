@@ -686,6 +686,7 @@ namespace CML {
     */
   void FeatureFilters::Process_Handler(RC::APtr<const EEGDataDouble>& data, const TaskClassifierSettings& task_classifier_settings) {
     if (data_callbacks.IsEmpty()) Throw_RC_Error("No FeatureFilters callbacks have been set.");
+    if (ShouldAbort()) { return; }
 
     // This calculates the mirroring duration based on the minimum statistical morlet duration 
     size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
@@ -797,6 +798,8 @@ namespace CML {
     if ( data_callbacks.IsEmpty() ) {
       Throw_RC_Error("No FeatureFilters callbacks set");
     }
+
+    if (ShouldAbort()) { return; }
 
     for (size_t i=0; i<data_callbacks.size(); i++) {
       data_callbacks[i].callback(data, task_classifier_settings);

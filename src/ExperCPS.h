@@ -126,7 +126,6 @@ namespace CML {
     // state variables for triggering ProcessEvent()
     bool classif_decision_arrived = false;
     bool stim_decision_arrived = false;
-    bool stop_experiment = false;
 
     // experiment configuration variables
     uint64_t experiment_duration; // in seconds

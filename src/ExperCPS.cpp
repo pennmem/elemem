@@ -332,7 +332,6 @@ namespace CML {
 //    cur_ev = 0;
     event_time = 0;
     next_min_event_time = 0;
-    stop_experiment = false;
 
     // Total run time (ms), fixes experiment length for CPS.
     experiment_duration = cps_specs.experiment_duration_secs * 1000;
@@ -362,7 +361,7 @@ namespace CML {
 
   // TODO: RDD/JPB: would starting and restarting an experiment mean rewatching part of the video?
   void ExperCPS::Stop_Handler() {
-    stop_experiment = true;
+    Abort();
   }
 
 
@@ -461,7 +460,7 @@ namespace CML {
     i64 remaining_delay = target_time_ms - TimeSinceExpStartMs();
     while (remaining_delay > 0)
     {
-      if (stop_experiment) { break; }
+      if (ShouldAbort()) { break; }
       // Ensures the inner delay is at most max_inner_delay ms
       u64 inner_delay = std::min(remaining_delay, max_inner_delay);
       QThread::msleep(inner_delay);
@@ -487,9 +486,11 @@ namespace CML {
     // RC_DEBOUT(RC::RStr("ExperCPS::TriggerAt\n"));
     // #endif
     if (next_min_event_time > experiment_duration) { InternalStop(); }
-    if (stop_experiment) { return; }
 
+    if (ShouldAbort()) { return; }
     abs_EEG_collection_times += WaitUntil(next_min_event_time);
+    if (ShouldAbort()) { return; }
+
     hndl->task_classifier_manager->ProcessClassifierEvent(
         next_classif_state, classify_ms, classif_id);
   }
