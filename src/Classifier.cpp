@@ -61,6 +61,9 @@ namespace CML {
     if ( data_callbacks.IsEmpty() ) {
       Throw_RC_Error("No FeatureFilters callbacks set");
     }
+
+    if (ShouldAbort()) { return; }
+
     for (size_t i=0; i<data_callbacks.size(); i++) {
       data_callbacks[i].callback(result, task_classifier_settings);
     }

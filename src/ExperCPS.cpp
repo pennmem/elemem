@@ -324,10 +324,9 @@ namespace CML {
   }
 
 
-  void ExperCPS::Start_Handler() {
-    RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
+  void ExperCPS::Setup_Handler() {
     #ifdef DEBUG_EXPERCPS
-    RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
+    RC_DEBOUT(RC::RStr("ExperCPS::Setup_Handler\n"));
     #endif
 
 //    cur_ev = 0;
@@ -343,6 +342,13 @@ namespace CML {
       hndl->StopExperiment();
       return;
     }
+  }
+
+
+  void ExperCPS::Start_Handler() {
+    #ifdef DEBUG_EXPERCPS
+    RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
+    #endif
 
     exp_start = RC::Time::Get();
 
@@ -354,7 +360,9 @@ namespace CML {
 
 
   // TODO: RDD/JPB: would starting and restarting an experiment mean rewatching part of the video?
-  void ExperCPS::Stop_Handler() {}
+  void ExperCPS::Stop_Handler() {
+    Abort();
+  }
 
 
   // TODO: RDD: are any of these internal stop functions guaranteed to run if other workers fail?
@@ -436,47 +444,38 @@ namespace CML {
   }
 
 
-  uint64_t ExperCPS::WaitUntil(uint64_t target_ms) {
-    // delays until target_ms milliseconds from the start of the experiment
-    // breaks delay every 50 ms to allow for stopping the experiment
-    f64 cur_time_sec = RC::Time::Get();
-    uint64_t current_time_ms = uint64_t(1000*(cur_time_sec - exp_start)+0.5);
+  uint64_t ExperCPS::TimeSinceExpStartMs() {
+    f64 time_s = RC::Time::Get() - exp_start;
+    return static_cast<uint64_t>(1000 * time_s + 0.5);
+  }
 
-    event_time = target_ms;
-    uint64_t delay = (target_ms <= current_time_ms ? 0 : target_ms - current_time_ms);  // ms
+  uint64_t ExperCPS::WaitUntil(uint64_t target_time_ms) {
+    // Delays until target_time_ms milliseconds from the start of the experiment
+    // Breaks delay every 50 ms to allow for stopping the experiment
+    // All times are in ms
+    const u64 wait_start_time = TimeSinceExpStartMs();
+    const i64 max_inner_delay = 50; // inner delay to ensure senitivity to stops
+    event_time = target_time_ms;
 
-    // delay in max_delay ms increments to ensure thread sensitivity to shutdowns
-    // TODO: RDD: test delay accuracy - ask Ryan, 
-    //            generally use system time to compare at beginning and end of event in question, 
-    //            running on separate counter running on processor crystal clock
-    //            need to confirm on every machine, task laptop, etc.
-    //            James thinks this is overkill for precision of 10-15 ms
-    //            https://stackoverflow.com/questions/12937963/get-local-time-in-nanoseconds
-    uint64_t max_delay = 50;  // ms
-    // amount to delay next to ensure delay amount is at most max_delay ms
-    uint64_t delay_next;  // ms
-    // total time delayed so far in ms
-    uint64_t delay_total = uint64_t(1000*(RC::Time::Get() - cur_time_sec)+0.5);
-    while (delay_total < delay) {
-      // TODO: RDD: some delays are 1 ms off, e.g. last for 999 ms instead of 1000 ms
-      //            likely due to round-up of cur_time_sec
-      // delay either max_delay or the current amount of delay remaining if less than max_delay
-      delay_next = (delay - delay_total < max_delay ? delay - delay_total : max_delay);
-
-      if (ShouldAbort()) { return uint64_t(1000*(RC::Time::Get() - exp_start)+0.5); }
-      QThread::msleep(delay_next);
-      delay_total = uint64_t(1000*(RC::Time::Get() - cur_time_sec)+0.5);
+    i64 remaining_delay = target_time_ms - TimeSinceExpStartMs();
+    while (remaining_delay > 0)
+    {
+      if (ShouldAbort()) { break; }
+      // Ensures the inner delay is at most max_inner_delay ms
+      u64 inner_delay = std::min(remaining_delay, max_inner_delay);
+      QThread::msleep(inner_delay);
+      remaining_delay = target_time_ms - TimeSinceExpStartMs();
     }
 
     #ifdef DEBUG_EXPERCPS
-    RC_DEBOUT(RC::RStr("ExperCPS::WaitUntil() Intended delay: ") + to_string(delay)
-              + RC::RStr("\nActual delay: ")
-              + to_string(uint64_t(1000*(RC::Time::Get() - cur_time_sec)+0.5))
+    RC_DEBOUT(RC::RStr("ExperCPS::WaitUntil()\nIntended delay: ") + to_string(static_cast<i64>(target_time_ms - wait_start_time))
+              + RC::RStr(";\nActual delay: ") + to_string(TimeSinceExpStartMs() - wait_start_time)
               + RC::RStr("\n"));
     #endif
 
-    // return time after delay (which could differ from target due to e.g. operating system delays)
-    return uint64_t(1000*(RC::Time::Get() - exp_start)+0.5);
+    // Return the current time after delay offset from the beginning of the experiment
+    // (this could differ from target due to e.g. operating system delays)
+    return TimeSinceExpStartMs();
   }
 
 
@@ -487,9 +486,11 @@ namespace CML {
     // RC_DEBOUT(RC::RStr("ExperCPS::TriggerAt\n"));
     // #endif
     if (next_min_event_time > experiment_duration) { InternalStop(); }
+
+    if (ShouldAbort()) { return; }
+    abs_EEG_collection_times += WaitUntil(next_min_event_time);
     if (ShouldAbort()) { return; }
 
-    abs_EEG_collection_times += WaitUntil(next_min_event_time);
     hndl->task_classifier_manager->ProcessClassifierEvent(
         next_classif_state, classify_ms, classif_id);
   }

@@ -38,6 +38,7 @@ namespace CML {
     RC::APtr<const EEGDataDouble> data =
       circular_data.GetRecentData(num_samples).ExtractConst();
 
+    if (ShouldAbort()) { return; }
     callback(data, task_classifier_settings);
   }
 

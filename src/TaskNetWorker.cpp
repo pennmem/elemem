@@ -83,6 +83,11 @@ namespace CML {
         ProtWord(inp);
         status_panel->SetEvent(type);
       }
+      else if (type == "STIMSELECT") {
+        RC::RStr stimtag;
+        inp.Get(stimtag, "data", "stimtag");
+        hndl->SelectStim(stimtag);
+      }
       else if (type == "STIM") {
         hndl->stim_worker.Stimulate();
       }
@@ -104,10 +109,8 @@ namespace CML {
         hndl->task_classifier_manager->ProcessClassifierEvent(
             ClassificationType::NORMALIZE, duration, id);
       }
-      else if (type == "STIMSELECT") {
-        RC::RStr stimtag;
-        inp.Get(stimtag, "data", "stimtag");
-        hndl->SelectStim(stimtag);
+      else if (type == "CCLSTARTSTIM") {
+        hndl->exper_cps.Start();
       }
       else if (type == "SESSION") {
         int64_t session;

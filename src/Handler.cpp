@@ -551,14 +551,7 @@ namespace CML {
     evlog_start_data.Set(sub_dir, "sub_dir");
     event_log.Log(MakeResp("EEGSTART", 0, evlog_start_data).Line());
 
-    if (settings.grid_exper) {
-      exper_ops.Start();
-    }
-    else if (settings.exper.find("CPS") == 0) {
-      cout << "Handler::StartExperiment exper_cps.Start() " << endl;
-      exper_cps.Start();
-    }
-    else { // Network experiment.
+    auto SetupNetworkTask = [&]() {
       // Note:  Binding to a specific LAN address is a safety feature.
       std::string ipaddress = "192.168.137.1";
       uint16_t port = 8889;
@@ -571,6 +564,17 @@ namespace CML {
 
       task_net_worker.Listen(ipaddress, port);
       main_window->GetStatusPanel()->SetEvent("WAITING");
+    };
+
+    if (settings.grid_exper) {
+      exper_ops.Start();
+    }
+    else if (settings.exper.find("CPS") == 0) {
+      exper_cps.Setup();
+      SetupNetworkTask();
+    }
+    else { // Network experiment.
+      SetupNetworkTask();
     }
   }
 

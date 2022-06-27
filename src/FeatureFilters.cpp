@@ -323,23 +323,23 @@ namespace CML {
       uint8_t neg = bipolar_reference_channels[i].neg;
 
       if (pos >= in_datar.size()) { // Pos channel not in data
-        Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
+        Throw_RC_Error(("Positive channel " + RC::RStr(pos+1) +
               " is not a valid channel. The number of channels available is " +
               RC::RStr(in_datar.size())).c_str());
       } else if (neg >= in_datar.size()) { // Neg channel not in data
-        Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
+        Throw_RC_Error(("Negative channel " + RC::RStr(neg+1) +
               " is not a valid channel. The number of channels available is " +
               RC::RStr(in_datar.size())).c_str());
       } else if (in_datar[pos].IsEmpty()) { // Pos channel is empty
-        Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
+        Throw_RC_Error(("Positive channel " + RC::RStr(pos+1) +
               " does not have any data.").c_str());
       } else if (in_datar[neg].IsEmpty()) { // Neg channel is empty
-        Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
+        Throw_RC_Error(("Negative channel " + RC::RStr(neg+1) +
               " does not have any data.").c_str());
       } else if (in_datar[pos].size() != in_datar[neg].size()) { // Pos and Neg channel sizes don't match
-        Throw_RC_Error(("Size of positive channel " + RC::RStr(pos) +
+        Throw_RC_Error(("Size of positive channel " + RC::RStr(pos+1) +
               " (" + RC::RStr(in_datar[pos].size()) + ") " +
-              "and size of negitive channel " + RC::RStr(neg) +
+              "and size of negitive channel " + RC::RStr(neg+1) +
               " (" + RC::RStr(in_datar[neg].size()) + ") " +
               "are different").c_str());
       }
@@ -373,23 +373,23 @@ namespace CML {
       uint8_t neg = bipolar_reference_channels[i].GetBipolarChannels().neg;
 
       if (pos >= in_datar.size()) { // Pos channel not in data
-        Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
+        Throw_RC_Error(("Positive channel " + RC::RStr(pos+1) +
               " is not a valid channel. The number of channels available is " +
               RC::RStr(in_datar.size())).c_str());
       } else if (neg >= in_datar.size()) { // Neg channel not in data
-        Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
+        Throw_RC_Error(("Negative channel " + RC::RStr(neg+1) +
               " is not a valid channel. The number of channels available is " +
               RC::RStr(in_datar.size())).c_str());
       } else if (in_datar[pos].IsEmpty()) { // Pos channel is empty
-        Throw_RC_Error(("Positive channel " + RC::RStr(pos) +
+        Throw_RC_Error(("Positive channel " + RC::RStr(pos+1) +
               " does not have any data.").c_str());
       } else if (in_datar[neg].IsEmpty()) { // Neg channel is empty
-        Throw_RC_Error(("Negative channel " + RC::RStr(neg) +
+        Throw_RC_Error(("Negative channel " + RC::RStr(neg+1) +
               " does not have any data.").c_str());
       } else if (in_datar[pos].size() != in_datar[neg].size()) { // Pos and Neg channel sizes don't match
-        Throw_RC_Error(("Size of positive channel " + RC::RStr(pos) +
+        Throw_RC_Error(("Size of positive channel " + RC::RStr(pos+1) +
               " (" + RC::RStr(in_datar[pos].size()) + ") " +
-              "and size of negitive channel " + RC::RStr(neg) +
+              "and size of negitive channel " + RC::RStr(neg+1) +
               " (" + RC::RStr(in_datar[neg].size()) + ") " +
               "are different").c_str());
       }
@@ -686,6 +686,7 @@ namespace CML {
     */
   void FeatureFilters::Process_Handler(RC::APtr<const EEGDataDouble>& data, const TaskClassifierSettings& task_classifier_settings) {
     if (data_callbacks.IsEmpty()) Throw_RC_Error("No FeatureFilters callbacks have been set.");
+    if (ShouldAbort()) { return; }
 
     // This calculates the mirroring duration based on the minimum statistical morlet duration 
     size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
@@ -797,6 +798,8 @@ namespace CML {
     if ( data_callbacks.IsEmpty() ) {
       Throw_RC_Error("No FeatureFilters callbacks set");
     }
+
+    if (ShouldAbort()) { return; }
 
     for (size_t i=0; i<data_callbacks.size(); i++) {
       data_callbacks[i].callback(data, task_classifier_settings);

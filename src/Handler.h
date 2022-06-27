@@ -112,6 +112,8 @@ namespace CML {
     TaskNetWorker task_net_worker;
     EventLog event_log;
 
+    ExperCPS exper_cps; // Needs to be public for TaskNetWorker
+
     private:
 
     RC::Ptr<MainWindow> main_window;
@@ -168,7 +170,6 @@ namespace CML {
     RC::RStr session_dir;
 
     ExperOPS exper_ops;
-    ExperCPS exper_cps;
     StimMode stim_mode = StimMode::NONE;
 
     RC::APtr<QTimer> exit_timer;
