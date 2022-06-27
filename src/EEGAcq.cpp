@@ -127,12 +127,13 @@ namespace CML {
       return;
     }
 
+    StopEverything();
+
     sampling_rate = new_sampling_rate;
     binned_sampling_rate = new_binned_sampling_rate;
 
-    StopEverything();
-
     rollover_data.Delete();
+
     eeg_source->InitializeChannels(sampling_rate);
 
     channels_initialized = true;
