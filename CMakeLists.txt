@@ -68,7 +68,7 @@ if(WIN32)
 endif(WIN32)
 
 set (BAYES_DIR "include/BayesGPc")
-set (BOOST_DIR "include/boost")
+set (BOOST_DIR "include/boost_math/include")
 
 include_directories(${BAYES_DIR}
                     ${BOOST_DIR}
