@@ -10,3 +10,6 @@
 [submodule "include/lapack"]
 	path = include/lapack
 	url = git@github.com:Reference-LAPACK/lapack.git
+[submodule "include/boost_math"]
+	path = include/boost_math
+	url = git@github.com:boostorg/math.git
