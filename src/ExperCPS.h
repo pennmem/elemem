@@ -123,6 +123,9 @@ namespace CML {
     // core logic for handling incoming stim event and triggering next stim event
     // ProcessEvent() avoids race condition between ClassifierDecision() and StimDecision() vs. just putting logic in StimDecision()
     void ProcessEvent();
+    template <typename T>
+    void ShuffleNoConsecutive(RC::Data1D<T>& d);
+
     // state variables for triggering ProcessEvent()
     bool classif_decision_arrived = false;
     bool stim_decision_arrived = false;
@@ -131,14 +134,11 @@ namespace CML {
     uint64_t experiment_duration; // in seconds
     // number of events for normalizing EEG features
     size_t n_normalize_events;
+    // classification interval duration
     uint64_t classify_ms;
-    // TODO: RDD: replace normalize_lockout_ms with just lockout for stim events?
-    uint64_t normalize_lockout_ms;
-//    uint64_t stim_lockout_ms;
     // lockout period between stim offset and post-stim classification interval onset
     uint64_t poststim_classif_lockout_ms;
 
-    // TODO: RDD: link to general Elemem seed
     int seed;
     int n_var;
     vector<CMatrix> param_bounds;
@@ -179,8 +179,8 @@ namespace CML {
     RC::Data1D<bool> stim_event_flags;
     RC::Data1D<TaskClassifierSettings> exper_classif_settings;
     // absolute (relative to start of the experiment) times of EEG collection for each event in ms
-    RC::Data1D<uint64_t> abs_EEG_collection_times;
-    RC::Data1D<uint64_t> abs_stim_event_times;
+    RC::Data1D<uint64_t> EEG_times;
+    RC::Data1D<uint64_t> stim_times;
     // array of distinct stim profile indices in order of event selection; index zero indicates sham
     RC::Data1D<unsigned int> model_idxs;
 
@@ -189,7 +189,7 @@ namespace CML {
     f64 exp_start;
 //    size_t cur_ev;
     bool prev_sham;
-    // holds shuffled indices of stim profiles to stimulate with
+    // holds shuffled indices of stim profiles (and sham events) to stimulate with
     RC::Data1D<size_t> search_order;
     // index into search_order to obtain index of stim profile to stimulate with next
     size_t search_order_idx;
@@ -197,6 +197,12 @@ namespace CML {
     uint64_t classif_id;
 
     RC::RND rng;
+
+    // debug only
+    #ifdef DEBUG_EXPERCPS
+    uint64_t clf_start_time;  // time at which classification is requested
+    uint64_t clf_handler_time;
+    #endif
   };
 }
 

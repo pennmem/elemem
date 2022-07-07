@@ -205,7 +205,6 @@ namespace CML {
     if (enabled && config_index == size_t(-1)) {
       return;
     }
-    RC_DEBOUT(RC::RStr("StimGUIConfig.cpp::SetEnabled \n"));
     amp->SetReadOnly( ! enabled );
     freq->SetReadOnly( ! enabled );
     dur->SetReadOnly( ! enabled );

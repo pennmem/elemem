@@ -11,7 +11,7 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 set(IS_RELEASE false)
 option(CEREBUS_HW "Use the Cerebus/Neuroport interface" OFF) # cmake -DCEREBUS_HW=OFF ..
 option(CERESTIM_STUB # cmake -DCERESTIM_STUB=ON ..
-	"Use the CereStim simulator (default ON for non-Windows)" ON)
+  "Use the CereStim simulator (default ON for non-Windows)" ON)
 option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake -DHDF5_EXPORT=ON ..
 
 if (IS_RELEASE)
@@ -143,6 +143,11 @@ if (CERESTIM_STUB)
 else (CERESTIM_STUB)
   set (CERESTIM_STUB_FILE "")
 endif (CERESTIM_STUB)
+
+# bypass video task for development
+if (CPS_NO_VIDEO)
+  add_definitions (-DCPS_NO_VIDEO)
+endif (CPS_NO_VIDEO)
 
 if (CEREBUS_HW)
   set (CEREBUS_FILES src/Cerebus.h src/Cerebus.cpp)
@@ -480,6 +485,7 @@ if(WIN32)
       "LAPACK library missing from ${PROJECT_SOURCE_DIR}/lib64"
     )
   endif ()
+  find_library (BAYES_LIB "BayesGPc" PATHS ${PROJECT_SOURCE_DIR}/include/BayesGPc)
 endif(WIN32)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)

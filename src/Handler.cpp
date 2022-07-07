@@ -184,7 +184,6 @@ namespace CML {
 
   void Handler::SetStimSettings_Handler(const size_t& index,
       const StimSettings& updated_settings) {
-    RC_DEBOUT(RC::RStr("Handler.cpp::SetStimSettings 1\n"));
     if (index >= settings.stimconf.size()) {
       return;
     }
@@ -235,7 +234,6 @@ namespace CML {
       return;
     }
 
-    RC_DEBOUT(RC::RStr("Handler.cpp::SetStimSettings 2\n"));
     settings.stimconf[index] = updated_settings;
 
     // set CPS parameter search ranges
@@ -246,7 +244,6 @@ namespace CML {
       settings.min_stimconf_range[index].params.amplitude = 100;
       settings.max_stimconf_range[index] = updated_settings;
     }
-    RC_DEBOUT(RC::RStr("Handler.cpp::SetStimSettings 3\n"));
   }
 
   void Handler::TestStim_Handler(const size_t& index) {
@@ -356,7 +353,6 @@ namespace CML {
   // SelectStim_Handler goes through settings.stimconf and extracts values
   // that are both approved and matching the given stimtag.
   void Handler::SelectStim_Handler(const RC::RStr& stimtag) {
-    RC_DEBOUT(RC::RStr("Handler.cpp::SelectStim \n"));
     if (stim_mode == StimMode::NONE) {
       Throw_RC_Error("Attempted to select a stim tag outside of a "
           "stimulation experiment.");
@@ -380,7 +376,6 @@ namespace CML {
   }
 
   void Handler::StartExperiment_Handler() {
-    RC_DEBOUT(RC::RStr("Handler.cpp::StartExperiment \n"));
     if (settings.exp_config.IsNull() || settings.elec_config.IsNull()) {
       ErrorWin("You must load a valid experiment configuration file before "
                "starting an experiment session.", "Unconfigured");
@@ -484,14 +479,11 @@ namespace CML {
       SetupClassifier();
     }
 
-    RC_DEBOUT(RC::RStr("Handler.cpp::SelectStimHandler 4\n"));
     experiment_running = true;
     main_window->SetReadyToStart(false);
     for (size_t i=0; i<main_window->StimConfigCount(); i++) {
       main_window->GetStimConfigBox(i).SetEnabled(false);
     }
-
-    RC_DEBOUT(RC::RStr("Handler.cpp::SelectStimHandler 5\n"));
 
     for (size_t i=0; i<main_window->MinMaxStimConfigCount(); i++) {
       main_window->GetMinMaxStimConfigBox(i).SetEnabled(false);
@@ -507,7 +499,6 @@ namespace CML {
       settings.UpdateConfOPS(current_config);
     }
     else if (settings.exper.find("CPS") == 0) {
-      RC_DEBOUT(RC::RStr("Handler::StartExperiment UpdateConfCPS\n"));
       settings.UpdateConfCPS(current_config);
       settings.grid_exper = false;
       settings.task_driven = false;
@@ -571,7 +562,11 @@ namespace CML {
     }
     else if (settings.exper.find("CPS") == 0) {
       exper_cps.Setup();
+      #ifdef CPS_NO_VIDEO
+      exper_cps.Start();
+      #else  // CPS_NO_VIDEO
       SetupNetworkTask();
+      #endif  // CPS_NO_VIDEO
     }
     else { // Network experiment.
       SetupNetworkTask();

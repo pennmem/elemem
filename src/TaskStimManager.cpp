@@ -34,11 +34,11 @@ namespace CML {
     auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
     hndl->event_log.Log(resp.Line());
 
-    f64 stim_time_from_start_sec = RC::Time::Get();
+    f64 stim_time_sec = RC::Time::Get();
     if (stim_type && stim) {
       hndl->stim_worker.Stimulate();
     }
-    callback(stim, task_classifier_settings, stim_time_from_start_sec);
+    callback(stim, task_classifier_settings, stim_time_sec);
   }
 
   void TaskStimManager::SetCallback_Handler(const TaskStimCallback& new_callback) {

@@ -1,6 +1,7 @@
 #include "Classifier.h"
 #include "RC/RStr.h"
 #include "Handler.h"
+#include "JSONLines.h"
 
 namespace CML {
   Classifier::Classifier(RC::Ptr<Handler> hndl,
@@ -45,7 +46,23 @@ namespace CML {
       case ClassificationType::NOSTIM:
       {
         double result = Classification(data);
-        hndl->event_log.Log(RC::RStr(result));
+
+// TODO: JPB: is this separate logging within Classifier needed?
+// classification result logging; largely redundant but left in case needed in the future
+//        JSONFile d;
+//        d.Set(result, "result");
+//        d.Set(task_classifier_settings.duration_ms, "duration");
+//        const RC::RStr type = [&] {
+//            switch (task_classifier_settings.cl_type) {
+//              case ClassificationType::STIM: return "STIM_CLASSIFY";
+//              case ClassificationType::SHAM: return "SHAM_CLASSIFY";
+//              case ClassificationType::NOSTIM: return "NOSTIM_CLASSIFY";
+//              case ClassificationType::NORMALIZE: return "NORMALIZE_CLASSIFY";
+//              default: Throw_RC_Error("Invalid classification type received.");
+//            }
+//        }();
+//        JSONFile resp = MakeResp(type, task_classifier_settings.classif_id, d);
+//        hndl->event_log.Log(resp.Line());
 
         ExecuteCallbacks(result, task_classifier_settings);
         break;
