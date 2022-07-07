@@ -79,19 +79,28 @@ namespace CML {
       rollover_data = binned_data->leftover_data.ExtractConst();
       auto binned_data_captr = binned_data->out_data.ExtractConst();
 
-      // Bipolar reference data
-      auto out_data_captr = [&] {
-        if (bipolar_channels.IsEmpty()) { // Mono
-          return FeatureFilters::MonoSelector(binned_data_captr).ExtractConst();
-        }
-        else { // Bipolar
-          return FeatureFilters::BipolarReference(binned_data_captr, bipolar_channels).ExtractConst();
-        }
-      }();
+      // Report binned data only if there's a non-zero amount.
+      auto& binned_data_captr_dr = binned_data_captr->data;
+      size_t bin_max_len = 0;
+      for (size_t c=0; c<binned_data_captr_dr.size(); c++) {
+        bin_max_len = std::max(bin_max_len, binned_data_captr_dr[c].size());
+      }
 
-      // Report bipolar binned data
-      for (size_t i=0; i<data_callbacks.size(); i++) {
-        data_callbacks[i].callback(out_data_captr);
+      if (bin_max_len > 0) {
+        // Bipolar reference data
+        auto out_data_captr = [&] {
+          if (bipolar_channels.IsEmpty()) { // Mono
+            return FeatureFilters::MonoSelector(binned_data_captr).ExtractConst();
+          }
+          else { // Bipolar
+            return FeatureFilters::BipolarReference(binned_data_captr, bipolar_channels).ExtractConst();
+          }
+        }();
+
+        // Report bipolar binned data
+        for (size_t i=0; i<data_callbacks.size(); i++) {
+          data_callbacks[i].callback(out_data_captr);
+        }
       }
     }
     catch (...) {
@@ -123,6 +132,7 @@ namespace CML {
     sampling_rate = new_sampling_rate;
     binned_sampling_rate = new_binned_sampling_rate;
 
+    rollover_data.Delete();
     eeg_source->InitializeChannels(sampling_rate);
 
     channels_initialized = true;

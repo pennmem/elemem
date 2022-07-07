@@ -41,7 +41,30 @@ namespace CML {
           (RC::RStr("Could not open ")+filename+" for edf writing").c_str());
     }
 
-    SetChanParam(edf_set_samplefrequency, int(sampling_rate),
+    int datarecord_scaleby = 1;
+    if (sampling_rate <= 10000) {
+      datarecord_len = sampling_rate;
+    }
+    else {
+      datarecord_scaleby = 10;
+      datarecord_len = sampling_rate / datarecord_scaleby;
+    }
+
+    // Set only when needed.
+    if (datarecord_scaleby != 1) {
+      // duration input has units of 100us.
+      if (edf_set_datarecord_duration(edf_hdl,
+                                      int(100000 / datarecord_scaleby))) {
+        Throw_RC_Type(File, "Could not set edf data record duration");
+      }
+    }
+
+    if (edfwrite_annotation_utf8(edf_hdl, 0LL, -1LL,
+        (RC::RStr("Sampling rate: ")+RC::RStr(sampling_rate)).c_str())) {
+      Throw_RC_Type(File, "Could not mark edf recording start");
+    }
+
+    SetChanParam(edf_set_samplefrequency, int(datarecord_len),
         "Could not set edf sample frequency");
     SetChanParam(edf_set_digital_maximum, 32767,
         "Could not set edf digital maximum");
@@ -55,7 +78,8 @@ namespace CML {
         "Could not set units");
 
     for (size_t c=0; c<channels.size(); c++) {
-      if (edf_set_label(edf_hdl, c, conf.elec_config->data[c][0].c_str())) {
+      if (edf_set_label(edf_hdl, int(c),
+                        conf.elec_config->data[c][0].c_str())) {
         Throw_RC_Type(File, "Could not set edf label");
       }
     }
@@ -115,8 +139,8 @@ namespace CML {
     }
     amount_buffered += max_written;
 
-    // Must write sampling frequency at a time.
-    while (amount_buffered > sampling_rate) {
+    // Must write data_record_duration at a time.  (sampling_rate by default)
+    while (amount_buffered > datarecord_len) {
       // Write data in the order of the montage CSV.
       for (size_t c=0; c<channels.size(); c++) {
         if (c >= buffer.data.size()) {
@@ -125,11 +149,12 @@ namespace CML {
                 RC::RStr(c+1) + " out of bounds").c_str());
         }
 
-        if (buffer.data[channels[c]].size() < sampling_rate) {
+        if (buffer.data[channels[c]].size() < datarecord_len) {
           StopSaving_Handler();
 
           RC::RStr deb_msg("Data missing details\n");
           deb_msg += "sampling_rate = " + RC::RStr(sampling_rate) + ", ";
+          deb_msg += "data_record_duration = " + RC::RStr(datarecord_len) + ", ";
           deb_msg += "amount_buffered = " + RC::RStr(amount_buffered) + "\n";
           for (size_t dc=0; dc<channels.size(); dc++) {
             deb_msg += RC::RStr(buffer.data[channels[dc]].size()) + " elements:  ";
@@ -142,26 +167,28 @@ namespace CML {
               ("Data missing on edf save, channel " + RC::RStr(c+1)).c_str());
         }
 
-        if (edfwrite_digital_short_samples(edf_hdl,
-              buffer.data[channels[c]].Raw())) {
+        int write_err = edfwrite_digital_short_samples(edf_hdl,
+            buffer.data[channels[c]].Raw());
+        if (write_err) {
           StopSaving_Handler();
-          Throw_RC_Type(File, "Could not save data to edf file");
+          Throw_RC_Type(File, ("Could not save data to edf file, error code" +
+                        RC::RStr(write_err)).c_str());
         }
       }
 
       // Move remaining data in buffer to beginning and efficiently shrink.
       for (size_t c=0; c<buffer.data.size(); c++) {
-        if (buffer.data[c].size() < sampling_rate) {
+        if (buffer.data[c].size() < datarecord_len) {
           continue;
         }
-        if (buffer.data[c].size() > sampling_rate) {
-          // Not else, can't copy if == sampling_rate.
-          buffer.data[c].CopyData(0, sampling_rate);
+        if (buffer.data[c].size() > datarecord_len) {
+          // Not else, can't copy if == data_record_duration.
+          buffer.data[c].CopyData(0, datarecord_len);
         }
-        buffer.data[c].Resize(buffer.data[c].size()-sampling_rate);
+        buffer.data[c].Resize(buffer.data[c].size()-datarecord_len);
       }
-      amount_buffered -= sampling_rate;
-      amount_written += sampling_rate;
+      amount_buffered -= datarecord_len;
+      amount_written += datarecord_len;
     }
 
     buffer.sample_len = amount_buffered; // Keep the buffer sample_len in line with the manual editing

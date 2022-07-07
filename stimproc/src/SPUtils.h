@@ -5,6 +5,7 @@
 #include <string>
 #include <stdexcept>
 #include <climits>
+#include <limits>
 #include <sstream>
 #include <vector>
 #include <type_traits>

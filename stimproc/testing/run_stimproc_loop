@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cd "$(dirname "$0")"/../dist
+while [ 1 ]
+do
+  ./StimProc 127.0.0.1 8901 ../testing/testconf.csv || break
+done
+

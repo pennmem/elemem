@@ -37,5 +37,8 @@ Add unreleased user-relevant updates to Dev section at end.
  - Added bipolar montage and bipolar display support.
  - Added network stimulator and StimProc.
 
+2022-05-15
+ - Resolved issues with high channel count micros plus bipolar referencing.
+
 Dev
 
