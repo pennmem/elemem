@@ -57,7 +57,6 @@ namespace CML {
 //              case ClassificationType::STIM: return "STIM_CLASSIFY";
 //              case ClassificationType::SHAM: return "SHAM_CLASSIFY";
 //              case ClassificationType::NOSTIM: return "NOSTIM_CLASSIFY";
-//              case ClassificationType::NORMALIZE: return "NORMALIZE_CLASSIFY";
 //              default: Throw_RC_Error("Invalid classification type received.");
 //            }
 //        }();

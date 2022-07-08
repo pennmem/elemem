@@ -53,7 +53,7 @@ namespace CML {
     // CPS task parameters
     #ifdef DEBUG_EXPERCPS
     n_normalize_events = 2;
-    classify_ms = 300;
+    classify_ms = 500;
     #else
     n_normalize_events = 25;
     classify_ms = 1366;  // TODO: consider shortening for more events; check classifier performance with shorter feature intervals
@@ -67,7 +67,7 @@ namespace CML {
   }
 
   void ExperCPS::_init() {
-    EEG_times.Clear();
+    eeg_times.Clear();
     stim_times.Clear();
     classif_results.Clear();
     exper_classif_settings.Clear();
@@ -206,72 +206,99 @@ namespace CML {
     model_idxs += search_order[search_order_idx];
   }
 
-  void ExperCPS::GetNextEvent(const unsigned int model_idx) {
-    // model_idx is zero-indexed into the set of stim sites while
-    // search_order_idx and model_idxs are zero-indexed from sham and then follow same order as the stim sites
-    #ifdef DEBUG_EXPERCPS
-    RC_DEBOUT(RC::RStr("ExperCPS::GetNextEvent\n"));
-    #endif
-    // TODO: RDD: refactor so sham events are stored alongside all stim events (i.e. in same variables)?
-    RC::APtr<CMatrix> stim_pars = search.get_next_sample(model_idx);
+  void ExperCPS::GetNextEvent(unsigned int model_idx) {
+    // model_idx is zero-indexed into the set of stim sites while search_order_idx and model_idxs are zero-indexed from sham and
+    // then follow same order as the stim sites
+    RC::APtr<CMatrix> next_pars = search.get_next_sample(model_idx);
 
     // TODO: all: LATER currently assuming that stim parameters not being searched over are set separately in
     //            stim_loc_profiles, should add these to Settings.cpp
-    if (max_stim_loc_profiles[model_idx].size() != 1) {
-      Throw_RC_Error("ExperCPS::GetNextEvent: Only stimulation events with stimulation profiles of length 1 are supported currently.");
-    }
     StimChannel stim_chan((max_stim_loc_profiles[model_idx][0]));
 
     // set stim parameter values for next search point
     // TODO: RDD: LATER may want to scale down into more desirable interval, e.g., [0, 1]
 
-    // convert to allowable distinct stim settings
-    // stim_pars amplitude in mA
+    // pars amplitude in mA
     // StimChannel.amplitude in uA but allowed stim values in increments of 100 uA
-    stim_chan.amplitude = ((uint16_t)(stim_pars->getVal(0)*10 + 0.5)) * 100;
+    stim_chan.amplitude = ((uint16_t)(next_pars->getVal(0)*10 + 0.5)) * 100;
 
     ExpEvent ev;
     ev.active_ms = stim_chan.duration/1000;
 
-    // Add ISI
+    // TODO: RDD/RC: does controlling classification timing instead of stim timing make sense?
+    // Add ITI between classification events since stim onsets cannot be precisely controlled with variable classification processing time intervals
     ev.event_ms = rng.GetRange(cps_specs.intertrial_range_ms[0],
         cps_specs.intertrial_range_ms[1]);
 
-    StimProfile stim_profile;
-    stim_profile += stim_chan;
-    stim_profiles[model_idx] += stim_profile;
+    StimProfile next_stim_profile;
+    next_stim_profile += stim_chan;
+    stim_profiles[model_idx] += next_stim_profile;
     // index zero for sham
     exp_events[model_idx + 1] += ev;
   }
 
-  void ExperCPS::UpdateSearch(const unsigned int model_idx, const StimProfile stim_info, const ExpEvent ev, const double biomarker) {
-    // TODO: RDD: ev parameter not used in UpdateSearch, probably would never be used, unless it were logged in UpdateSearch()
-    UpdateSearchPanel(stim_info);
-    if (stim_info.size() != 1) {
-      Throw_RC_Error("ExperCPS::UpdateSearch: Only stimulation events with stimulation profiles of length 1 are supported currently.");
-    }
 
+  // updates parameter optimization model, gets next optimization sample, and logs update
+  void ExperCPS::UpdateSearch(const unsigned int model_idx, const StimProfile stim_profile, const double biomarker) {
+    // model_idx is zero-indexed into the set of stim sites while search_order_idx and model_idxs are zero-indexed from sham and
+    // then follow same order as the stim sites
     #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::UpdateSearch\n"));
     #endif
 
-    CMatrix stim_pars(1, 1);
+    UpdateSearchPanel();
+    if (stim_profile.size() != 1) {
+      Throw_RC_Error("ExperCPS::UpdateSearch: Only stimulation events with stimulation profiles of length 1 are supported currently.");
+    }
+    UpdateEvent ev;
+    ev.biomarker = biomarker;
+    ev.model_idx = model_idx;
+    ev.stim_params = stim_profile;
+
+    // TODO: RDD: need to handle all RC errors; InternalStop() and shut down experiment
+
+    CMatrix pars(1, 1);
     // map stim parameters for search model
     // TODO: RDD: remove magic numbers for conversion factors, 
     //            easy to forget to change in both UpdateSearch() and GetNextEvent()
-    stim_pars(0) = ((double)(stim_info[0].amplitude))/1000;
+    pars(0) = ((double)(ev.stim_params[0].amplitude))/1000;
 
-    CMatrix biomarker_mat(biomarker);
-    search.add_sample(model_idx, stim_pars, biomarker_mat);
+    CMatrix biomarker_mat(ev.biomarker);
+    ev.start_time = RC::Time::Get()*1e3;
+    search.add_sample(model_idx, pars, biomarker_mat);
+    GetNextEvent(model_idx);
 
     // log
-    JSONFile update_event = MakeResp("UPDATE SEARCH");
-    update_event.Set(JSONifyStimProfile(stim_info), "data", "stim_profile");
-    vector<vector<double>> x_vec = to_vector(stim_pars);
-    update_event.Set(model_idx, "data", "profile_index");
-    update_event.Set(x_vec, "data", "x");
-    update_event.Set(biomarker, "data", "y");
-    hndl->event_log.Log(update_event.Line());
+
+    // TODO: in config file, need to list parameters being tuned
+    // TODO: RDD/RC: discuss logging StimProfile instead of single StimChan (as in OPS) for future multi-site stim
+    JSONFile update_json = MakeResp("UPDATE");
+    update_json.Set(ev.start_time, "time");
+    update_json.Set(ev.model_idx, "data", "model_index");
+    // log (x, biomarker) pairs
+    update_json.Set(to_vector(pars), "data", "x");  // only contains parameters that are tuned in format/units converted for optimization
+    update_json.Set(ev.biomarker, "data", "biomarker");
+    update_json.Set(StimChannel2JSON(ev.stim_params[0]), "data", "stim_params");
+    // TODO: RDD: fill in with BO state; need to add BO/CSearch state/structure json functions
+    ev.state = json();
+    update_json.Set(ev.state, "data", "state");
+    hndl->event_log.Log(update_json.Line());
+  }
+
+  JSONFile ExperCPS::StimChannel2JSON(StimChannel chan) {
+    JSONFile j;
+    j.Set(uint32_t(chan.electrode_pos), "electrode_pos");
+    j.Set(uint32_t(chan.electrode_neg), "electrode_neg");
+    j.Set(chan.amplitude*1e-3, "amplitude");
+    j.Set(chan.frequency, "frequency");
+    j.Set(chan.duration*1e-3, "duration");
+
+    // Log burst data if it's a burst.
+    if (chan.burst_frac != 1) {
+      j.Set(chan.burst_slow_freq, "burst_slow_frequency");
+      j.Set(chan.burst_frac, "burst_fraction");
+    }
+    return j;
   }
 
 
@@ -286,34 +313,52 @@ namespace CML {
   }
 
 
-  void ExperCPS::UpdateSearchPanel(const StimProfile& profile) {
+  void ExperCPS::UpdateSearchPanel() {
     status_panel->SetEvent("UPDATE SEARCH");
   }
 
 
+  void ExperCPS::LogNormalize(NormalizeEvent ev) {
+    JSONFile resp = MakeResp("NORMALIZE");
+    resp.Set(ev.start_time, "time");
+    hndl->event_log.Log(resp.Line());
+  }
+
+
   void ExperCPS::NormalizingPanel() {
-    JSONFile classif_event = MakeResp("NORMALIZING");
-    hndl->event_log.Log(classif_event.Line());
     status_panel->SetEvent("NORMALIZING");
   }
 
 
+  void ExperCPS::LogClassify(ClassifyEvent ev) {
+    JSONFile d;
+    d.Set(ev.probability, "probability");
+    d.Set(ev.settings.duration_ms, "duration");
+    const RC::RStr type = [&] {
+        switch (ev.settings.cl_type) {
+          case ClassificationType::STIM: return "CLASSIFY_STIM";
+          case ClassificationType::SHAM: return "CLASSIFY_SHAM";
+          case ClassificationType::NOSTIM: return "CLASSIFY_NOSTIM";
+          default: Throw_RC_Error("Invalid classification type received.");
+        }
+    }();
+    JSONFile resp = MakeResp(type, ev.settings.classif_id, d);
+    resp.Set(ev.start_time, "time");
+    hndl->event_log.Log(resp.Line());
+  }
+
+
   void ExperCPS::ClassifyingPanel() {
-    JSONFile classif_event = MakeResp("CLASSIFYING");
-    hndl->event_log.Log(classif_event.Line());
     status_panel->SetEvent("CLASSIFYING");
   }
 
 
   void ExperCPS::DoStimEvent(const StimProfile& profile) {
-    JSONFile stim_event = MakeResp("STIM");
-    stim_event.Set(JSONifyStimProfile(profile).json, "data");
-    stim_event.Set(search_order[search_order_idx] - 1, "data", "location_idx");
-    hndl->event_log.Log(stim_event.Line());
     status_panel->SetEvent("STIM");
   }
 
 
+  // TODO: RDD: uses same format as code that logs stim events in StimManager (?)
   JSONFile ExperCPS::JSONifyStimProfile(const StimProfile& profile) {
     JSONFile stim_event;
     stim_event.Set(nlohmann::json::array(), "stim_profile");
@@ -332,14 +377,14 @@ namespace CML {
     return stim_event;
   }
 
-
-  void ExperCPS::DoShamEvent() {
-    #ifdef DEBUG_EXPERCPS
-    RC_DEBOUT(RC::RStr("ExperCPS::DoShamEvent\n"));
-    #endif
+  void ExperCPS::LogSham(ShamEvent ev) {
     JSONFile sham_event = MakeResp("SHAM");
     sham_event.Set(cps_specs.sham_duration_ms, "data", "duration");
+    sham_event.Set(ev.start_time, "time");
     hndl->event_log.Log(sham_event.Line());
+  }
+
+  void ExperCPS::DoShamEvent() {
     status_panel->SetEvent("SHAM");
   }
 
@@ -467,12 +512,19 @@ namespace CML {
     return static_cast<uint64_t>(1000 * time_s + 0.5);
   }
 
+  // convert from times relative to start to absolute times
+  f64 ExperCPS::ToAbsoluteTime(uint64_t time_ms) { return static_cast<f64>(time_ms) + exp_start * 1e3; }
+
   uint64_t ExperCPS::WaitUntil(uint64_t target_time_ms) {
     // Delays until target_time_ms milliseconds from the start of the experiment
     // Breaks delay every 50 ms to allow for stopping the experiment
     // All times are in ms
+
+    #ifdef DEBUG_EXPERCPS
     const u64 wait_start_time = TimeSinceExpStartMs();
-    const i64 max_inner_delay = 50; // inner delay to ensure senitivity to stops
+    #endif
+
+    const i64 max_inner_delay = 50;  // inner delay to ensure senitivity to stops
     event_time = target_time_ms;
 
     i64 remaining_delay = target_time_ms - TimeSinceExpStartMs();
@@ -480,6 +532,7 @@ namespace CML {
     {
       if (ShouldAbort()) { break; }
       // Ensures the inner delay is at most max_inner_delay ms
+      // TODO: RDD: James was using u64, i64 instead of uint64_t, change back?
       u64 inner_delay = std::min(remaining_delay, max_inner_delay);
       QThread::msleep(inner_delay);
       remaining_delay = target_time_ms - TimeSinceExpStartMs();
@@ -500,23 +553,26 @@ namespace CML {
   // handles the timing of setting off the next event; handles pre-event general logging
   void ExperCPS::TriggerAt(const uint64_t& next_min_event_time, const ClassificationType& next_classif_state) {
     // run next classification result (which conditionally calls for stimulation events)
-     #ifdef DEBUG_EXPERCPS
-     RC_DEBOUT(RC::RStr("ExperCPS::TriggerAt ") + RC::RStr(to_string(next_min_event_time)) + RC::RStr("\n"));
-     #endif
-    if (next_min_event_time > experiment_duration) {
-        #ifdef DEBUG_EXPERCPS
-        RC_DEBOUT(RC::RStr("ExperCPS::InternalStop enter TriggerAt()\n"));
-        #endif
-        InternalStop(); }
+//    #ifdef DEBUG_EXPERCPS
+//    RC_DEBOUT(RC::RStr("ExperCPS::TriggerAt ") + RC::RStr(to_string(next_min_event_time)) + RC::RStr("\n"));
+//    #endif
+    if (next_min_event_time > experiment_duration) { InternalStop(); }
 
     if (ShouldAbort()) { return; }
-    EEG_times += WaitUntil(next_min_event_time);
+    eeg_times += WaitUntil(next_min_event_time);
     if (ShouldAbort()) { return; }
-
 
     #ifdef DEBUG_EXPERCPS
     clf_start_time = TimeSinceExpStartMs();
+//    RC_DEBOUT(RC::RStr("ExperCPS::TriggerAt after WaitUntil\n"));
     #endif
+
+    if (next_classif_state == ClassificationType::NORMALIZE) {
+      // TODO: RDD: is logging handled by a separate thread? will logging be potentially bogged down with disk accesses?
+      // TODO: RDD: move all logging to the end of the loop with proper constraints to ensure event ordering with race conditions? would
+      NormalizeEvent ev {RC::Time::Get()*1e3};
+      LogNormalize(ev);
+    }
     hndl->task_classifier_manager->ProcessClassifierEvent(
         next_classif_state, classify_ms, classif_id);
   }
@@ -525,9 +581,9 @@ namespace CML {
   void ExperCPS::HandleNormalization_Handler(
       RC::APtr<const EEGPowers>& data,
       const TaskClassifierSettings& task_classifier_settings) {
-    // #ifdef DEBUG_EXPERCPS
-    // RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler\n"));
-    // #endif
+     #ifdef DEBUG_EXPERCPS
+     RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler\n"));
+     #endif
 
     // TODO: RDD: confirm that last events in all saved event arrays can be disambiguated 
     // (i.e., if any array is longer than another because the experiment stopped in some particular place, 
@@ -546,7 +602,7 @@ namespace CML {
     NormalizingPanel();
     next_min_event_time = event_time +
         rng.GetRange(cps_specs.intertrial_range_ms[0], cps_specs.intertrial_range_ms[1]);
-    if (EEG_times.size() < n_normalize_events) {
+    if (eeg_times.size() < n_normalize_events) {
       #ifdef DEBUG_EXPERCPS
       RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler request normalization event\n"));
       #endif
@@ -554,7 +610,7 @@ namespace CML {
       // TODO consider adding some jitter here and to timeouts in general
       next_classif_state = ClassificationType::NORMALIZE;
     }
-    else if (EEG_times.size() == n_normalize_events) {
+    else if (eeg_times.size() == n_normalize_events) {
       // TODO log event info
       #ifdef DEBUG_EXPERCPS
       RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler request sham/stim event ")
@@ -583,6 +639,9 @@ namespace CML {
     // record classifier outcomes
     classif_results += result;
     classif_id++;
+    ClassifyEvent ev {ToAbsoluteTime(eeg_times[eeg_times.size() - 1]), result, task_classifier_settings};
+    LogClassify(ev);
+
     if (stim_decision_arrived) { ProcessEvent(); }
   }
 
@@ -608,11 +667,11 @@ namespace CML {
 //    RC_DEBOUT(RC::RStr("\nstim decision time: ") + to_string(static_cast<i64>(stim_times[stim_times.size() - 1])));
 //    if (stim_times.size() > 1) {
 //      RC_DEBOUT(RC::RStr("\nstim decision time diff: ") + to_string(static_cast<i64>(stim_times[stim_times.size() - 1] - stim_times[stim_times.size() - 2])));
-//      RC_DEBOUT(RC::RStr("\nclf decision time diff: ") + to_string(static_cast<i64>(EEG_times[EEG_times.size() - 1] - EEG_times[EEG_times.size() - 2])));
+//      RC_DEBOUT(RC::RStr("\nclf decision time diff: ") + to_string(static_cast<i64>(eeg_times[eeg_times.size() - 1] - eeg_times[eeg_times.size() - 2])));
 //    }
 //    if (stim_times.size() > 2) {
 //      RC_DEBOUT(RC::RStr("\nstim decision time diff 2: ") + to_string(static_cast<i64>(stim_times[stim_times.size() - 1] - stim_times[stim_times.size() - 3])));
-//      RC_DEBOUT(RC::RStr("\nclf decision time diff: ") + to_string(static_cast<i64>(EEG_times[EEG_times.size() - 1] - EEG_times[EEG_times.size() - 3]))
+//      RC_DEBOUT(RC::RStr("\nclf decision time diff: ") + to_string(static_cast<i64>(eeg_times[eeg_times.size() - 1] - eeg_times[eeg_times.size() - 3]))
 //      + RC::RStr("\n"));
 //    }
     #endif
@@ -641,11 +700,9 @@ namespace CML {
     uint64_t event_duration_ms = cur_event.active_ms;
 
     StimProfile stim_params;
-
     ClassificationType next_classif_state;
-    // #ifdef DEBUG_EXPERCPS
-    // RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler just before states\n"));
-    // #endif
+
+    // main event loop logic
     if (classif_state == ClassificationType::STIM ||
         classif_state == ClassificationType::SHAM) {  // received pre-stim/pre-sham classification event
       if (stim_event) {  // stim event occurred or would have occurred if the event were not a sham
@@ -667,6 +724,8 @@ namespace CML {
         }
         else {  // SHAM event
           prev_sham = true;
+          ShamEvent sham_ev {RC::Time::Get()*1e3, cps_specs.sham_duration_ms};
+          LogSham(sham_ev);
           DoShamEvent();
         }
       }
@@ -688,7 +747,7 @@ namespace CML {
       // TODO: RDD: eliminate ExpEvent structs? Don't really need them?
       //            They add clutter and no value beyond API for extensions... should really just compress all data for each event type into a standard struct
       // get next event
-      next_min_event_time = EEG_times[EEG_times.size() - 2] + cur_event.event_ms;
+      next_min_event_time = eeg_times[eeg_times.size() - 2] + cur_event.event_ms;
 
 //      #ifdef DEBUG_EXPERCPS
 //      RC_DEBOUT(RC::RStr("\nITI: ") + to_string(static_cast<i64>(cur_event.event_ms)));
@@ -719,9 +778,7 @@ namespace CML {
         unsigned int profile_idx = stim_profiles[model_idx - 1].size() - 1;
         StimProfile stim_params = stim_profiles[model_idx - 1][profile_idx];
 
-        UpdateSearch(model_idx - 1, stim_params, cur_event, biomarker);
-        // TODO: RDD: add logging here once pre-post event has been added to search
-        GetNextEvent(model_idx - 1);
+        UpdateSearch(model_idx - 1, stim_params, biomarker);
       }
       
       search_order_idx++;

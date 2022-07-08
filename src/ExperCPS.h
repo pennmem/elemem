@@ -15,10 +15,45 @@
 #include <QThread>
 #include "BayesGPc/CBayesianSearch.h"
 #include "BayesGPc/CSearchComparison.h"
+#include "nlohmann/json.hpp"
 
 #define DEBUG_EXPERCPS
 
 namespace CML {
+  // experiment event definitions
+  class NormalizeEvent {
+    public:
+    f64 start_time;  // start of feature filtering duration, ms
+  };
+
+  class ClassifyEvent {
+    public:
+    f64 start_time;  // start of classification duration, ms
+    double probability;  // predicted probability
+    TaskClassifierSettings settings;
+  };
+
+  class StimEvent {
+    public:
+    f64 start_time;  // start of classification duration, ms
+    StimProfile profile;
+  };
+
+  class ShamEvent {
+    public:
+    f64 start_time;  // start of classification duration, ms
+    uint64_t duration;  // ms
+  };
+
+  class UpdateEvent {
+    public:
+    f64 start_time;  // start of pre-stim classification duration, ms
+    unsigned int model_idx;  // index into fixed stimulation locations/parameter sets/optimization models
+    StimProfile stim_params;  // parameters for update
+    double biomarker;  // biomarker for update
+    json state;  // optimization algorithm state after update
+  };
+
   class Handler;
   class StatusPanel;
 
@@ -77,21 +112,27 @@ namespace CML {
       status_panel = set_panel;
     }
 
-    void GetNextEvent(const unsigned int model_idx);
+    void GetNextEvent(unsigned int model_idx);
     void UpdateSearch(
         const unsigned int model_idx,
-        const StimProfile stim_info,
-        const ExpEvent ev,
+        const StimProfile stim_profile,
         const double biomarker);
     void ComputeBestStimProfile();
 
-    void UpdateSearchPanel(const StimProfile& profile);
+    void UpdateSearchPanel();
     void NormalizingPanel();
     void ClassifyingPanel();
     void DoConfigEvent(const StimProfile& profile);
     void DoStimEvent(const StimProfile& profile);
     void DoShamEvent();
+
+    void LogNormalize(NormalizeEvent ev);
+    void LogClassify(ClassifyEvent ev);
+    void LogSham(ShamEvent ev);
+    void LogUpdate(UpdateEvent ev);
     JSONFile JSONifyStimProfile(const StimProfile& profile);
+    // TODO: RDD: move somewhere Elemem-general, use in StimWorker?
+    JSONFile StimChannel2JSON(StimChannel chan);
 
     void Setup_Handler();
     void Start_Handler();
@@ -114,6 +155,7 @@ namespace CML {
     void RunEvent();
     protected:
     uint64_t TimeSinceExpStartMs();
+    f64 ToAbsoluteTime(uint64_t time_ms);
     uint64_t WaitUntil(uint64_t target_time_ms);
     void TriggerAt(
         const uint64_t& next_min_event_time,
@@ -179,7 +221,7 @@ namespace CML {
     RC::Data1D<bool> stim_event_flags;
     RC::Data1D<TaskClassifierSettings> exper_classif_settings;
     // absolute (relative to start of the experiment) times of EEG collection for each event in ms
-    RC::Data1D<uint64_t> EEG_times;
+    RC::Data1D<uint64_t> eeg_times;
     RC::Data1D<uint64_t> stim_times;
     // array of distinct stim profile indices in order of event selection; index zero indicates sham
     RC::Data1D<unsigned int> model_idxs;
