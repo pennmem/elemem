@@ -36,13 +36,13 @@ namespace CML {
     CMatrix b(1, 2);
     b(0, 0) = 0.1;
     b(0, 1) = 2.0;
-    kern.setBoundsByName("matern32_0:lengthScale", b);
+    kern.setBoundsByName("matern32_0__lengthScale", b);
     b(0, 0) = 0.25;
     b(0, 1) = 4.0;
-    kern.setBoundsByName("matern32_0:variance", b);
+    kern.setBoundsByName("matern32_0__variance", b);
     b(0, 0) = 0.01;
     b(0, 1) = 4.0;
-    kern.setBoundsByName("white_1:variance", b);
+    kern.setBoundsByName("white_1__variance", b);
 
     // TODO: RDD: LATER load parameters from config file? Or should experimental parameters be hard-coded to prevent accidental changes?
 
@@ -179,6 +179,12 @@ namespace CML {
 
     search = CSearchComparison(n_searches, pval_threshold, kernels, param_bounds, observation_noises,
         exploration_biases, init_samples, rng_seeds, verbosity, all_grid_vals);
+
+    // log parameter search metadata
+    JSONFile metadata = MakeResp("PS_METADATA");
+    metadata.Set(search.models[0].json_structure(), "data");
+    hndl->event_log.Log(metadata.Line());
+
     min_stim_loc_profiles = new_min_stim_loc_profiles;
     max_stim_loc_profiles = new_max_stim_loc_profiles;
 
@@ -251,6 +257,8 @@ namespace CML {
       Throw_RC_Error("ExperCPS::UpdateSearch: Only stimulation events with stimulation profiles of length 1 are supported currently.");
     }
     UpdateEvent ev;
+    // TODO: RDD: fill in with BO state; need to add BO/CSearch state/structure json functions
+
     ev.biomarker = biomarker;
     ev.model_idx = model_idx;
     ev.stim_params = stim_profile;
@@ -268,20 +276,21 @@ namespace CML {
     search.add_sample(model_idx, pars, biomarker_mat);
     GetNextEvent(model_idx);
 
+    // get state after update
+    ev.state = search.models[model_idx].json_state();
+
     // log
 
     // TODO: in config file, need to list parameters being tuned
     // TODO: RDD/RC: discuss logging StimProfile instead of single StimChan (as in OPS) for future multi-site stim
     JSONFile update_json = MakeResp("UPDATE");
     update_json.Set(ev.start_time, "time");
+    update_json.Set(ev.state, "data");
     update_json.Set(ev.model_idx, "data", "model_index");
     // log (x, biomarker) pairs
     update_json.Set(to_vector(pars), "data", "x");  // only contains parameters that are tuned in format/units converted for optimization
     update_json.Set(ev.biomarker, "data", "biomarker");
     update_json.Set(StimChannel2JSON(ev.stim_params[0]), "data", "stim_params");
-    // TODO: RDD: fill in with BO state; need to add BO/CSearch state/structure json functions
-    ev.state = json();
-    update_json.Set(ev.state, "data", "state");
     hndl->event_log.Log(update_json.Line());
   }
 
@@ -332,7 +341,8 @@ namespace CML {
 
   void ExperCPS::LogClassify(ClassifyEvent ev) {
     JSONFile d;
-    d.Set(ev.probability, "probability");
+    d.Set(ev.result, "result");
+    d.Set(ev.decision, "decision");
     d.Set(ev.settings.duration_ms, "duration");
     const RC::RStr type = [&] {
         switch (ev.settings.cl_type) {
@@ -494,7 +504,7 @@ namespace CML {
     // data_log.Set(abs_event_times, "analysis_data", "abs_event_times");
     // data_log.Save(File::FullPath(hndl->session_dir,
     //       "experiment_data.json"));
-    hndl->event_log.Log(data_log.Line());
+//    hndl->event_log.Log(data_log.Line());
 
     Stop_Handler();
     JSONFile stoplog = MakeResp("EXIT");
@@ -639,8 +649,6 @@ namespace CML {
     // record classifier outcomes
     classif_results += result;
     classif_id++;
-    ClassifyEvent ev {ToAbsoluteTime(eeg_times[eeg_times.size() - 1]), result, task_classifier_settings};
-    LogClassify(ev);
 
     if (stim_decision_arrived) { ProcessEvent(); }
   }
@@ -693,6 +701,9 @@ namespace CML {
     double result = classif_results[classif_results.size() - 1];
     TaskClassifierSettings task_classifier_settings = exper_classif_settings[exper_classif_settings.size() - 1];
     ClassificationType classif_state = task_classifier_settings.cl_type;
+
+    ClassifyEvent ev {ToAbsoluteTime(eeg_times[eeg_times.size() - 1]), result, stim_event, task_classifier_settings};
+    LogClassify(ev);
 
     unsigned int model_idx = model_idxs[model_idxs.size() - 1];
     ExpEvent cur_event = exp_events[model_idx][exp_events[model_idx].size() - 1];

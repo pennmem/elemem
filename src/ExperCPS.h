@@ -29,7 +29,8 @@ namespace CML {
   class ClassifyEvent {
     public:
     f64 start_time;  // start of classification duration, ms
-    double probability;  // predicted probability
+    double result;  // closed-loop control result (e.g. classifier predicted probability of recall)
+    bool decision;  // whether stim was applied in response to the closed-loop control result
     TaskClassifierSettings settings;
   };
 
