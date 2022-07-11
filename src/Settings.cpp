@@ -604,7 +604,9 @@ namespace CML {
     current_config.Set(nlohmann::json::array(), "experiment", "optimized_stim_parameters");
     current_config.json["experiment"]["optimized_stim_parameters"].push_back(std::string("amplitude"));
     current_config.json["experiment"]["optimized_stim_parameters"].push_back(std::string("location"));
-
+    // whether session should be excluded from being loaded in subsequent CPS sessions (due to
+    // e.g., bad electrodes/incorrect config settings).
+    current_config.Set(false, "exclude_session");
 
     // get previous session event logs for loading search events
 
@@ -639,10 +641,11 @@ namespace CML {
         JSONFile sess_conf(prev_sess_conf);
         RC::RStr sess_exper = RC::RStr(sess_conf.json.at("experiment").at("type").dump());
 
-        // TODO: RDD: json.dump() seems to be adding characters to sess_exper (which explicitly prints as "CPS").
-        //            fix so that this doesn't happen
-//        if (sess_exper.find("CPS") == 0) {
         if (sess_exper.find("CPS") < sess_exper.size()) {
+          // exclude bad sessions
+          bool exc_sess = sess_conf.json["exclude_session"];
+          if (exc_sess) { continue; }
+
           // filter sessions for matching montage/localization
           // TODO: RDD: currently just comparing file suffix of electrode config files; should probably just compare config files directly
           RC::RStr prev_elec_file_no_ext(File::NoExtension(sess_conf.json.at("electrode_config_file").dump()));
@@ -654,12 +657,6 @@ namespace CML {
           current_config.Set(elemem_subpaths[i].Raw(), "experiment", "previous_sessions", n_prev_sess, "path");
           prev_sess_paths += elemem_subpaths[i];
 
-          // this works here; not after currentconfig saved and transferred to new function?
-//          cout << "back in UpdateConfCPS" << endl;
-//          std::string str;
-//          current_config.Get(str, "experiment", "previous_sessions", n_prev_sess, "path");
-//          cout << str << endl << endl << endl;
-
           // TODO: RDD/JPB: need to get video paths for each experiment and then
           //                load them up here to ensure videos are watched in correct order
 //          current_config.Set(elemem_subpaths[i], "experiment", "previous_sessions", n_prev_sess, "video");
@@ -667,8 +664,6 @@ namespace CML {
         }
       }
     }
-//    cout << "end of UpdateConfCPS" << endl;
-//    cout << prev_sess_paths.size() << endl;
     return prev_sess_paths;
   }
 

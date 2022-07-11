@@ -177,7 +177,7 @@ namespace CML {
       all_grid_vals.push_back(grid_vals);
     }
 
-    search = CSearchComparison(n_searches, pval_threshold, kernels, param_bounds, observation_noises,
+    search = CSearchComparison(n_searches, 0.05, kernels, param_bounds, observation_noises,
         exploration_biases, init_samples, rng_seeds, verbosity, all_grid_vals);
 
     // log parameter search metadata
@@ -226,6 +226,7 @@ namespace CML {
 
     JSONFile update_json = MakeResp("UPDATE");
     update_json.Set(ev.start_time, "time");
+    update_json.Set(ev.loaded, "loaded");
     update_json.Set(ev.state, "data");
     update_json.Set(ev.model_idx, "data", "model_index");
     // log (x, biomarker) pairs
@@ -249,6 +250,7 @@ namespace CML {
       Throw_RC_Error("ExperCPS::UpdateSearch: Only stimulation events with stimulation profiles of length 1 are supported currently.");
     }
     UpdateEvent ev;
+    ev.loaded = false;
     // TODO: RDD: fill in with BO state; need to add BO/CSearch state/structure json functions
 
     ev.biomarker = biomarker;
@@ -400,31 +402,14 @@ namespace CML {
   }
 
 
-  void ExperCPS::Setup_Handler(const RC::Data1D<RC::RStr> prev_sessions) {
+  void ExperCPS::Setup_Handler(const RC::Data1D<RC::RStr>& prev_sessions) {
     #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::Setup_Handler\n"));
     #endif
 
-//    cout << "hello world" << endl;
-//    cout << prev_sessions.size() << endl;
-
-//    std::string str;
-//    current_config.Get(str, "experiment", "previous_sessions", 0, "path");
-//    cout << str << endl << endl << endl;
-
-//    cout << current_config.json.dump() << endl;
-//    cout << "got through" << endl;
-//    cout << current_config.json["experiment"].dump() << endl;
-//    cout << current_config.json["experiment"]["previous_sessions"].dump() << endl;
-
     // load update events from previous sessions
-//    const json prev_sessions(current_config.json["experiment"]["previous_sessions"]);
-
-////    for (json::iterator it = prev_sessions.begin(); it != prev_sessions.end(); ++it) {
-//    for (auto& sess : prev_sessions) {
     for (size_t idx = 0;  idx < prev_sessions.size(); idx++) {
       RC::RStr filename = File::FullPath(prev_sessions[idx], "event.log");
-//      RC::RStr filename = File::FullPath(sess.at("path").dump(), "event.log");
       RC::FileRead fr;
       if (!fr.Open(filename)) {  // check that session directory has experiment config file
         RC::RStr message = RC::RStr("CPS: Previous session at\n") + filename
@@ -445,6 +430,10 @@ namespace CML {
         json event = json::parse(event_str.Raw());
         RC::RStr ev_type(event.at("type").dump());
         if ((ev_type.length() > 0) && (ev_type.find("UPDATE") < ev_type.length())) {
+          bool loaded = event["loaded"];
+          // Don't load events that were loaded into previous sessions since those will
+          // be loaded separately assuming the previously loaded session directory is present
+          if (event["loaded"]) { continue; }
           unsigned int neg = event["data"]["stim_params"]["electrode_neg"];
           unsigned int pos = event["data"]["stim_params"]["electrode_pos"];
           // map model indices from previous sessions based on contact numbers
@@ -474,6 +463,7 @@ namespace CML {
           search.add_sample(m, xmat, biomarker_mat);
 
           UpdateEvent ev;
+          ev.loaded = true;
           ev.start_time = RC::Time::Get()*1e3;
           ev.biomarker = bio;
           ev.model_idx = m;

@@ -54,11 +54,8 @@ namespace CML {
     vector<vector<double>> opt_params;  // just optimized parameter values (for convenience)
     double biomarker;  // biomarker for update
     json state;  // optimization algorithm state after update
+    bool loaded;  // whether update was loaded from a previous session
   };
-
-//  class PreUpdateEvent : public UpdateEvent {
-//    unsigned int session;
-//  };
 
   class Handler;
   class StatusPanel;
@@ -90,8 +87,8 @@ namespace CML {
     // I know, I know. But I spent hours trying to pass a Data1D<RC::RStr> into Setup() to no avail...
     // either arrays were empty after I passed them in (they were non-empty a few lines before) or
     // I got a static compiler message when I tried to pass in a non-reference variable
-//    RCqt::TaskCaller<const RC::Data1D<RC::RStr>> Setup =
-//      TaskHandler(ExperCPS::Setup_Handler);
+    RCqt::TaskCaller<const RC::Data1D<RC::RStr>> Setup =
+      TaskHandler(ExperCPS::Setup_Handler);
 
     RCqt::TaskCaller<> Start =
       TaskHandler(ExperCPS::Start_Handler);
@@ -108,7 +105,7 @@ namespace CML {
     StimulationCallback StimDecision =
       TaskHandler(ExperCPS::StimDecision_Handler);
 
-    void Setup_Handler(const RC::Data1D<RC::RStr> prev_sessions);
+    void Setup_Handler(const RC::Data1D<RC::RStr>& prev_sessions);
 
     protected:
     void SetCPSSpecs_Handler(const CPSSpecs& new_cps_specs) {

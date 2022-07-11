@@ -566,7 +566,7 @@ namespace CML {
       exper_ops.Start();
     }
     else if (settings.exper.find("CPS") == 0) {
-      exper_cps.Setup_Handler(prev_sessions);
+      exper_cps.Setup(prev_sessions);
       #ifdef CPS_NO_VIDEO
       exper_cps.Start();
       #else  // CPS_NO_VIDEO
