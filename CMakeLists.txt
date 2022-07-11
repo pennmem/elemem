@@ -169,7 +169,6 @@ set (PTSA_FILES
   ptsa/ptsa/extensions/ThreadPool/ThreadPool.h
 )
 
-
 add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/Elemem.cpp
   #src/api_tests.cpp
@@ -321,8 +320,18 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
 
   include/edflib/edflib.cpp
   ${PTSA_FILES}
+)
 
+
+####################
+# Internal libraries
+
+add_library(libBAYES 
   ${BAYES_FILES}
+)
+
+target_link_libraries(${PROJECT_NAME}
+  libBAYES
 )
 
 ####################
