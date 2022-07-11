@@ -247,8 +247,6 @@ namespace CML {
   }
 
   void Handler::TestStim_Handler(const size_t& index) {
-    cout << "Handler::TestStim enter" << endl;
-
     if (experiment_running) {
       ErrorWin("Cannot test stim while experiment running.");
       return;
@@ -440,6 +438,8 @@ namespace CML {
       cout << "min_discrete_stim_param_sets.size() " << min_discrete_stim_param_sets.size() << endl;
 
       exper_cps.SetCPSSpecs(settings.cps_specs);
+      // need experiment config filename to search through other experiment directories
+      // for previous sessions to load search samples
       // discrete stim param sets only give fixed (non-optimized) stim parameters
       exper_cps.SetStimProfiles(min_discrete_stim_param_sets, max_discrete_stim_param_sets);
     }
@@ -495,11 +495,13 @@ namespace CML {
 
     // Save updated experiment configuration.
     JSONFile current_config = *(settings.exp_config);
+    // for CPS
+    RC::Data1D<RC::RStr> prev_sessions;
     if (settings.exper.find("OPS") == 0) {
       settings.UpdateConfOPS(current_config);
     }
     else if (settings.exper.find("CPS") == 0) {
-      settings.UpdateConfCPS(current_config);
+      prev_sessions = settings.UpdateConfCPS(current_config, elemem_dir, session_dir, settings.elec_config->GetFilename());
       settings.grid_exper = false;
       settings.task_driven = false;
       classifier->RegisterCallback("CPSClassifierDecision", exper_cps.ClassifierDecision);
@@ -557,11 +559,14 @@ namespace CML {
       main_window->GetStatusPanel()->SetEvent("WAITING");
     };
 
+//    cout << "outside UpdateConfCPS" << endl;
+//    cout << prev_sessions.size() << endl;
+
     if (settings.grid_exper) {
       exper_ops.Start();
     }
     else if (settings.exper.find("CPS") == 0) {
-      exper_cps.Setup();
+      exper_cps.Setup_Handler(prev_sessions);
       #ifdef CPS_NO_VIDEO
       exper_cps.Start();
       #else  // CPS_NO_VIDEO
@@ -571,6 +576,8 @@ namespace CML {
     else { // Network experiment.
       SetupNetworkTask();
     }
+//    cout << "outside UpdateConfCPS" << endl;
+//    cout << prev_sessions.size() << endl;
   }
 
   void Handler::StopExperiment_Handler() {
@@ -757,8 +764,6 @@ namespace CML {
         main_window->GetMinMaxStimConfigBox(c).SetParameters(
             settings.stimconf[c].params);
       }
-
-      //main_window->SwitchToStimPanelFR();
       main_window->SwitchToStimPanelCPS();
     }
     else {
@@ -887,7 +892,6 @@ namespace CML {
 
 
   void Handler::SetupClassifier() {
-    cout << "Handler::SetupClassifier enter" << endl;
     size_t circ_buf_duration_ms;
     settings.exp_config->Get(circ_buf_duration_ms, "experiment", "classifier",
         "circular_buffer_duration_ms");

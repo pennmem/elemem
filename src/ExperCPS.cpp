@@ -5,6 +5,7 @@
 #include "StatusPanel.h"
 #include "RC/Data1D.h"
 #include "BayesGPc/CMatrix.h"
+#include "Settings.h"
 
 using namespace RC;
 
@@ -86,9 +87,9 @@ namespace CML {
   void ExperCPS::SetStimProfiles_Handler(
         const RC::Data1D<StimProfile>& new_min_stim_loc_profiles,
         const RC::Data1D<StimProfile>& new_max_stim_loc_profiles) {
-    #ifdef DEBUG_EXPERCPS
-    RC_DEBOUT(RC::RStr("ExperCPS::SetStimProfiles\n"));
-    #endif
+//    #ifdef DEBUG_EXPERCPS
+//    RC_DEBOUT(RC::RStr("ExperCPS::SetStimProfiles\n"));
+//    #endif
     if (new_min_stim_loc_profiles.size() != new_max_stim_loc_profiles.size()) {
       Throw_RC_Error("ExperCPS::SetStimProfiles: Min and max stimulation profiles must have the same length.");
     }
@@ -187,29 +188,6 @@ namespace CML {
 
     min_stim_loc_profiles = new_min_stim_loc_profiles;
     max_stim_loc_profiles = new_max_stim_loc_profiles;
-
-    // add initial stim profiles
-    stim_profiles = RC::Data1D<RC::Data1D<StimProfile>>(n_searches);
-    exp_events = RC::Data1D<RC::Data1D<ExpEvent>>(n_searches + 1);  // index zero corresponds to sham events
-    for (int i = 0; i < n_searches; i++) { GetNextEvent(i); }
-    // separately add ExpEvent for first sham
-    ExpEvent ev;
-    ev.active_ms = cps_specs.sham_duration_ms;
-    ev.event_ms = rng.GetRange(cps_specs.intertrial_range_ms[0],
-        cps_specs.intertrial_range_ms[1]);
-    exp_events[0] += ev;
-
-    // Randomize stim locations/sham. Ensure stim locations and/or sham are not repeated consecutively.
-    search_order.Shuffle();
-
-    // configuration for initial event
-    if (search_order[search_order_idx]) {  // stim event
-      unsigned int next_idx = search_order[search_order_idx] - 1;
-      StimProfile next_stim_profile = stim_profiles[next_idx][stim_profiles[next_idx].size() - 1];
-      DoConfigEvent(next_stim_profile);
-    }
-
-    model_idxs += search_order[search_order_idx];
   }
 
   void ExperCPS::GetNextEvent(unsigned int model_idx) {
@@ -244,6 +222,21 @@ namespace CML {
   }
 
 
+  void ExperCPS::LogUpdate(UpdateEvent ev) {
+    // TODO: RDD/RC: discuss logging StimProfile instead of single StimChan (as in OPS) for future multi-site stim
+
+    JSONFile update_json = MakeResp("UPDATE");
+    update_json.Set(ev.start_time, "time");
+    update_json.Set(ev.state, "data");
+    update_json.Set(ev.model_idx, "data", "model_index");
+    // log (x, biomarker) pairs
+    update_json.Set(ev.opt_params, "data", "x");  // only contains parameters that are tuned in format/units converted for optimization
+    update_json.Set(ev.biomarker, "data", "biomarker");
+    update_json.Set(StimChannel2JSON(ev.stim_params[0]), "data", "stim_params");
+    hndl->event_log.Log(update_json.Line());
+  }
+
+
   // updates parameter optimization model, gets next optimization sample, and logs update
   void ExperCPS::UpdateSearch(const unsigned int model_idx, const StimProfile stim_profile, const double biomarker) {
     // model_idx is zero-indexed into the set of stim sites while search_order_idx and model_idxs are zero-indexed from sham and
@@ -274,24 +267,12 @@ namespace CML {
     CMatrix biomarker_mat(ev.biomarker);
     ev.start_time = RC::Time::Get()*1e3;
     search.add_sample(model_idx, pars, biomarker_mat);
+    ev.opt_params = to_vector(pars);
     GetNextEvent(model_idx);
 
     // get state after update
     ev.state = search.models[model_idx].json_state();
-
-    // log
-
-    // TODO: in config file, need to list parameters being tuned
-    // TODO: RDD/RC: discuss logging StimProfile instead of single StimChan (as in OPS) for future multi-site stim
-    JSONFile update_json = MakeResp("UPDATE");
-    update_json.Set(ev.start_time, "time");
-    update_json.Set(ev.state, "data");
-    update_json.Set(ev.model_idx, "data", "model_index");
-    // log (x, biomarker) pairs
-    update_json.Set(to_vector(pars), "data", "x");  // only contains parameters that are tuned in format/units converted for optimization
-    update_json.Set(ev.biomarker, "data", "biomarker");
-    update_json.Set(StimChannel2JSON(ev.stim_params[0]), "data", "stim_params");
-    hndl->event_log.Log(update_json.Line());
+    LogUpdate(ev);
   }
 
   JSONFile ExperCPS::StimChannel2JSON(StimChannel chan) {
@@ -308,6 +289,27 @@ namespace CML {
       j.Set(chan.burst_frac, "burst_fraction");
     }
     return j;
+  }
+
+
+  StimChannel ExperCPS::JSON2StimChannel(JSONFile j) {
+    StimChannel chan;
+    double amplitude;
+    double duration;
+    j.Get(chan.electrode_pos, "electrode_pos");
+    j.Get(chan.electrode_neg, "electrode_neg");
+    j.Get(amplitude, "amplitude");
+    chan.amplitude = amplitude * 1e3;
+    j.Get(chan.frequency, "frequency");
+    j.Get(duration, "duration");
+    chan.duration = duration * 1e3;
+
+    // Log burst data if it's a burst.
+    if (j.json.contains("burst_frac")) {
+      j.Get(chan.burst_slow_freq, "burst_slow_frequency");
+      j.Get(chan.burst_frac, "burst_fraction");
+    }
+    return chan;
   }
 
 
@@ -399,12 +401,115 @@ namespace CML {
   }
 
 
-  void ExperCPS::Setup_Handler() {
+  void ExperCPS::Setup_Handler(const RC::Data1D<RC::RStr> prev_sessions) {
     #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::Setup_Handler\n"));
     #endif
 
-//    cur_ev = 0;
+//    cout << "hello world" << endl;
+//    cout << prev_sessions.size() << endl;
+
+//    std::string str;
+//    current_config.Get(str, "experiment", "previous_sessions", 0, "path");
+//    cout << str << endl << endl << endl;
+
+//    cout << current_config.json.dump() << endl;
+//    cout << "got through" << endl;
+//    cout << current_config.json["experiment"].dump() << endl;
+//    cout << current_config.json["experiment"]["previous_sessions"].dump() << endl;
+
+    // load update events from previous sessions
+//    const json prev_sessions(current_config.json["experiment"]["previous_sessions"]);
+
+////    for (json::iterator it = prev_sessions.begin(); it != prev_sessions.end(); ++it) {
+//    for (auto& sess : prev_sessions) {
+    for (size_t idx = 0;  idx < prev_sessions.size(); idx++) {
+      RC::RStr filename = File::FullPath(prev_sessions[idx], "event.log");
+//      RC::RStr filename = File::FullPath(sess.at("path").dump(), "event.log");
+      RC::FileRead fr;
+      if (!fr.Open(filename)) {  // check that session directory has experiment config file
+        RC::RStr message = RC::RStr("CPS: Previous session at\n") + filename
+                                    + RC::RStr("\nfor subject could not be loaded.");
+        // TODO: RDD: is there an error catching mechanism for Throw_RC_Error? It looks like elsewhere only Throw_RC_Error is called?
+        if (!ConfirmWin(RC::RStr("WARNING!  ") + message + RC::RStr("  Continue?"))) {
+          Throw_RC_Error(message.c_str());
+//          Abort();
+        }
+        continue;
+      }
+
+      RC::Data1D<RC::RStr> events;
+      fr.ReadAll(events);
+
+      for (size_t i = 0; i < events.size(); i++) {
+        RC::RStr event_str(events[i]);
+        json event = json::parse(event_str.Raw());
+        RC::RStr ev_type(event.at("type").dump());
+        if ((ev_type.length() > 0) && (ev_type.find("UPDATE") < ev_type.length())) {
+          unsigned int neg = event["data"]["stim_params"]["electrode_neg"];
+          unsigned int pos = event["data"]["stim_params"]["electrode_pos"];
+          // map model indices from previous sessions based on contact numbers
+          bool no_match = true;
+          unsigned int m;
+          for (unsigned int j = 0; j < n_searches; j++) {
+            if (max_stim_loc_profiles[j][0].electrode_neg == neg
+                    && max_stim_loc_profiles[j][0].electrode_pos == pos) {
+              m = j;
+              no_match = false;
+              break;
+            }
+          }
+          if (no_match) { continue; }
+
+          double bio = event["data"]["biomarker"];
+          CMatrix biomarker_mat(bio);
+          std::vector<std::vector<double>> x = event["data"]["x"];
+          CMatrix xmat = from_vector(x);
+          JSONFile j;
+          j.json = event["data"]["stim_params"];
+          StimChannel chan = JSON2StimChannel(j);
+
+          StimProfile prof;
+          prof += chan;
+          // TODO: RDD: add bounds checking on CBayesianSearch functions
+          search.add_sample(m, xmat, biomarker_mat);
+
+          UpdateEvent ev;
+          ev.start_time = RC::Time::Get()*1e3;
+          ev.biomarker = bio;
+          ev.model_idx = m;
+          ev.stim_params = prof;
+          ev.opt_params = to_vector(xmat);
+          // null model state in ev indicates pre-loaded update events
+          LogUpdate(ev);
+        }
+      }
+    }
+
+    // add initial stim profiles
+    stim_profiles = RC::Data1D<RC::Data1D<StimProfile>>(n_searches);
+    exp_events = RC::Data1D<RC::Data1D<ExpEvent>>(n_searches + 1);  // index zero corresponds to sham events
+    for (int i = 0; i < n_searches; i++) { GetNextEvent(i); }
+    // separately add ExpEvent for first sham
+    ExpEvent ev;
+    ev.active_ms = cps_specs.sham_duration_ms;
+    ev.event_ms = rng.GetRange(cps_specs.intertrial_range_ms[0],
+        cps_specs.intertrial_range_ms[1]);
+    exp_events[0] += ev;
+
+    // Randomize order of stim locations/sham. Ensure stim locations and/or sham are not repeated consecutively.
+    search_order.Shuffle();
+
+    // configuration for initial event
+    if (search_order[search_order_idx]) {  // stim event
+      unsigned int next_idx = search_order[search_order_idx] - 1;
+      StimProfile next_stim_profile = stim_profiles[next_idx][stim_profiles[next_idx].size() - 1];
+      DoConfigEvent(next_stim_profile);
+    }
+
+    model_idxs += search_order[search_order_idx];
+
+    //    cur_ev = 0;
     event_time = 0;
     next_min_event_time = 0;
 
@@ -430,7 +535,9 @@ namespace CML {
     JSONFile startlog = MakeResp("START");
     hndl->event_log.Log(startlog.Line());
 
-    TriggerAt(0, ClassificationType::NORMALIZE);
+    if (!ShouldAbort()) {
+      TriggerAt(0, ClassificationType::NORMALIZE);
+    }
   }
 
 

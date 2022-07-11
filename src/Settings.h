@@ -47,7 +47,8 @@ namespace CML {
 
     void UpdateConfFR(JSONFile& current_config);
     void UpdateConfOPS(JSONFile& current_config);
-    void UpdateConfCPS(JSONFile& current_config);
+    RC::Data1D<RC::RStr> UpdateConfCPS(JSONFile& current_config, const RC::RStr& elemem_dir,
+                       const RC::RStr& session_dir, const RC::RStr& current_elec_config_filename);
 
     size_t GridSize() const;
 

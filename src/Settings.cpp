@@ -572,8 +572,10 @@ namespace CML {
   }
 
 
-  void Settings::UpdateConfCPS(JSONFile& current_config) {
-    RC_DEBOUT(RC::RStr("Settings::UpdateConfCPS enter\n"));
+  RC::Data1D<RC::RStr> Settings::UpdateConfCPS(JSONFile& current_config,
+                               const RC::RStr& elemem_path,
+                               const RC::RStr& session_path,
+                               const RC::RStr& current_elec_config_filename) {
     for (size_t c=0; c<max_stimconf_range.size(); c++) {
       // configuration ranges for parameters to search over
       current_config.Set(min_stimconf[c].params.amplitude*1e-3,
@@ -597,7 +599,77 @@ namespace CML {
       current_config.Set(uint32_t((max_stimconf_range[c].params.duration+500)/1000),
           "experiment", "stim_channels", c, "duration_search_range_ms", 1);
     }
-    RC_DEBOUT(RC::RStr("Settings::UpdateConfCPS exit\n"));
+
+    // log which stim parameters are being optimized
+    current_config.Set(nlohmann::json::array(), "experiment", "optimized_stim_parameters");
+    current_config.json["experiment"]["optimized_stim_parameters"].push_back(std::string("amplitude"));
+    current_config.json["experiment"]["optimized_stim_parameters"].push_back(std::string("location"));
+
+
+    // get previous session event logs for loading search events
+
+    Data1D<RStr> elemem_subpaths = RC::File::DirList(elemem_path, true);
+    Data1D<RStr> prev_sess_paths;
+
+    // get localization/montage for current subject from electrode config filename
+    RC::RStr elec_file_no_ext(File::NoExtension(File::Basename(current_elec_config_filename)));
+    RC::RStr loc_mont(elec_file_no_ext.substr(elec_file_no_ext.find_last_of(RC::RStr("_")) + 1));
+
+    current_config.Set(nlohmann::json::array(), "experiment", "previous_sessions");
+    size_t n_prev_sess = 0;
+    for (size_t i = 0; i < elemem_subpaths.size(); i++) {
+      RStr sess_dir = File::Basename(elemem_subpaths[i]);
+      if (elemem_subpaths[i] == session_path) { continue; }  // don't include current session
+      size_t p = sess_dir.find(RC::RStr("_"));
+
+      if (p < sess_dir.size() && sess_dir.substr(0, p) == sub) {  // only include session directories from same subject
+        RC::RStr prev_sess_conf = File::FullPath(elemem_subpaths[i], "experiment_config.json");
+        RC::FileRead fr;
+        // TODO: RDD: remove this warning if a subject session doesn't load? Session may not be for current experiment
+        if (!fr.Open(prev_sess_conf)) {  // check that session directory has experiment config file
+          RC::RStr message = RC::RStr("CPS: Previous session at\n") + prev_sess_conf
+                                      + RC::RStr("\nfor subject could not be loaded.");
+          DEBLOG_OUT(message);
+          // TODO: RDD: is there an error catching mechanism for Throw_RC_Error? It looks like elsewhere only Throw_RC_Error is called?
+          if (!ConfirmWin(RC::RStr("WARNING!  ") + message + RC::RStr("  Continue?"))) {
+            Throw_RC_Error(message.c_str());
+          }
+          continue;
+        }
+        JSONFile sess_conf(prev_sess_conf);
+        RC::RStr sess_exper = RC::RStr(sess_conf.json.at("experiment").at("type").dump());
+
+        // TODO: RDD: json.dump() seems to be adding characters to sess_exper (which explicitly prints as "CPS").
+        //            fix so that this doesn't happen
+//        if (sess_exper.find("CPS") == 0) {
+        if (sess_exper.find("CPS") < sess_exper.size()) {
+          // filter sessions for matching montage/localization
+          // TODO: RDD: currently just comparing file suffix of electrode config files; should probably just compare config files directly
+          RC::RStr prev_elec_file_no_ext(File::NoExtension(sess_conf.json.at("electrode_config_file").dump()));
+          RC::RStr prev_loc_mont(prev_elec_file_no_ext.substr(prev_elec_file_no_ext.find_last_of(RC::RStr("_")) + 1));
+          if (prev_loc_mont.find(loc_mont) != 0) { continue; }
+
+          // add previous session info
+          current_config.json["experiment"]["previous_sessions"].push_back(nlohmann::json({}));
+          current_config.Set(elemem_subpaths[i].Raw(), "experiment", "previous_sessions", n_prev_sess, "path");
+          prev_sess_paths += elemem_subpaths[i];
+
+          // this works here; not after currentconfig saved and transferred to new function?
+//          cout << "back in UpdateConfCPS" << endl;
+//          std::string str;
+//          current_config.Get(str, "experiment", "previous_sessions", n_prev_sess, "path");
+//          cout << str << endl << endl << endl;
+
+          // TODO: RDD/JPB: need to get video paths for each experiment and then
+          //                load them up here to ensure videos are watched in correct order
+//          current_config.Set(elemem_subpaths[i], "experiment", "previous_sessions", n_prev_sess, "video");
+          n_prev_sess++;
+        }
+      }
+    }
+//    cout << "end of UpdateConfCPS" << endl;
+//    cout << prev_sess_paths.size() << endl;
+    return prev_sess_paths;
   }
 
 

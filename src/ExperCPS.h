@@ -50,10 +50,15 @@ namespace CML {
     public:
     f64 start_time;  // start of pre-stim classification duration, ms
     unsigned int model_idx;  // index into fixed stimulation locations/parameter sets/optimization models
-    StimProfile stim_params;  // parameters for update
+    StimProfile stim_params;  // full stim parameters for update
+    vector<vector<double>> opt_params;  // just optimized parameter values (for convenience)
     double biomarker;  // biomarker for update
     json state;  // optimization algorithm state after update
   };
+
+//  class PreUpdateEvent : public UpdateEvent {
+//    unsigned int session;
+//  };
 
   class Handler;
   class StatusPanel;
@@ -81,8 +86,12 @@ namespace CML {
     RCqt::TaskCaller<const RC::Ptr<StatusPanel>> SetStatusPanel =
       TaskHandler(ExperCPS::SetStatusPanel_Handler);
 
-    RCqt::TaskCaller<> Setup =
-      TaskHandler(ExperCPS::Setup_Handler);
+
+    // I know, I know. But I spent hours trying to pass a Data1D<RC::RStr> into Setup() to no avail...
+    // either arrays were empty after I passed them in (they were non-empty a few lines before) or
+    // I got a static compiler message when I tried to pass in a non-reference variable
+//    RCqt::TaskCaller<const RC::Data1D<RC::RStr>> Setup =
+//      TaskHandler(ExperCPS::Setup_Handler);
 
     RCqt::TaskCaller<> Start =
       TaskHandler(ExperCPS::Start_Handler);
@@ -98,6 +107,8 @@ namespace CML {
 
     StimulationCallback StimDecision =
       TaskHandler(ExperCPS::StimDecision_Handler);
+
+    void Setup_Handler(const RC::Data1D<RC::RStr> prev_sessions);
 
     protected:
     void SetCPSSpecs_Handler(const CPSSpecs& new_cps_specs) {
@@ -134,8 +145,8 @@ namespace CML {
     JSONFile JSONifyStimProfile(const StimProfile& profile);
     // TODO: RDD: move somewhere Elemem-general, use in StimWorker?
     JSONFile StimChannel2JSON(StimChannel chan);
+    StimChannel JSON2StimChannel(JSONFile j);
 
-    void Setup_Handler();
     void Start_Handler();
     void Stop_Handler();
     void InternalStop();
