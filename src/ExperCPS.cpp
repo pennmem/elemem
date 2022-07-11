@@ -18,7 +18,6 @@ namespace CML {
     n_var = 1;
     obsNoise = 0.1;
     exp_bias = 0.25;
-    pval_threshold = 0.05;
 
     #ifdef DEBUG_EXPERCPS
     verbosity = 1;
@@ -35,7 +34,7 @@ namespace CML {
     CWhiteKern whitek(n_var);
     kern.addKern(&whitek);
     CMatrix b(1, 2);
-    b(0, 0) = 0.1;
+    b(0, 0) = 0.2;
     b(0, 1) = 2.0;
     kern.setBoundsByName("matern32_0__lengthScale", b);
     b(0, 0) = 0.25;
@@ -47,7 +46,7 @@ namespace CML {
 
     // TODO: RDD: LATER load parameters from config file? Or should experimental parameters be hard-coded to prevent accidental changes?
 
-    // TODO: RDD: check values with design docs
+    // TODO: RDD: confirm values with design docs
     // TODO: RDD: what Morlet wavelet frequencies are being used? PS4 only went from 6 Hz to 180 Hz
     // TODO: RDD: original PS4 used only 500 ms classification interval for post-stim interval; can we get away with that for both intervals?
 
@@ -57,7 +56,7 @@ namespace CML {
     classify_ms = 500;
     #else
     n_normalize_events = 25;
-    classify_ms = 1366;  // TODO: consider shortening for more events; check classifier performance with shorter feature intervals
+    classify_ms = 1366;  // TODO: consider shortening for more events; check classifier performance with shorter feature intervals, higher min freqs
     #endif
     poststim_classif_lockout_ms = 30;
 
@@ -931,61 +930,8 @@ namespace CML {
       Throw_RC_Error("Invalid classification type received.\n");
     }
 
-//    #ifdef DEBUG_EXPERCPS
-//    if (next_classif_state == ClassificationType::STIM)
-//      { RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: STIM event requested\n")); }
-//    else { RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: SHAM event requested\n")); }
-//    #endif
-
-//    #ifdef DEBUG_EXPERCPS
-//    RC_DEBOUT(RC::RStr("\nnext_min_event_time: ") + to_string(static_cast<i64>(next_min_event_time))
-//              + RC::RStr("\n"));
-//    #endif
     TriggerAt(next_min_event_time, next_classif_state);
-
-    //  JSONFile data;
-    // data.Set(result, "result");
-    // data.Set(stim, "decision");
-
-    // const RC::RStr type = [&] {
-    //     switch (task_classifier_settings.cl_type) {
-    //       case ClassificationType::STIM: return "STIM_DECISON";
-    //       case ClassificationType::SHAM: return "SHAM_DECISON";
-    //       case ClassificationType::NOSTIM: return "NOSTIM_DECISION";
-    //       case ClassificationType::NORMALIZE: return "NORMALIZE_NOSTIM_DECISION";
-    //       default: Throw_RC_Error("Invalid classification type received.");
-    //     }
-    // }();
-
-    // auto resp = MakeResp(type, task_classifier_settings.classif_id, data);
-    // hndl->event_log.Log(resp.Line());
-    // RC_DEBOUT(resp);
   }
-
-
-//  void ExperCPS::ComputeBestStimProfile() {
-//    #ifdef DEBUG_EXPERCPS
-//    RC_DEBOUT(RC::RStr("ExperCPS::ComputeBestStimProfile\n"));
-//    #endif
-//    // TODO LATER: RDD: extend to tuning with arbitrary stim parameters
-//    // TODO: RDD: save/log full ComparisonStruct results in addition to beat_sham
-//    ComparisonStruct sol = search.get_best_solution();
-//    #ifdef DEBUG_EXPERCPS
-//    RC_DEBOUT(RC::RStr("ExperCPS::ComputeBestStimProfile after get_best_solution()\n"));
-//    #endif
-
-//    if (sol.xs[sol.idx_best] == nullptr) { Throw_RC_Error("Null pointer in ExperCPS::ComputeBestStimProfile() sol.\n"); }
-//    CMatrix best_sol_mat = *(sol.xs[sol.idx_best]);
-//    // assume single-site stim for now (last index indicates one stim site out of many active in a profile)
-//    StimChannel chan = stim_profiles[sol.idx_best][0][0];
-//    // convert from mA to uA
-//    chan.amplitude = (uint16_t)(best_sol_mat.getVal(0) * 1000);
-//    best_stim_profile += chan;
-
-//    // compare best stim parameter set with sham events
-//    TestStruct sham_test = search.compare_GP_to_sample(sol, sham_results);
-//    beat_sham = sham_test.pval < pval_threshold;
-//  }
 
 
   // Shuffle array. Ensure first element in shuffled array does not equal last element in <d> and that there are no equal consecutive elements.

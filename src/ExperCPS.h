@@ -204,7 +204,6 @@ namespace CML {
     // search is allowed from 1-10 Hz and from 50-100 Hz for a single stim location. Both ranges are searched
     // separately)
     int n_searches;
-    double pval_threshold;
     int verbosity;
     CCmpndKern kern;
     CSearchComparison search;
