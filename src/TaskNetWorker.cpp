@@ -92,25 +92,27 @@ namespace CML {
         hndl->stim_worker.Stimulate();
       }
       else if (type == "CLSTIM") {
-        uint64_t classifyms;
-        inp.Get(classifyms, "data", "classifyms");
+        uint64_t classify_ms;
+        inp.Get(classify_ms, "data", "classifyms");
         hndl->task_classifier_manager->ProcessClassifierEvent(
-            ClassificationType::STIM, classifyms, id);
+            ClassificationType::STIM, classify_ms, id);
       }
       else if (type == "CLSHAM") {
-        uint64_t classifyms;
-        inp.Get(classifyms, "data", "classifyms");
+        uint64_t classify_ms;
+        inp.Get(classify_ms, "data", "classifyms");
         hndl->task_classifier_manager->ProcessClassifierEvent(
-            ClassificationType::SHAM, classifyms, id);
+            ClassificationType::SHAM, classify_ms, id);
       }
       else if (type == "CLNORMALIZE") {
-        uint64_t duration;
-        inp.Get(duration, "data", "classifyms");
+        uint64_t classify_ms;
+        inp.Get(classify_ms, "data", "classifyms");
         hndl->task_classifier_manager->ProcessClassifierEvent(
-            ClassificationType::NORMALIZE, duration, id);
+            ClassificationType::NORMALIZE, classify_ms, id);
       }
       else if (type == "CCLSTARTSTIM") {
-        hndl->exper_cps.Start();
+        uint64_t duration_s;
+        inp.Get(duration_s, "data", "duration");
+        hndl->exper_cps.Start(duration_s);
       }
       else if (type == "SESSION") {
         int64_t session;
@@ -132,7 +134,7 @@ namespace CML {
       else {
         if (type ==
             RC::OneOf("ORIENT", "COUNTDOWN", "DISTRACT", "RECALL", "REST",
-                      "INSTRUCT", "TRIALEND", "MATH")) {
+                      "INSTRUCT", "TRIALEND", "MATH", "ENCODING")) {
           status_panel->SetEvent(type);
         }
       }

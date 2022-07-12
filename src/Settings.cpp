@@ -507,8 +507,6 @@ namespace CML {
 
 
   void Settings::LoadStimParamsCPS() {
-    exp_config->Get(cps_specs.experiment_duration_secs, "experiment",
-        "experiment_specs", "experiment_duration_secs");
     exp_config->Get(cps_specs.intertrial_range_ms, "experiment",
         "experiment_specs", "intertrial_range_ms");
     exp_config->Get(cps_specs.sham_duration_ms, "experiment",

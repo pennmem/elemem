@@ -90,7 +90,7 @@ namespace CML {
     RCqt::TaskCaller<const RC::Data1D<RC::RStr>> Setup =
       TaskHandler(ExperCPS::Setup_Handler);
 
-    RCqt::TaskCaller<> Start =
+    RCqt::TaskCaller<const uint64_t> Start =
       TaskHandler(ExperCPS::Start_Handler);
 
     RCqt::TaskBlocker<> Stop =
@@ -144,7 +144,7 @@ namespace CML {
     JSONFile StimChannel2JSON(StimChannel chan);
     StimChannel JSON2StimChannel(JSONFile j);
 
-    void Start_Handler();
+    void Start_Handler(const uint64_t& duration_s);
     void Stop_Handler();
     void InternalStop();
 

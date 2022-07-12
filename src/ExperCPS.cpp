@@ -501,20 +501,10 @@ namespace CML {
     //    cur_ev = 0;
     event_time = 0;
     next_min_event_time = 0;
-
-    // Total run time (ms), fixes experiment length for CPS.
-    experiment_duration = cps_specs.experiment_duration_secs * 1000;
-
-    // Confirm window for run time.
-    if (!ConfirmWin(RC::RStr("Total run time will be ") + experiment_duration / (60 * 1000) + " min. "
-          + (experiment_duration * 1000) % 60 + " sec.", "Session Duration")) {
-      hndl->StopExperiment();
-      return;
-    }
   }
 
 
-  void ExperCPS::Start_Handler() {
+  void ExperCPS::Start_Handler(const uint64_t& duration_s) {
     #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
     #endif
@@ -523,6 +513,9 @@ namespace CML {
 
     JSONFile startlog = MakeResp("START");
     hndl->event_log.Log(startlog.Line());
+
+    // Total run time (ms), fixes experiment length for CPS.
+    experiment_duration = duration_s * 1000;
 
     if (!ShouldAbort()) {
       TriggerAt(0, ClassificationType::NORMALIZE);
