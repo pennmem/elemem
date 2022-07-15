@@ -313,15 +313,69 @@ namespace CML {
     return chan;
   }
 
+  bool ExperCPS::ValidateStimulationProfile(const StimProfile& profile, const unsigned int profile_idx) {
+    // validates whether a given stim profile parameters fall within the safe stimulation ranges
+    // determined within the experiment configuration file and the safe stimulation determination clinical process
+    StimProfile max_profile = max_stim_loc_profiles[profile_idx];
+    StimProfile min_profile = min_stim_loc_profiles[profile_idx];
+    if (profile[0].electrode_pos != max_profile[0].electrode_pos ||
+        profile[0].electrode_neg != max_profile[0].electrode_neg ||
+        profile[0].frequency > max_profile[0].frequency ||
+        profile[0].frequency < min_profile[0].frequency ||
+        profile[0].duration > max_profile[0].duration ||
+        profile[0].duration < min_profile[0].duration ||
+        profile[0].area != max_profile[0].area ||  // fixed with contact
+        profile[0].burst_frac > max_profile[0].burst_frac ||
+        profile[0].burst_frac < min_profile[0].burst_frac ||
+        profile[0].burst_slow_freq > max_profile[0].burst_slow_freq ||
+        profile[0].burst_slow_freq < min_profile[0].burst_slow_freq ||
+        profile[0].amplitude > max_profile[0].amplitude ||
+        profile[0].amplitude < min_profile[0].amplitude
+      ) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
 
-  void ExperCPS::DoConfigEvent(const StimProfile& profile) {
+  void ExperCPS::DoConfigEvent(const StimProfile& profile, const unsigned int profile_idx) {
+    // model_idx is zero-indexed to stim parameter sets, not sham
     // #ifdef DEBUG_EXPERCPS
     // RC_DEBOUT(RC::RStr("ExperCPS: enter DoConfigEvent \n\n"));
     // #endif
-    JSONFile config_event = MakeResp("CONFIG");
+    JSONFile config_event = MakeResp("CONFIG_STIM");
     config_event.Set(JSONifyStimProfile(profile), "data");
+    hndl->event_log.Log(config_event.Line());
     status_panel->SetEvent("PRESET");
-    hndl->stim_worker.ConfigureStimulation(profile);
+    // TODO: RDD: in case we're comfortable using the min/max sim parameter ranges instead...
+//    int validation_result = ValidateStimulationProfile(profile);
+//    if (validation_result == 0) {
+    if (ValidateStimulationProfile(profile, profile_idx)) {
+      hndl->stim_worker.ConfigureStimulation(profile);
+    }
+//    else if (validation_result == 1) { // above max safe value
+//      DebugLog(RC::RStr("CPS: Stimulation profile with parameters out of safe range requested for configuration for stim profile ")
+//               + RC::RStr(to_string(profile_idx))
+//               + RC::RStr(". Using maximum allowable stimulation profile instead."));
+//      hndl->stim_worker.ConfigureStimulation(max_stim_loc_profiles[profile_idx]);
+
+//    }
+//    else if (validation_result == -1) { // below min safe value
+//      DebugLog(RC::RStr("CPS: Stimulation profile with parameters out of safe range requested for configuration for stim profile ")
+//               + RC::RStr(to_string(profile_idx))
+//               + RC::RStr(". Using minimum allowable stimulation profile instead."));
+//      hndl->stim_worker.ConfigureStimulation(min_stim_loc_profiles[profile_idx]);
+//    }
+    else {
+      RC::RStr message = RC::RStr("CPS: Stimulation profile with parameters out of safe range requested for configuration for stim profile ")
+                + RC::RStr(to_string(profile_idx))
+                + RC::RStr(". Aborting experiment.");
+//                        + RC::RStr(". Nearest safe parameter range endpoint could not be determined. Aborting experiment."));
+      DebugLog(message);
+      Abort();
+      Throw_RC_Error(message.c_str());
+    }
   }
 
 
@@ -414,10 +468,9 @@ namespace CML {
       if (!fr.Open(filename)) {  // check that session directory has experiment config file
         RC::RStr message = RC::RStr("CPS: Previous session at\n") + filename
                                     + RC::RStr("\nfor subject could not be loaded.");
-        // TODO: RDD: is there an error catching mechanism for Throw_RC_Error? It looks like elsewhere only Throw_RC_Error is called?
         if (!ConfirmWin(RC::RStr("WARNING!  ") + message + RC::RStr("  Continue?"))) {
+          Abort();
           Throw_RC_Error(message.c_str());
-//          Abort();
         }
         continue;
       }
@@ -493,7 +546,7 @@ namespace CML {
     if (search_order[search_order_idx]) {  // stim event
       unsigned int next_idx = search_order[search_order_idx] - 1;
       StimProfile next_stim_profile = stim_profiles[next_idx][stim_profiles[next_idx].size() - 1];
-      DoConfigEvent(next_stim_profile);
+      DoConfigEvent(next_stim_profile, next_idx);
     }
 
     model_idxs += search_order[search_order_idx];
@@ -513,6 +566,8 @@ namespace CML {
 
     JSONFile startlog = MakeResp("START");
     hndl->event_log.Log(startlog.Line());
+
+    // TODO: RDD: confirm duration_s is logged; add option to set this to whatever I want for testing
 
     // Total run time (ms), fixes experiment length for CPS.
     experiment_duration = duration_s * 1000;
@@ -899,7 +954,7 @@ namespace CML {
         // immediately after sham events
         unsigned int next_idx = search_order[search_order_idx] - 1;
         StimProfile next_stim_profile = stim_profiles[next_idx][stim_profiles[next_idx].size() - 1];
-        DoConfigEvent(next_stim_profile);
+        DoConfigEvent(next_stim_profile, next_idx);
       }
       else { next_classif_state = ClassificationType::SHAM; }  // sham event
       // log which stim location (or whether sham) is requested next

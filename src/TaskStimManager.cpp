@@ -26,7 +26,7 @@ namespace CML {
           case ClassificationType::STIM: return "STIM_DECISION";
           case ClassificationType::SHAM: return "SHAM_DECISION";
           case ClassificationType::NOSTIM: return "NOSTIM_DECISION";
-          case ClassificationType::NORMALIZE: return "NORMALIZE_NOSTIM_DECISION";
+          case ClassificationType::NORMALIZE: return "NORMALIZE_DECISION";
           default: Throw_RC_Error("Invalid classification type received.");
         }
     }();

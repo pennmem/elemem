@@ -239,8 +239,8 @@ namespace CML {
     // set CPS parameter search ranges
     if (settings.exper.find("CPS") == 0) {
       settings.min_stimconf_range[index] = updated_settings;
-      // hardcode min amplitude to min value of 0.1; non-zero stim values will never
-      // be below 0.1 mA
+      // hardcode min amplitude to min value of 0.1 mA; non-zero stim values will never
+      // be below 0.1 mA/100 uA (CereStim/StimProfile/StimChannel amplitudes are recorded in uA)
       settings.min_stimconf_range[index].params.amplitude = 100;
       settings.max_stimconf_range[index] = updated_settings;
     }
@@ -438,8 +438,7 @@ namespace CML {
       cout << "min_discrete_stim_param_sets.size() " << min_discrete_stim_param_sets.size() << endl;
 
       exper_cps.SetCPSSpecs(settings.cps_specs);
-      // need experiment config filename to search through other experiment directories
-      // for previous sessions to load search samples
+
       // discrete stim param sets only give fixed (non-optimized) stim parameters
       exper_cps.SetStimProfiles(min_discrete_stim_param_sets, max_discrete_stim_param_sets);
     }
@@ -559,9 +558,6 @@ namespace CML {
       main_window->GetStatusPanel()->SetEvent("WAITING");
     };
 
-//    cout << "outside UpdateConfCPS" << endl;
-//    cout << prev_sessions.size() << endl;
-
     if (settings.grid_exper) {
       exper_ops.Start();
     }
@@ -576,8 +572,6 @@ namespace CML {
     else { // Network experiment.
       SetupNetworkTask();
     }
-//    cout << "outside UpdateConfCPS" << endl;
-//    cout << prev_sessions.size() << endl;
   }
 
   void Handler::StopExperiment_Handler() {
@@ -864,9 +858,6 @@ namespace CML {
       if (!settings.stimgrid_chan_on[c]) { continue; }
       auto& chan = settings.stimconf[c];
       // TODO: RDD: tuning amplitude for now; update to tune arbitrary stim parameters
-      // for (size_t a=0; a<settings.stimgrid_amp_on.size(); a++) {
-      //   if (!settings.stimgrid_amp_on[a]) { continue; }
-      //   auto& amp = settings.stimgrid_amp_uA[a];
       for (size_t f=0; f<settings.stimgrid_freq_on.size(); f++) {
         if (!settings.stimgrid_freq_on[f]) { continue; }
         auto& freq = settings.stimgrid_freq_Hz[f];
