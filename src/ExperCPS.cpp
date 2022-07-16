@@ -403,9 +403,9 @@ namespace CML {
     d.Set(ev.settings.duration_ms, "duration");
     const RC::RStr type = [&] {
         switch (ev.settings.cl_type) {
-          case ClassificationType::STIM: return "CLASSIFY_STIM";
-          case ClassificationType::SHAM: return "CLASSIFY_SHAM";
-          case ClassificationType::NOSTIM: return "CLASSIFY_NOSTIM";
+          case ClassificationType::STIM: return "CLASSIFY_STIM_CPS";
+          case ClassificationType::SHAM: return "CLASSIFY_SHAM_CPS";
+          case ClassificationType::NOSTIM: return "CLASSIFY_NOSTIM_CPS";
           default: Throw_RC_Error("Invalid classification type received.");
         }
     }();

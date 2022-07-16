@@ -7,7 +7,7 @@ namespace CML {
     CPSSpecs() { Clear(); }
     void Clear() {
       intertrial_range_ms.Clear();
-      sham_duration_ms = uint64_t(-1);
+      sham_duration_ms = uint64_t(0);
     }
 
     RC::Data1D<uint64_t> intertrial_range_ms;

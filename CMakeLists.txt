@@ -43,6 +43,7 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnull-dereference -Werror")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRC_HAVE_QT")
 
 enable_language(Fortran)
+enable_language(C)
 
 if(APPLE)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1 -mmacosx-version-min=11.0")
@@ -58,7 +59,12 @@ endif(APPLE)
 if(WIN32)
   # CBayes dependencies
   # FORTRAN
-  set(CMAKE_FC_COMPILER "${CMAKE_COMPILER_DIR}/gfortran.exe")
+  # Qt5 MinGW comes with gfortran in same directory CXX compiler
+  get_filename_component(CMAKE_COMPILER_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
+  set(CMAKE_Fortran_COMPILER "${CMAKE_COMPILER_DIR}/gfortran.exe")
+
+  #set(CMAKE_FC_COMPILER "${CMAKE_COMPILER_DIR}/gfortran.exe")
+  #set(CMAKE_Fortran_COMPILER "${CMAKE_COMPILER_DIR}/gfortran.exe")
   
   set_source_files_properties( include/BayesGPc/ndlfortran_timer.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
   set_source_files_properties( include/BayesGPc/ndlfortran_linpack.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
@@ -433,14 +439,7 @@ target_include_directories (${PROJECT_NAME} PUBLIC
 
 if(WIN32)
   # build BLAS/LAPACK
-  enable_language(C)
-  execute_process(
-    COMMAND mkdir -p BUILD
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack
-    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
-  if(NOT LAPACK_SUBMOD_RESULT EQUAL "0")
-    message(FATAL_ERROR "Failed to make lapack BUILD directory with ${LAPACK_SUBMOD_RESULT}")
-  endif()
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD)
   execute_process(
     COMMAND cmake -G "MinGW Makefiles" -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DBUILD_SHARED_LIBS=ON -DGNUtoMS=ON -DCMAKE_Fortran_FLAGS=-O0 -DBUILD_INDEX64=ON ..
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
