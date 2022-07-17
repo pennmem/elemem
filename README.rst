@@ -19,7 +19,7 @@ Clone the repository
 .. code:: bash
 
     git clone git@github.com:pennmem/elemem.git
-    git submode update --init --recursive
+    git submodule update --init --recursive
 
 ====================
 Install dependencies
