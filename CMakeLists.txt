@@ -63,9 +63,6 @@ if(WIN32)
   get_filename_component(CMAKE_COMPILER_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
   set(CMAKE_Fortran_COMPILER "${CMAKE_COMPILER_DIR}/gfortran.exe")
 
-  #set(CMAKE_FC_COMPILER "${CMAKE_COMPILER_DIR}/gfortran.exe")
-  #set(CMAKE_Fortran_COMPILER "${CMAKE_COMPILER_DIR}/gfortran.exe")
-  
   set_source_files_properties( include/BayesGPc/ndlfortran_timer.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
   set_source_files_properties( include/BayesGPc/ndlfortran_linpack.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
   set_source_files_properties( include/BayesGPc/ndlfortran_lbfgsb.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
@@ -326,19 +323,9 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
 
   include/edflib/edflib.cpp
   ${PTSA_FILES}
-)
-
-
-####################
-# Internal libraries
-
-add_library(libBAYES 
   ${BAYES_FILES}
 )
 
-target_link_libraries(${PROJECT_NAME}
-  libBAYES
-)
 
 ####################
 # External libraries
@@ -454,46 +441,20 @@ if(WIN32)
   if(NOT LAPACK_SUBMOD_RESULT EQUAL "0")
     message(FATAL_ERROR "LAPACK make failed with ${LAPACK_SUBMOD_RESULT}")
   endif()
-  # copy into dll, lib64, and dist
-  execute_process(
-    COMMAND cp bin/libblas64.dll ${CMAKE_CURRENT_SOURCE_DIR}/dll/libblas64.dll
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
-    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
-  execute_process(
-    COMMAND cp bin/libblas64.dll ${CMAKE_CURRENT_SOURCE_DIR}/dist/libblas64.dll
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
-    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
-  execute_process(
-    COMMAND cp lib/libblas64.dll.a ${CMAKE_CURRENT_SOURCE_DIR}/lib64/libblas64.dll.a
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
-    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
-  execute_process(
-    COMMAND cp bin/liblapack64.dll ${CMAKE_CURRENT_SOURCE_DIR}/dll/liblapack64.dll
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
-    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
-  execute_process(
-    COMMAND cp bin/liblapack64.dll ${CMAKE_CURRENT_SOURCE_DIR}/dist/liblapack64.dll
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
-    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
-  execute_process(
-    COMMAND cp lib/liblapack64.dll.a ${CMAKE_CURRENT_SOURCE_DIR}/lib64/liblapack64.dll.a
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
-    RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
 
   # CBayes dependencies
-  find_library (BLAS_LIB "blas64" PATHS ${PROJECT_SOURCE_DIR}/lib64)
+  find_library (BLAS_LIB "blas64" PATHS ${PROJECT_SOURCE_DIR}/include/lapack/BUILD/lib)
   if (NOT BLAS_LIB)
     message (FATAL_ERROR
-      "BLAS library missing from ${PROJECT_SOURCE_DIR}/lib64"
+      "BLAS library missing from ${PROJECT_SOURCE_DIR}/include/lapack/BUILD/lib"
     )
   endif ()
-  find_library (LAPACK_LIB "lapack64" PATHS ${PROJECT_SOURCE_DIR}/lib64)
+  find_library (LAPACK_LIB "lapack64" PATHS ${PROJECT_SOURCE_DIR}/include/lapack/BUILD/lib)
   if (NOT LAPACK_LIB)
     message (FATAL_ERROR
       "LAPACK library missing from ${PROJECT_SOURCE_DIR}/lib64"
     )
   endif ()
-  find_library (BAYES_LIB "BayesGPc" PATHS ${PROJECT_SOURCE_DIR}/include/BayesGPc)
 endif(WIN32)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
@@ -546,6 +507,21 @@ if (WIN32)
   add_custom_command (TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${CSTIM_LIB}
       ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  )
+  add_custom_command (TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD/bin/libblas64.dll
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  )
+  add_custom_command (TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD/bin/liblapack64.dll
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  )
+  add_custom_command (TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_SOURCE_DIR}/fftw/libfftw3-3.dll
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
   )
 endif (WIN32)
 
