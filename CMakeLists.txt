@@ -349,9 +349,6 @@ if (NOT CBSDK_LIB)
 endif ()
 
 if (WIN32)
-  # find_library was failing on task laptop while explicitly setting CSTIM_LIB worked.
-  # changing CereStimDLL.dll to CereStimDLL.dll.a also worked
-  #set (CSTIM_LIB "${PROJECT_SOURCE_DIR}/dll/CereStimDLL.dll")
   find_library (CSTIM_LIB "CereStimDLL" PATHS ${PROJECT_SOURCE_DIR}/dll)
   if (NOT CSTIM_LIB)
     message (FATAL_ERROR

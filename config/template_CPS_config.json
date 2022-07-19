@@ -1,0 +1,59 @@
+{
+  "electrode_config_file": "R1384J_20220518_mono_L0M0.csv",
+  #"bipolar_electrode_config_file": "R1384J_20220518_bi_L0M0.csv",
+  "experiment": {
+    "stim_mode": "closed",
+    "stim_channels": [  // is pulse width not set in the configuration files? stim waveform, e.g., theta-burst?
+      {
+        "electrodes": "LF1_LF2",  // Splitter mode.
+        "amplitude_range_mA": [0, 1.0],
+        "amplitude_search_range_mA": [0.1, 1.0],
+        "frequency_range_Hz": [200, 200],
+        "frequency_search_range_Hz": [200, 200],
+        "duration_range_ms": [500, 500],
+        "duration_search_range_ms": [500, 500]
+      },
+      {
+        "electrodes": [3, 4],  // Add label entry to config box.
+        "amplitude_range_mA": [0, 1.0],
+        "amplitude_search_range_mA": [0.1, 1.0],
+        "frequency_range_Hz": [200, 200],
+        "frequency_search_range_Hz": [200, 200],
+        "duration_range_ms": [500, 500],
+        "duration_search_range_ms": [500, 500]
+      }
+    ],
+    "experiment_specs": {
+      "intertrial_range_ms": [
+        2750,
+        3250
+      ],
+      "experiment_duration_secs": 1600,
+      "sham_duration_ms": 500
+    },
+    "classifier": {
+      "classifier_file": "converted_classifier_R1384J_session_0.json",
+      "binning_frequency_Hz": 250,
+      "morlet_cycles": 2, // 3
+      "circular_buffer_duration_ms": 5000
+    },
+    "type": "CPS"
+  },
+  "global_settings": {
+    "connect_to_task_laptop": true,
+    "data_dir": "AUTOMATIC",
+    "experiment_config_filename": "AUTOMATIC",
+    "hardware_lnc": true,
+    "lnc_time_constant": 10,
+    "dc_offset_correction": true,
+    "plot_window_length": 6000,
+    # "micro_sampling_rate": 30000,
+    "macro_sampling_rate": 1000,
+    "binned_sampling_rate": 1000
+  },
+#  "montage_file": "config_files/contacts.json",
+#  "excluded_montage_file": "config_files/excluded_contacts.json",
+#  "ipaddress": "192.168.137.1", // Set this only if override needed.
+#  "port": 8889,  // Set this only if override needed.
+  "subject": "R1384J"
+}
