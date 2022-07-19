@@ -435,7 +435,7 @@ if(WIN32)
     message(FATAL_ERROR "LAPACK cmake failed with ${LAPACK_SUBMOD_RESULT}")
   endif()
   execute_process(
-    COMMAND make -j -s
+    COMMAND cmake --build . -j -v
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/lapack/BUILD
     RESULT_VARIABLE LAPACK_SUBMOD_RESULT)
   if(NOT LAPACK_SUBMOD_RESULT EQUAL "0")
