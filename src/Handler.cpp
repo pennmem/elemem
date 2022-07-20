@@ -48,8 +48,8 @@ namespace CML {
   Handler::Handler()
     : stim_worker(this),
       task_net_worker(this),
-      exper_ops(this),
-      exper_cps(this) {
+      exper_cps(this),
+      exper_ops(this) {
     // For error management, everything that could error must go into
     // Initialize_Handler()
   }
@@ -430,13 +430,6 @@ namespace CML {
         }
       }
 
-      cout << "settings.stimconf.size() " << settings.stimconf.size() << endl;
-      cout << "settings.max_stimconf_range.size() " << settings.max_stimconf_range.size() << endl;
-      cout << "settings.min_stimconf_range.size() " << settings.min_stimconf_range.size() << endl;
-
-      cout << "max_discrete_stim_param_sets.size() " << max_discrete_stim_param_sets.size() << endl;
-      cout << "min_discrete_stim_param_sets.size() " << min_discrete_stim_param_sets.size() << endl;
-
       exper_cps.SetCPSSpecs(settings.cps_specs);
 
       // discrete stim param sets only give fixed (non-optimized) stim parameters
@@ -563,13 +556,16 @@ namespace CML {
     }
     else if (settings.exper.find("CPS") == 0) {
       exper_cps.Setup(prev_sessions);
-      #ifdef CPS_NO_VIDEO
-      exper_cps.Start(60);
-      #else  // CPS_NO_VIDEO
-      SetupNetworkTask();
-      #endif  // CPS_NO_VIDEO
+      bool with_video;
+      current_config.Get(with_video, "experiment", "experiment_specs", "with_video_task");
+      if (with_video) { SetupNetworkTask(); }
+      else {  // for testing without the video task
+          size_t runtime_s;
+          current_config.Get(runtime_s, "experiment", "experiment_specs", "default_experiment_duration_secs");
+          exper_cps.Start(runtime_s);
+      }
     }
-    else { // Network experiment.
+    else {  // Network experiment.
       SetupNetworkTask();
     }
   }

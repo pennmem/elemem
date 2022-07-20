@@ -17,7 +17,9 @@
 #include "BayesGPc/CSearchComparison.h"
 #include "nlohmann/json.hpp"
 
+#ifdef DEBUG
 #define DEBUG_EXPERCPS
+#endif
 
 namespace CML {
   // experiment event definitions
@@ -133,7 +135,7 @@ namespace CML {
     void ClassifyingPanel();
     void DoConfigEvent(const StimProfile& profile, const unsigned int model_idx);
     bool ValidateStimulationProfile(const StimProfile& profile, const unsigned int profile_idx);
-    void DoStimEvent(const StimProfile& profile);
+    void StimPanel();
     void DoShamEvent();
 
     void LogNormalize(NormalizeEvent ev);
@@ -192,16 +194,16 @@ namespace CML {
     uint64_t poststim_classif_lockout_ms;
 
     int seed;
-    int n_var;
+    uint64_t n_var;
     vector<CMatrix> param_bounds;
     double obsNoise;
     double exp_bias;
-    int n_init_samples;
+    size_t n_init_samples;
     // number of distinct search locations (or more precisely, number of continuous distinct search spaces,
     // i.e. a single location could have different isolated blocks of stim parameters allowed for search, e.g.
     // search is allowed from 1-10 Hz and from 50-100 Hz for a single stim location. Both ranges are searched
     // separately)
-    int n_searches;
+    size_t n_searches;
     int verbosity;
     CCmpndKern kern;
     CSearchComparison search;
@@ -231,7 +233,15 @@ namespace CML {
     RC::Data1D<TaskClassifierSettings> exper_classif_settings;
     // absolute (relative to start of the experiment) times of EEG collection for each event in ms
     RC::Data1D<uint64_t> eeg_times;
+    // absolute (relative to start of the experiment) times of stim decisions (not stim events) for each event in ms
     RC::Data1D<uint64_t> stim_times;
+    // minimum number of milliseconds between previous stim event offset and next stim onset for safety
+    #ifdef DEBUG
+    const uint64_t stim_lockout_ms = 50;
+    #else
+    const uint64_t stim_lockout_ms = 500;
+    #endif
+    uint64_t prev_stim_offset_ms = 0;
     // array of distinct stim profile indices in order of event selection; index zero indicates sham
     RC::Data1D<unsigned int> model_idxs;
 
@@ -245,6 +255,8 @@ namespace CML {
     // index into search_order to obtain index of stim profile to stimulate with next
     size_t search_order_idx;
     uint64_t next_min_event_time;
+    // time last stim event was triggered in milliseconds from the experiment start
+    uint64_t last_stim_ms;
     uint64_t classif_id;
 
     RC::RND rng;

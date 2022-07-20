@@ -8,6 +8,8 @@
 namespace CML {
   StimWorker::StimWorker(RC::Ptr<Handler> hndl)
     : hndl(hndl) {
+    // first stim event should always pass lockout constraint
+    prev_stim_time_sec = -stim_lockout_sec;
   }
 
   StimulatorType StimWorker::GetStimulatorType() const {
@@ -61,6 +63,14 @@ namespace CML {
     }
 
     RC::Time timer;
+    f64 cur_stim_time_sec = RC::Time::Get();
+    if (cur_stim_time_sec - prev_stim_time_sec < stim_lockout_sec) {
+      Throw_RC_Error((string("Stimulation requested before ") +
+                      to_string(stim_lockout_sec) +
+                      string(" seconds after start of previous stimulation event. Aborting experiment for safety.")).c_str());
+      Abort();
+    }
+    prev_stim_time_sec = cur_stim_time_sec;
     stim_interface->Stimulate();
     status_panel->SetStimming(max_duration);
 
