@@ -8,10 +8,10 @@ project (Elemem VERSION 0.1 LANGUAGES CXX)
 ######################
 # Compilation settings
 
-set(IS_RELEASE true)
+option(IS_RELEASE "Build release executable" ON)
 option(CEREBUS_HW "Use the Cerebus/Neuroport interface" ON) # cmake -DCEREBUS_HW=OFF ..
 option(CERESTIM_STUB # cmake -DCERESTIM_STUB=ON ..
-  "Use the CereStim simulator (default ON for non-Windows)" ON)
+  "Use the CereStim simulator (default ON for non-Windows)" OFF)
 option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake -DHDF5_EXPORT=ON ..
 
 if (IS_RELEASE)
@@ -20,6 +20,7 @@ if (IS_RELEASE)
 else (IS_RELEASE)
   set(CMAKE_BUILD_TYPE Debug)
   set(BUILD_TYPE "")
+  add_definitions (-DDEBUG)
 endif (IS_RELEASE)
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
@@ -146,11 +147,6 @@ if (CERESTIM_STUB)
 else (CERESTIM_STUB)
   set (CERESTIM_STUB_FILE "")
 endif (CERESTIM_STUB)
-
-# bypass video task for development
-if (CPS_NO_VIDEO)
-  add_definitions (-DCPS_NO_VIDEO)
-endif (CPS_NO_VIDEO)
 
 if (CEREBUS_HW)
   set (CEREBUS_FILES src/Cerebus.h src/Cerebus.cpp)

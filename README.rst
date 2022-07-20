@@ -35,6 +35,7 @@ Build Elemem
     
    #. Install `QtCreator 5.12.11 <https://www.qt.io/offline-installers>`.
    #. Open the project in QtCreator by selecting the *CMakeLists.txt* file.
+   #. Select *Tools > Options > Kits > CMake > CMake with MinGW Makefiles Generator*
    #. Select *Build > Run CMake* from the top dropdown menu.
    #. Select *Build > Compile Elemem* from the top dropdown menu.
         
@@ -51,6 +52,7 @@ Build Elemem
       mkdir build
       cd build
       cmake ..
+	  # If on Windows, use the command cmake -G "MinGW Makefiles" ..
       make -j
             
 #. Special Situations

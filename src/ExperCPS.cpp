@@ -126,7 +126,7 @@ namespace CML {
       if (cps_specs.intertrial_range_ms[0] < min_pre_post_len) {
         Throw_RC_Error((string("Configuration file error: intertrial_range_ms[0] < minimum possible pre-post event length of ")
                        + to_string(min_pre_post_len)
-                       + string("ms.\n")).c_str());
+                       + string("ms. Please update the configuration file.\n")).c_str());
       }
       #endif
       search_order += i + 1;
@@ -140,7 +140,7 @@ namespace CML {
     vector<CCmpndKern> kernels;
     vector<double> observation_noises;
     vector<double> exploration_biases;
-    vector<int> init_samples;
+    vector<size_t> init_samples;
     vector<int> rng_seeds;
 
     CMatrix bounds(n_var, 2);
@@ -149,7 +149,7 @@ namespace CML {
     vector<vector<CMatrix>> all_grid_vals;
 
     // set search bounds
-    for (int i = 0; i < n_searches; i++) {
+    for (size_t i = 0; i < n_searches; i++) {
       // TODO: LATER RDD: fix this to allow for searching over arbitrary parameters;
       // TODO: LATER RDD: unclear how to handle sham stim duration when tuning over duration
 
@@ -168,7 +168,7 @@ namespace CML {
       int n_grid = (bounds.getVal(1) - bounds.getVal(0))/amplitude_resolution + 1;
       // grid represented as vector of CMatrices over grid values for each dimension
       vector<CMatrix> grid_vals;
-      for (int i = 0; i < n_var; i++) {
+      for (uint64_t i = 0; i < n_var; i++) {
           CMatrix grid1D = linspace(bounds.getVal(0),
                                     bounds.getVal(1),
                                     n_grid);
@@ -192,7 +192,7 @@ namespace CML {
   void ExperCPS::GetNextEvent(unsigned int model_idx) {
     // model_idx is zero-indexed into the set of stim sites while search_order_idx and model_idxs are zero-indexed from sham and
     // then follow same order as the stim sites
-    RC::APtr<CMatrix> next_pars = search.get_next_sample(model_idx);
+    CMatrix next_pars = search.get_next_sample(model_idx);
 
     // TODO: all: LATER currently assuming that stim parameters not being searched over are set separately in
     //            stim_loc_profiles, should add these to Settings.cpp
@@ -203,7 +203,7 @@ namespace CML {
 
     // pars amplitude in mA
     // StimChannel.amplitude in uA but allowed stim values in increments of 100 uA
-    stim_chan.amplitude = ((uint16_t)(next_pars->getVal(0)*10 + 0.5)) * 100;
+    stim_chan.amplitude = ((uint16_t)(next_pars.getVal(0)*10 + 0.5)) * 100;
 
     ExpEvent ev;
     ev.active_ms = stim_chan.duration/1000;
@@ -420,7 +420,7 @@ namespace CML {
   }
 
 
-  void ExperCPS::DoStimEvent(const StimProfile& profile) {
+  void ExperCPS::StimPanel() {
     status_panel->SetEvent("STIM");
   }
 
@@ -429,7 +429,7 @@ namespace CML {
   JSONFile ExperCPS::JSONifyStimProfile(const StimProfile& profile) {
     JSONFile stim_event;
     stim_event.Set(nlohmann::json::array(), "stim_profile");
-    for (int i = 0; i < profile.size(); i++) {
+    for (size_t i = 0; i < profile.size(); i++) {
       stim_event.json["stim_profile"].push_back(nlohmann::json({}));
       StimChannel chan = profile[i];
       stim_event.Set(chan.electrode_pos, "stim_profile", i, "electrode_pos");
@@ -483,7 +483,6 @@ namespace CML {
         json event = json::parse(event_str.Raw());
         RC::RStr ev_type(event.at("type").dump());
         if ((ev_type.length() > 0) && (ev_type.find("UPDATE") < ev_type.length())) {
-          bool loaded = event["loaded"];
           // Don't load events that were loaded into previous sessions since those will
           // be loaded separately assuming the previously loaded session directory is present
           if (event["loaded"]) { continue; }
@@ -492,7 +491,7 @@ namespace CML {
           // map model indices from previous sessions based on contact numbers
           bool no_match = true;
           unsigned int m;
-          for (unsigned int j = 0; j < n_searches; j++) {
+          for (size_t j = 0; j < n_searches; j++) {
             if (max_stim_loc_profiles[j][0].electrode_neg == neg
                     && max_stim_loc_profiles[j][0].electrode_pos == pos) {
               m = j;
@@ -531,7 +530,7 @@ namespace CML {
     // add initial stim profiles
     stim_profiles = RC::Data1D<RC::Data1D<StimProfile>>(n_searches);
     exp_events = RC::Data1D<RC::Data1D<ExpEvent>>(n_searches + 1);  // index zero corresponds to sham events
-    for (int i = 0; i < n_searches; i++) { GetNextEvent(i); }
+    for (size_t i = 0; i < n_searches; i++) { GetNextEvent(i); }
     // separately add ExpEvent for first sham
     ExpEvent ev;
     ev.active_ms = cps_specs.sham_duration_ms;
@@ -618,7 +617,7 @@ namespace CML {
     data_log.Set(nlohmann::json::array(), "analysis_data", "classif_results");
     data_log.Set(nlohmann::json::array(), "analysis_data", "stim_profiles");
     data_log.Set(nlohmann::json::array(), "analysis_data", "exp_events");
-    for (int i = 0; i < classif_results.size(); i++) {
+    for (size_t i = 0; i < classif_results.size(); i++) {
       data_log.json["analysis_data"]["classif_results"].push_back(classif_results[i]);
     }
 //    for (int i = 0; i < exp_events.size(); i++) {
@@ -629,9 +628,9 @@ namespace CML {
     // TODO: RDD: need to log stim profile indices
     // TODO: RDD: check whether I'm redundantly logging stim profiles here as well as during the experiment itself
     // TODO: RDD: remove analysis_data logging; just want to log data as it comes in, not at the end
-    for (int i = 0; i < n_searches; i++) {
+    for (size_t i = 0; i < n_searches; i++) {
       data_log.json["analysis_data"]["stim_profiles"].push_back(nlohmann::json::array());
-      for (int j = 0; j < stim_profiles[i].size(); j++) {
+      for (size_t j = 0; j < stim_profiles[i].size(); j++) {
         data_log.json["analysis_data"]["stim_profiles"][i].push_back(JSONifyStimProfile(stim_profiles[i][j]).json);
       }
     }
@@ -639,7 +638,7 @@ namespace CML {
     // TODO: RDD: move these log statements and all others to be as early as possible? then can't have a single JSON line
     data_log.Set(nlohmann::json::array(), "analysis_data", "min_stim_loc_profiles");
     data_log.Set(nlohmann::json::array(), "analysis_data", "max_stim_loc_profiles");
-    for (int i = 0; i < min_stim_loc_profiles.size(); i++) {
+    for (size_t i = 0; i < min_stim_loc_profiles.size(); i++) {
       data_log.json["analysis_data"]["min_stim_loc_profiles"].push_back(JSONifyStimProfile(min_stim_loc_profiles[i]).json);
       data_log.json["analysis_data"]["max_stim_loc_profiles"].push_back(JSONifyStimProfile(max_stim_loc_profiles[i]).json);
     }
@@ -718,7 +717,6 @@ namespace CML {
 
     #ifdef DEBUG_EXPERCPS
     clf_start_time = TimeSinceExpStartMs();
-//    RC_DEBOUT(RC::RStr("ExperCPS::TriggerAt after WaitUntil\n"));
     #endif
 
     if (next_classif_state == ClassificationType::NORMALIZE) {
@@ -727,6 +725,16 @@ namespace CML {
       NormalizeEvent ev {RC::Time::Get()*1e3};
       LogNormalize(ev);
     }
+    else if (next_classif_state == ClassificationType::STIM) {
+      // check that stim happens after lockout period
+      if (eeg_times[eeg_times.size() - 1] + classify_ms - prev_stim_offset_ms < stim_lockout_ms) {
+        Throw_RC_Error((string("Stimulation requested with onset before ") +
+                        to_string(stim_lockout_ms) +
+                        string(" ms after offset of previous stimulation event. Aborting experiment for safety.")).c_str());
+        Abort();
+      }
+    }
+
     hndl->task_classifier_manager->ProcessClassifierEvent(
         next_classif_state, classify_ms, classif_id);
   }
@@ -749,8 +757,6 @@ namespace CML {
     ClassificationType next_classif_state;
 
     if (classif_state != ClassificationType::NORMALIZE) { return; }
-
-    uint64_t cur_time_ms = TimeSinceExpStartMs();
 
     // TODO: RDD: log normalization event intervals; just make separate log function for each event type
     NormalizingPanel();
@@ -810,9 +816,6 @@ namespace CML {
     stim_decision_arrived = true;
     uint64_t cur_time_ms = uint64_t(1000*(stim_time_sec - exp_start)+0.5);
 
-    // TODO: RDD: ensure that last events in all saved event arrays can be disambiguated 
-    // (i.e., if any array is longer than another because the experiment stopped in some particular place, 
-    // ensure the odd element out can be identified)
     stim_times += cur_time_ms;
 
     #ifdef DEBUG_EXPERCPS
@@ -838,7 +841,6 @@ namespace CML {
     classif_decision_arrived = false;
     stim_decision_arrived = false;
 
-    const TaskClassifierSettings classif_settings = exper_classif_settings[exper_classif_settings.size() - 1];
     uint64_t cur_time_ms = stim_times[stim_times.size() - 1];
     const bool stim_event = stim_event_flags[stim_event_flags.size() - 1];
 
@@ -851,7 +853,7 @@ namespace CML {
 
     unsigned int model_idx = model_idxs[model_idxs.size() - 1];
     ExpEvent cur_event = exp_events[model_idx][exp_events[model_idx].size() - 1];
-    // duration of either next stim event (for pre-event) or previous stim event (for post-event)
+    // stim duration of either next stim event (for pre-event) or previous stim event (for post-event)
     uint64_t event_duration_ms = cur_event.active_ms;
 
     StimProfile stim_params;
@@ -875,7 +877,7 @@ namespace CML {
         next_classif_state = ClassificationType::NOSTIM;
         if (classif_state == ClassificationType::STIM) {
           prev_sham = false;
-          DoStimEvent(stim_params);
+          StimPanel();
         }
         else {  // SHAM event
           prev_sham = true;
@@ -883,6 +885,7 @@ namespace CML {
           LogSham(sham_ev);
           DoShamEvent();
         }
+        prev_stim_offset_ms = stim_offset_ms;
       }
       else {  // stim event did not occur (good memory state detected)
         // #ifdef DEBUG_EXPERCPS
@@ -980,7 +983,7 @@ namespace CML {
     while (d[0] == prev || two_in_row) {
       d.Shuffle();
       two_in_row = false;
-      for (int p = 0; p < d.size() - 1; p++) {
+      for (size_t p = 0; p < d.size() - 1; p++) {
         if (d[p] == d[p + 1]) { two_in_row = true; }
       }
     }
