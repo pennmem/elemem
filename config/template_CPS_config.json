@@ -25,8 +25,8 @@
     ],
     "experiment_specs": {
       "intertrial_range_ms": [
-        2750,
-        3250
+        3500,
+        4000
       ],
       "with_video_task": true,
       "experiment_duration_secs": 1600,  // default experiment length if not using video (with_video_task == false)
