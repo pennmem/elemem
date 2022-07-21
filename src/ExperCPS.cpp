@@ -998,11 +998,6 @@ namespace CML {
         unsigned int next_idx = search_order[search_order_idx] - 1;
         StimProfile next_stim_profile = stim_profiles[next_idx][stim_profiles[next_idx].size() - 1];
         DoConfigEvent(next_stim_profile, next_idx);
-//        StimChannel fake_chan = next_stim_profile[0];
-//        fake_chan.amplitude = 5000;  // choose broken stim param for testing
-//        StimProfile fake_profile;
-//        fake_profile += fake_chan;
-//        DoConfigEvent(fake_profile, next_idx);
       }
       else { next_classif_state = ClassificationType::SHAM; }  // sham event
       // log which stim location (or whether sham) is requested next
