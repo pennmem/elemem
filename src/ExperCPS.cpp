@@ -313,29 +313,94 @@ namespace CML {
     return chan;
   }
 
-  bool ExperCPS::ValidateStimulationProfile(const StimProfile& profile, const unsigned int profile_idx) {
+  void ExperCPS::ValidateStimulationProfile(const StimProfile& profile, const unsigned int profile_idx) {
     // validates whether a given stim profile parameters fall within the safe stimulation ranges
     // determined within the experiment configuration file and the safe stimulation determination clinical process
+
+    if (profile.size() != 1) {
+        Abort();
+        Throw_RC_Error("CPS: Only single-channel stimulation profiles supported.");
+    }
+
     StimProfile max_profile = max_stim_loc_profiles[profile_idx];
     StimProfile min_profile = min_stim_loc_profiles[profile_idx];
-    if (profile[0].electrode_pos != max_profile[0].electrode_pos ||
-        profile[0].electrode_neg != max_profile[0].electrode_neg ||
-        profile[0].frequency > max_profile[0].frequency ||
-        profile[0].frequency < min_profile[0].frequency ||
-        profile[0].duration > max_profile[0].duration ||
-        profile[0].duration < min_profile[0].duration ||
-        profile[0].area != max_profile[0].area ||  // fixed with contact
-        profile[0].burst_frac > max_profile[0].burst_frac ||
-        profile[0].burst_frac < min_profile[0].burst_frac ||
-        profile[0].burst_slow_freq > max_profile[0].burst_slow_freq ||
-        profile[0].burst_slow_freq < min_profile[0].burst_slow_freq ||
-        profile[0].amplitude > max_profile[0].amplitude ||
-        profile[0].amplitude < min_profile[0].amplitude
-      ) {
-      return false;
+    RC::RStr message;
+    std::string correct_value;
+    std::string received_value;
+    if (profile[0].electrode_pos != max_profile[0].electrode_pos) {
+      message = RC::RStr("CPS: Stimulation profile with incorrect cathode requested for configuration");
+      correct_value = to_string(max_profile[0].electrode_pos);
+      received_value = to_string(profile[0].electrode_pos);
     }
-    else {
-      return true;
+    else if (profile[0].electrode_neg != max_profile[0].electrode_neg) {
+      message = RC::RStr("CPS: Stimulation profile with incorrect anode requested for configuration");
+      correct_value = to_string(max_profile[0].electrode_neg);
+      received_value = to_string(profile[0].electrode_neg);
+    }
+    else if (profile[0].frequency > max_profile[0].frequency) {
+      message = RC::RStr("CPS: Stimulation profile with frequency above max safe frequency requested for configuration");
+      correct_value = to_string(max_profile[0].frequency);
+      received_value = to_string(profile[0].frequency);
+    }
+    else if (profile[0].frequency < min_profile[0].frequency) {
+      message = RC::RStr("CPS: Stimulation profile with frequency below min safe frequency requested for configuration");
+      correct_value = to_string(min_profile[0].frequency);
+      received_value = to_string(profile[0].frequency);
+    }
+    else if (profile[0].duration > max_profile[0].duration) {
+      message = RC::RStr("CPS: Stimulation profile with duration above max safe duration requested for configuration");
+      correct_value = to_string(max_profile[0].duration);
+      received_value = to_string(profile[0].duration);
+    }
+    else if (profile[0].duration < min_profile[0].duration) {
+      message = RC::RStr("CPS: Stimulation profile with duration below min safe duration requested for configuration");
+      correct_value = to_string(min_profile[0].duration);
+      received_value = to_string(profile[0].duration);
+    }
+    else if (profile[0].area != max_profile[0].area) {  // fixed with contact
+      message = RC::RStr("CPS: Stimulation profile with incorrect contact area requested for configuration");
+      correct_value = to_string(max_profile[0].area);
+      received_value = to_string(profile[0].area);
+    }
+    else if (profile[0].burst_frac > max_profile[0].burst_frac) {
+      message = RC::RStr("CPS: Stimulation profile with burst_frac above max safe burst_frac requested for configuration");
+      correct_value = to_string(max_profile[0].burst_frac);
+      received_value = to_string(profile[0].burst_frac);
+    }
+    else if (profile[0].burst_frac < min_profile[0].burst_frac) {
+      message = RC::RStr("CPS: Stimulation profile with burst_frac below min safe burst_frac requested for configuration");
+      correct_value = to_string(min_profile[0].burst_frac);
+      received_value = to_string(profile[0].burst_frac);
+    }
+    else if (profile[0].burst_slow_freq > max_profile[0].burst_slow_freq) {
+      message = RC::RStr("CPS: Stimulation profile with burst_slow_freq above max safe burst_slow_freq requested for configuration");
+      correct_value = to_string(max_profile[0].burst_slow_freq);
+      received_value = to_string(profile[0].burst_slow_freq);
+    }
+    else if (profile[0].burst_slow_freq < min_profile[0].burst_slow_freq) {
+      message = RC::RStr("CPS: Stimulation profile with burst_slow_freq below min safe burst_slow_freq requested for configuration");
+      correct_value = to_string(min_profile[0].burst_slow_freq);
+      received_value = to_string(profile[0].burst_slow_freq);
+    }
+    else if (profile[0].amplitude > max_profile[0].amplitude) {
+      message = RC::RStr("CPS: Stimulation profile with amplitude above max safe amplitude requested for configuration");
+      correct_value = to_string(max_profile[0].amplitude);
+      received_value = to_string(profile[0].amplitude);
+    }
+    else if (profile[0].amplitude < min_profile[0].amplitude) {
+      message = RC::RStr("CPS: Stimulation profile with amplitude below min safe amplitude requested for configuration");
+      correct_value = to_string(min_profile[0].amplitude);
+      received_value = to_string(profile[0].amplitude);
+    }
+    if (message.length() > 0) {
+      message = message
+          + RC::RStr(" for stim profile ") + RC::RStr(to_string(profile_idx))
+          + RC::RStr(". Correct value: ") + RC::RStr(correct_value)
+          + RC::RStr(" . Received value: ") + RC::RStr(received_value)
+          + RC::RStr(" . Aborting experiment.");
+      DebugLog(message);
+      Abort();
+      Throw_RC_Error(message.c_str());
     }
   }
 
@@ -348,34 +413,9 @@ namespace CML {
     config_event.Set(JSONifyStimProfile(profile), "data");
     hndl->event_log.Log(config_event.Line());
     status_panel->SetEvent("PRESET");
-    // TODO: RDD: in case we're comfortable using the min/max sim parameter ranges instead...
-//    int validation_result = ValidateStimulationProfile(profile);
-//    if (validation_result == 0) {
-    if (ValidateStimulationProfile(profile, profile_idx)) {
-      hndl->stim_worker.ConfigureStimulation(profile);
-    }
-//    else if (validation_result == 1) { // above max safe value
-//      DebugLog(RC::RStr("CPS: Stimulation profile with parameters out of safe range requested for configuration for stim profile ")
-//               + RC::RStr(to_string(profile_idx))
-//               + RC::RStr(". Using maximum allowable stimulation profile instead."));
-//      hndl->stim_worker.ConfigureStimulation(max_stim_loc_profiles[profile_idx]);
 
-//    }
-//    else if (validation_result == -1) { // below min safe value
-//      DebugLog(RC::RStr("CPS: Stimulation profile with parameters out of safe range requested for configuration for stim profile ")
-//               + RC::RStr(to_string(profile_idx))
-//               + RC::RStr(". Using minimum allowable stimulation profile instead."));
-//      hndl->stim_worker.ConfigureStimulation(min_stim_loc_profiles[profile_idx]);
-//    }
-    else {
-      RC::RStr message = RC::RStr("CPS: Stimulation profile with parameters out of safe range requested for configuration for stim profile ")
-                + RC::RStr(to_string(profile_idx))
-                + RC::RStr(". Aborting experiment.");
-//                        + RC::RStr(". Nearest safe parameter range endpoint could not be determined. Aborting experiment."));
-      DebugLog(message);
-      Abort();
-      Throw_RC_Error(message.c_str());
-    }
+    ValidateStimulationProfile(profile, profile_idx);
+    hndl->stim_worker.ConfigureStimulation(profile);
   }
 
 
@@ -958,6 +998,11 @@ namespace CML {
         unsigned int next_idx = search_order[search_order_idx] - 1;
         StimProfile next_stim_profile = stim_profiles[next_idx][stim_profiles[next_idx].size() - 1];
         DoConfigEvent(next_stim_profile, next_idx);
+//        StimChannel fake_chan = next_stim_profile[0];
+//        fake_chan.amplitude = 5000;  // choose broken stim param for testing
+//        StimProfile fake_profile;
+//        fake_profile += fake_chan;
+//        DoConfigEvent(fake_profile, next_idx);
       }
       else { next_classif_state = ClassificationType::SHAM; }  // sham event
       // log which stim location (or whether sham) is requested next

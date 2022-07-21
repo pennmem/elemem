@@ -134,7 +134,7 @@ namespace CML {
     void NormalizingPanel();
     void ClassifyingPanel();
     void DoConfigEvent(const StimProfile& profile, const unsigned int model_idx);
-    bool ValidateStimulationProfile(const StimProfile& profile, const unsigned int profile_idx);
+    void ValidateStimulationProfile(const StimProfile& profile, const unsigned int profile_idx);
     void StimPanel();
     void DoShamEvent();
 
