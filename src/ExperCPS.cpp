@@ -768,10 +768,10 @@ namespace CML {
     else if (next_classif_state == ClassificationType::STIM) {
       // check that stim happens after lockout period
       if (eeg_times[eeg_times.size() - 1] + classify_ms - prev_stim_offset_ms < stim_lockout_ms) {
+        Abort();
         Throw_RC_Error((string("Stimulation requested with onset before ") +
                         to_string(stim_lockout_ms) +
                         string(" ms after offset of previous stimulation event. Aborting experiment for safety.")).c_str());
-        Abort();
       }
     }
 
