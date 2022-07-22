@@ -54,8 +54,8 @@ namespace CML {
     StimProfile cur_profile;
 
     uint32_t max_duration = 0;
-    const f64 stim_lockout_sec = 1.0;
-    f64 prev_stim_time_sec;
+    const f64 stim_lockout_sec = 0.5;
+    f64 prev_stim_offset_time_sec;
   };
 }
 

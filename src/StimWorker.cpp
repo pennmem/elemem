@@ -9,7 +9,7 @@ namespace CML {
   StimWorker::StimWorker(RC::Ptr<Handler> hndl)
     : hndl(hndl) {
     // first stim event should always pass lockout constraint
-    prev_stim_time_sec = -stim_lockout_sec;
+    prev_stim_offset_time_sec = -stim_lockout_sec;
   }
 
   StimulatorType StimWorker::GetStimulatorType() const {
@@ -54,6 +54,7 @@ namespace CML {
       Throw_RC_Error("The stim_interface in StimWorker is null on Stimulate");
     }
 
+    // Setup theta-burst values
     size_t num_bursts = 1;
     f64 burst_period = 0;
     if (stim_interface->GetBurstSlowFreq() != 0) {
@@ -62,18 +63,21 @@ namespace CML {
       burst_period = 1.0 / stim_interface->GetBurstSlowFreq();
     }
 
-    RC::Time timer;
-    f64 cur_stim_time_sec = RC::Time::Get();
-    if (cur_stim_time_sec - prev_stim_time_sec < stim_lockout_sec) {
+    // Safety check to stop repeated stimulation
+    f64 cur_stim_onset_time_sec = RC::Time::Get();
+    if (cur_stim_onset_time_sec - prev_stim_offset_time_sec < stim_lockout_sec) {
+      Abort();
       Throw_RC_Error((string("Stimulation requested before ") +
                       to_string(stim_lockout_sec) +
                       string(" seconds after start of previous stimulation event. Aborting experiment for safety.")).c_str());
-      Abort();
     }
-    prev_stim_time_sec = cur_stim_time_sec;
+
+    // Stimulate
+    RC::Time timer;
     stim_interface->Stimulate();
     status_panel->SetStimming(max_duration);
 
+    // Log Stimulation
     JSONFile event_base = MakeResp("STIMMING");
     for (size_t i=0; i<cur_profile.size(); i++) {
       JSONFile event = event_base;
@@ -108,6 +112,9 @@ namespace CML {
 
       stim_interface->Stimulate();
     }
+
+    // Safety check stim offset
+    prev_stim_offset_time_sec = RC::Time::Get() + static_cast<f64>(max_duration) * 1e-6;
   }
 
   void StimWorker::CloseStim_Handler() {
