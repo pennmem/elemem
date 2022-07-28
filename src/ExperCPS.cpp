@@ -16,27 +16,26 @@ namespace CML {
 
     seed = 1;
     n_var = 1;
-    obsNoise = 0.1;
-    exp_bias = 0.25;
+    obsNoise = 0.2;
+    exp_bias = 0.25;  // largely doesn't matter from simulations
 
     #ifdef DEBUG_EXPERCPS
     verbosity = 1;
     n_init_samples = 5;
     #else
     verbosity = 0;
-    n_init_samples = 100;
+    n_init_samples = 30;  // based on simulations; this parameter largely doesn't matter
     #endif
 
     // kernel for each stim site
+    // kernel parameters largely make little difference.
+    // Most critical parameters are lower bounds on fitting kernel lengthscale and white noise variance (both for stability)
     CMatern32Kern k(n_var);
     kern = CCmpndKern(n_var);
     kern.addKern(&k);
     CWhiteKern whitek(n_var);
     kern.addKern(&whitek);
     CMatrix b(1, 2);
-    b(0, 0) = 0.2;
-    b(0, 1) = 2.0;
-    kern.setBoundsByName("matern32_0__lengthScale", b);
     b(0, 0) = 0.25;
     b(0, 1) = 4.0;
     kern.setBoundsByName("matern32_0__variance", b);
@@ -44,7 +43,7 @@ namespace CML {
     b(0, 1) = 4.0;
     kern.setBoundsByName("white_1__variance", b);
 
-    // TODO: RDD: LATER load parameters from config file? Or should experimental parameters be hard-coded to prevent accidental changes?
+    // TODO: RDD: LATER load parameters from config file
 
     // TODO: RDD: confirm values with design docs
     // TODO: RDD: what Morlet wavelet frequencies are being used? PS4 only went from 6 Hz to 180 Hz
@@ -55,10 +54,13 @@ namespace CML {
     n_normalize_events = 2;
     classify_ms = 500;
     #else
-    n_normalize_events = 25;
-    classify_ms = 1366;  // TODO: consider shortening for more events; check classifier performance with shorter feature intervals, higher min freqs
+    n_normalize_events = 24;  // same as PS4 in expectation
+    // TODO: consider shortening for more events; check classifier performance with shorter feature intervals, higher min freqs
+    classify_ms = 1366;  // Ezzyat et al., 2018; Riley confirmed that FR1 classifier AUCs dropped off considerably with shorter intervals
     #endif
-    poststim_classif_lockout_ms = 30;
+    // based on post-stim artifact analysis with OPS, and post-stim artifact criteria from Solomon et al. (2018)
+    // majority of post-stim artifact decayed by 400 ms after stim offset
+    poststim_classif_lockout_ms = 400;
 
     // classifier event counter
     classif_id = 0;
@@ -156,8 +158,15 @@ namespace CML {
       // amplitude bounds in mA
       bounds.setVal(((double)new_min_stim_loc_profiles[i][0].amplitude)/1000, 0, 0);
       bounds.setVal(((double)new_max_stim_loc_profiles[i][0].amplitude)/1000, 0, 1);
+      double bounds_diff = bounds.getVal(0, 1) - bounds.getVal(0, 0);
 
-      kernels.push_back(kern);
+      CCmpndKern kern_clone(kern);
+      CMatrix b(1, 2);
+      b(0, 0) = 0.25 * bounds_diff;
+      b(0, 1) = 2.0 * bounds_diff;
+      kern_clone.setBoundsByName("matern32_0__lengthScale", b);
+
+      kernels.push_back(kern_clone);
       param_bounds.push_back(bounds);
       observation_noises.push_back(obsNoise * obsNoise);
       exploration_biases.push_back(exp_bias);
