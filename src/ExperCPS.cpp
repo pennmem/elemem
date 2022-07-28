@@ -54,9 +54,12 @@ namespace CML {
     n_normalize_events = 2;
     classify_ms = 500;
     #else
-    n_normalize_events = 24;  // same as PS4 in expectation
+    n_normalize_events = 25;  // same as PS4 in expectation
     // TODO: consider shortening for more events; check classifier performance with shorter feature intervals, higher min freqs
-    classify_ms = 1366;  // Ezzyat et al., 2018; Riley confirmed that FR1 classifier AUCs dropped off considerably with shorter intervals
+    // Near classification interval length of Ezzyat et al., 2018 (1366 ms)
+    // Riley confirmed that FR1 classifier AUCs dropped off considerably with shorter classification intervals
+    // only slightly shorter than Ezzyat et al.'s for timing and additional samples
+    classify_ms = 1200;
     #endif
     // based on post-stim artifact analysis with OPS, and post-stim artifact criteria from Solomon et al. (2018)
     // majority of post-stim artifact decayed by 400 ms after stim offset
