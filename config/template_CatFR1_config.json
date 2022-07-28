@@ -1,0 +1,23 @@
+{
+  "electrode_config_file": "R1999J_20220324_mono_L0M0.csv",
+  "bipolar_electrode_config_file": "R1999J_20220324_bi_L0M0.csv",
+  "experiment": {
+    "stim_mode": "none",
+    "stim_channels": [],
+    "experiment_specs": {},
+    "type": "CatFR1"
+  },
+  "global_settings": {
+    "connect_to_task_laptop": true,
+    "data_dir": "AUTOMATIC",
+    "experiment_config_filename": "AUTOMATIC",
+    "hardware_lnc": true,
+    "lnc_time_constant": 10,
+    "dc_offset_correction": true,
+    "plot_window_length": 6000,
+    # "micro_sampling_rate": 30000,
+    "macro_sampling_rate": 1000,
+    "binned_sampling_rate": 1000
+  },
+  "subject": "R1999J"
+}
