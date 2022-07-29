@@ -50,10 +50,6 @@ if(APPLE)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dunix=1 -mmacosx-version-min=11.0")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
 
-  # CBayes dependencies
-  set (BLAS_LIB "-lblas -lc")
-  set (LAPACK_LIB "-llapack")
-
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=overloaded-virtual -Wno-error=reorder-ctor -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=deprecated-copy")
 endif(APPLE)
 
@@ -69,6 +65,11 @@ if(WIN32)
   set_source_files_properties( include/BayesGPc/ndlfortran_lbfgsb.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
 
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses -Wno-error=non-template-friend -Wno-error=unused-value")
+
+else()
+  # CBayes dependencies
+  set (BLAS_LIB "-lblas -lc")
+  set (LAPACK_LIB "-llapack")
 endif(WIN32)
 
 set (BAYES_DIR "include/BayesGPc")
@@ -83,7 +84,7 @@ else (APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 endif (APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffp-contract=fast -DBOOST_MATH_STANDALONE -DDBG")
-set(CMAKE_Fortran_FLAGS "-funroll-all-loops -O${OPT_LEVEL} -fPIC")
+set(CMAKE_Fortran_FLAGS "-std=f2008 -funroll-all-loops -O${OPT_LEVEL} -fPIC")
 
 set (BAYES_FILES
   ${BAYES_DIR}/CSearchComparison.cpp

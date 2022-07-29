@@ -34,7 +34,6 @@
     },
     "classifier": {
       "classifier_file": "converted_classifier_R1384J_session_0.json",
-      "binning_frequency_Hz": 250,
       "morlet_cycles": 5,
       "circular_buffer_duration_ms": 5000
     },

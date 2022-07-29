@@ -1,0 +1,47 @@
+{
+  "electrode_config_file": "R1384J_20220518_mono_L0M0",
+  "bipolar_electrode_config_file": "R1384J_20220518_bi_L0M0",
+  "experiment": {
+    "stim_mode": "closed",
+    "stim_channels": [
+      {
+        "electrodes": "LF1_LF2",  // Splitter mode.
+        "amplitude_range_mA": [0, 0.5],
+        "amplitude_mA": 0.5,
+        "frequency_range_Hz": [200, 200],
+        "frequency_Hz": 200,
+        "duration_range_ms": [750, 750],
+        "duration_ms": 750
+      },
+      {
+        "electrodes": [3, 4],  // Add label entry to config box.
+        "amplitude_range_mA": [0, 0.5],
+        "amplitude_mA": 0.5,
+        "frequency_range_Hz": [200, 200],
+        "frequency_Hz": 200,
+        "duration_range_ms": [750, 750],
+        "duration_ms": 750
+      }
+    ],
+    "experiment_specs": {},
+    "classifier": {
+      "classifier_file": "converted_classifier_R1384J_session_0.json",
+      "morlet_cycles": 3,
+      "circular_buffer_duration_ms": 5000
+    },
+    "type": "FR5"
+  },
+  "global_settings": {
+    "connect_to_task_laptop": true,
+    "data_dir": "AUTOMATIC",
+    "experiment_config_filename": "AUTOMATIC",
+    "hardware_lnc": true,
+    "lnc_time_constant": 10,
+    "dc_offset_correction": true,
+    "plot_window_length": 6000,
+    # "micro_sampling_rate": 30000,
+    "macro_sampling_rate": 1000,
+    "binned_sampling_rate": 1000
+  },
+  "subject": "R1384J"
+}
