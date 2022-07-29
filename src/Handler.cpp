@@ -486,6 +486,15 @@ namespace CML {
     File::MakeDir(session_dir);
 
     // Save updated experiment configuration.
+    if (stim_mode == StimMode::CLOSED) {
+      RStr classif_json =
+          settings.exp_config->GetPath("experiment", "classifier",
+          "classifier_file");
+      // Save copy of classifier file.
+      auto jf = JSONFile(File::FullPath(base_dir, classif_json));
+      jf.Save(File::FullPath(session_dir, File::Basename(classif_json)));
+    }
+
     JSONFile current_config = *(settings.exp_config);
     // for CPS
     RC::Data1D<RC::RStr> prev_sessions;
@@ -636,7 +645,7 @@ namespace CML {
 
     APtr<JSONFile> conf = new JSONFile();
     conf->Load(fr);
-    RStr base_dir = File::Dirname(fr.GetFilename());
+    base_dir = File::Dirname(fr.GetFilename());
 
     settings.Clear();
     settings.exp_config = conf.ExtractConst();
