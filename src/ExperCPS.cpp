@@ -45,13 +45,9 @@ namespace CML {
 
     // TODO: RDD: LATER load parameters from config file
 
-    // TODO: RDD: confirm values with design docs
-    // TODO: RDD: what Morlet wavelet frequencies are being used? PS4 only went from 6 Hz to 180 Hz
-    // TODO: RDD: original PS4 used only 500 ms classification interval for post-stim interval; can we get away with that for both intervals?
-
     // CPS task parameters
     #ifdef DEBUG_EXPERCPS
-    n_normalize_events = 2;
+    n_normalize_events = 5;
     classify_ms = 500;
     #else
     n_normalize_events = 25;  // same as PS4 in expectation
@@ -105,9 +101,6 @@ namespace CML {
     search_order += 0;
     // validation
     // TODO: RDD: generalize for searching over different stim parameters
-    // TODO: RDD: add parameters to be tuned to config file? would be most explicit, safest, then test max>min in case some parameter ranges are reduced to a single value during clinical safety testing
-    //       else just test whether max_param > min_param, make list of tuned parameters, log
-    // TODO: RDD: extend grid search in BayesGPc to allow for tuning over non-contiguous parameter search spaces
     if (cps_specs.intertrial_range_ms[0] > cps_specs.intertrial_range_ms[1]) {
       Throw_RC_Error("Configuration file error: intertrial_range_ms[0] > intertrial_range_ms[1]");
     }
@@ -136,9 +129,6 @@ namespace CML {
       #endif
       search_order += i + 1;
     }
-    // TODO: RDD: determine adequate number of sham events
-    // add extra sham events for stability
-    // if (n_searches > 5) { search_order += 0; }
 
     param_bounds.clear();
     // for now give all searches the same kernels and kernel hyperparameters
@@ -156,7 +146,6 @@ namespace CML {
     // set search bounds
     for (size_t i = 0; i < n_searches; i++) {
       // TODO: LATER RDD: fix this to allow for searching over arbitrary parameters;
-      // TODO: LATER RDD: unclear how to handle sham stim duration when tuning over duration
 
       // amplitude bounds in mA
       bounds.setVal(((double)new_min_stim_loc_profiles[i][0].amplitude)/1000, 0, 0);
@@ -220,7 +209,6 @@ namespace CML {
     ExpEvent ev;
     ev.active_ms = stim_chan.duration/1000;
 
-    // TODO: RDD/RC: does controlling classification timing instead of stim timing make sense?
     // Add ITI between classification events since stim onsets cannot be precisely controlled with variable classification processing time intervals
     ev.event_ms = rng.GetRange(cps_specs.intertrial_range_ms[0],
         cps_specs.intertrial_range_ms[1]);
@@ -234,8 +222,6 @@ namespace CML {
 
 
   void ExperCPS::LogUpdate(UpdateEvent ev) {
-    // TODO: RDD/RC: discuss logging StimProfile instead of single StimChan (as in OPS) for future multi-site stim
-
     JSONFile update_json = MakeResp("UPDATE");
     update_json.Set(ev.start_time, "time");
     update_json.Set(ev.loaded, "loaded");
@@ -263,13 +249,10 @@ namespace CML {
     }
     UpdateEvent ev;
     ev.loaded = false;
-    // TODO: RDD: fill in with BO state; need to add BO/CSearch state/structure json functions
 
     ev.biomarker = biomarker;
     ev.model_idx = model_idx;
     ev.stim_params = stim_profile;
-
-    // TODO: RDD: need to handle all RC errors; InternalStop() and shut down experiment
 
     CMatrix pars(1, 1);
     // map stim parameters for search model
@@ -994,7 +977,9 @@ namespace CML {
       search_order_idx++;
       // Randomize stim locations/sham. Ensure stim locations and/or sham are not repeated consecutively.
       if (search_order_idx == search_order.size()) {
+        #ifdef DEBUG_EXPERCPS
         RC_DEBOUT(RC::RStr("\nshuffling search_order\n"));
+        #endif
         ShuffleNoConsecutive(search_order);
         search_order_idx = 0;
       }
