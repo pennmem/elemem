@@ -48,7 +48,7 @@ namespace CML {
     // CPS task parameters
     #ifdef DEBUG_EXPERCPS
     n_normalize_events = 5;
-    classify_ms = 500;
+    classify_ms = 700;
     #else
     n_normalize_events = 25;  // same as PS4 in expectation
     // TODO: consider shortening for more events; check classifier performance with shorter feature intervals, higher min freqs
