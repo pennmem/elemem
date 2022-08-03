@@ -31,6 +31,12 @@
 #endif
 #endif // RC_NO_STACKTRACE
 
+#ifdef MACOS
+#include <mach/mach_init.h>
+#include <sys/sysctl.h>
+#include <mach/mach_vm.h>
+#endif
+
 
 namespace RC {
   /// The maximum size of the char array returned by ErrorMsg::what() and
@@ -58,6 +64,37 @@ namespace RC {
    *  compiled with -ggdb.
    */
   class ErrorMsg : virtual public std::exception {
+    public:
+    static void SetTaskPid(size_t pid) {
+      task = pid;
+    }
+    protected:
+    static mach_port_name_t task;
+
+    size_t GetLoadAddress() {
+      #ifdef MACOS
+      //mach_port_name_t task = current_task();
+      vm_map_offset_t vmoffset;
+      vm_map_size_t vmsize;
+      uint32_t nesting_depth = 0;
+      struct vm_region_submap_info_64 vbr;
+      mach_msg_type_number_t vbrcount = 16;
+      kern_return_t kr;
+
+      if ((kr = mach_vm_region_recurse(task, &vmoffset, &vmsize,
+                   &nesting_depth,
+                   (vm_region_recurse_info_t)&vbr,
+                   &vbrcount)) != KERN_SUCCESS)
+      {
+        return 0;
+      } else {
+        return vmoffset;
+      }
+      #else
+      return 0;
+      #endif // MACOS
+    }
+
     size_t AmountWritten(size_t size, size_t written) {
       return (size <= written) ? size-1 : written;
     }
@@ -159,7 +196,7 @@ namespace RC {
       int written = 0;
       if (filename != NULL && filename[0] != '\0') {
         written = snprintf(what_msg, ErrorMsg_what_bufsize,
-          "%s, %s, line %d%s", err_msg, filename, line_number,
+          "%s, %s, line %d, load address %p%s", err_msg, filename, line_number, (void *)GetLoadAddress(),
           stacktrace_txt);
       }
       else {

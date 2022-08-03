@@ -28,6 +28,8 @@ int main (int argc, char *argv[]) {
     try { // Preserve this scope for DirectCallingScope.
       RCqt::Worker::DirectCallingScope direct;
 
+      ErrorMsg::SetTaskPid(current_task());
+
       hndl->SetMainWindow(&main_window);
 
       hndl->LoadSysConfig();  // Must come before RegisterEEGDisplay.
