@@ -30,7 +30,7 @@
         4000
       ],
       "with_video_task": false,
-      "experiment_duration_secs": 1600,  // default experiment length if not using video (with_video_task == false)
+      "default_experiment_duration_secs": 1600,  // default experiment length if not using video (with_video_task == false)
       "sham_duration_ms": 500
     },
     "classifier": {
