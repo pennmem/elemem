@@ -1,0 +1,91 @@
+{
+    "electrode_config_file": "R1616S_20220803_mono_L0M0.csv",
+    "bipolar_electrode_config_file": "R1616S_20220803_bi_L0M0.csv",
+    "experiment": {
+        "stim_mode": "closed",
+        "stim_channels": [
+            {
+                "electrodes": "LL7_LL8",
+                "amplitude_range_mA": [
+                    0.1,
+                    0.5
+                ],
+                "amplitude_search_range_mA": [
+                    0.1,
+                    0.5
+                ],
+                "frequency_range_Hz": [
+                    200,
+                    200
+                ],
+                "frequency_search_range_Hz": [
+                    200,
+                    200
+                ],
+                "duration_range_ms": [
+                    500,
+                    500
+                ],
+                "duration_search_range_ms": [
+                    500,
+                    500
+                ]
+            },
+            {
+                "electrodes": "LF12_LF13",
+                "amplitude_range_mA": [
+                    0.1,
+                    0.5
+                ],
+                "amplitude_search_range_mA": [
+                    0.1,
+                    0.5
+                ],
+                "frequency_range_Hz": [
+                    200,
+                    200
+                ],
+                "frequency_search_range_Hz": [
+                    200,
+                    200
+                ],
+                "duration_range_ms": [
+                    500,
+                    500
+                ],
+                "duration_search_range_ms": [
+                    500,
+                    500
+                ]
+            }
+        ],
+        "experiment_specs": {
+            "intertrial_range_ms": [
+                3800,
+                4000
+            ],
+            "with_video_task": false,
+            "default_experiment_duration_secs": 60,
+            "sham_duration_ms": 500
+        },
+        "classifier": {
+            "classifier_file": "classifier_R1616S_catFR1_sessions0_1_2_3_4_5.json",
+            "morlet_cycles": 5,
+            "circular_buffer_duration_ms": 5000
+        },
+        "type": "CPS"
+    },
+    "global_settings": {
+        "connect_to_task_laptop": true,
+        "data_dir": "AUTOMATIC",
+        "experiment_config_filename": "AUTOMATIC",
+        "hardware_lnc": true,
+        "lnc_time_constant": 10,
+        "dc_offset_correction": true,
+        "plot_window_length": 6000,
+        # "micro_sampling_rate": 30000,
+        "macro_sampling_rate": 1000,
+        "binned_sampling_rate": 1000
+    },
+    "subject": "R1616S"
+}

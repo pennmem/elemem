@@ -1,11 +1,12 @@
 {
-  "electrode_config_file": "R1384J_20220518_mono_L0M0.csv",
+  #"electrode_config_file": "R1384J_20220804_mono_L0M0.csv",
+  "electrode_config_file": "R1384_montage.csv",
   #"bipolar_electrode_config_file": "R1384J_20220518_bi_L0M0.csv",
   "experiment": {
     "stim_mode": "closed",
     "stim_channels": [  // is pulse width not set in the configuration files? stim waveform, e.g., theta-burst?
       {
-        "electrodes": "LF1_LF2",  // Splitter mode.
+        "electrodes": [1, 2],  // Splitter mode.
         "amplitude_range_mA": [0.1, 0.5],
         "amplitude_search_range_mA": [0.1, 0.5],
         "frequency_range_Hz": [200, 200],
@@ -28,8 +29,8 @@
         3800,
         4000
       ],
-      "with_video_task": true,
-      "default_experiment_duration_secs": 1600,  // default experiment length if not using video (with_video_task == false)
+      "with_video_task": false,
+      "experiment_duration_secs": 1600,  // default experiment length if not using video (with_video_task == false)
       "sham_duration_ms": 500
     },
     "classifier": {

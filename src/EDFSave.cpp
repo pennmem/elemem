@@ -29,7 +29,7 @@ namespace CML {
 
     channels.Resize(conf.elec_config->data.size2());
     for (size_t c=0; c<channels.size(); c++) {
-      channels[c] = uint8_t(conf.elec_config->data[c][1].Get_u32() - 1);
+      channels[c] = uint8_t(conf.elec_config->data[c][1].Get_u32() - 1); // Subtract 1 to convert to 0-indexing
     }
 
     StopSaving_Handler();
