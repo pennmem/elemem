@@ -8,6 +8,8 @@
 #include "RCqt/Worker.h"
 
 namespace CML {
+  class EventLog;
+
   class NormalizePowersSettings {
     public: 
     size_t freqlen = 0;
@@ -21,7 +23,7 @@ namespace CML {
     NormalizePowers(const NormalizePowersSettings& np_set);
 
     void Reset();
-    void Update(RC::APtr<const EEGPowers>& new_data);
+    void Update(RC::APtr<const EEGPowers>& new_data, RC::Ptr<EventLog> event_log=NULL);
     RC::APtr<EEGPowers> ZScore(RC::APtr<const EEGPowers>& in_data, bool div_by_zero_eq_zero);
     //RC::Data2D<StatsData> GetStats();
     void PrintStats();

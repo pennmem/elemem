@@ -1,5 +1,7 @@
 #include "NormalizePowers.h"
 #include "RC/RStr.h"
+#include "EventLog.h"
+#include "JSONLines.h"
 
 namespace CML {
   /// Default constructor that initializes and resets the internal lists
@@ -33,15 +35,36 @@ namespace CML {
   /// Update the rolling statistics with a new set of values
   /** @param The new values to be added to the rolling statics
    */
-  void NormalizePowers::Update(RC::APtr<const EEGPowers>& new_data) {
+  void NormalizePowers::Update(RC::APtr<const EEGPowers>& new_data, RC::Ptr<EventLog> event_log) {
     auto& new_datar = new_data->data;
     size_t freqlen = np_set.freqlen;
     size_t chanlen = np_set.chanlen;
 
+    RC::Data1D<RC::Data1D<RC::Data1D<double>>> means(freqlen);
+    RC::Data1D<RC::Data1D<RC::Data1D<double>>> sample_std_devs(freqlen);
+
     RC_ForRange(i, 0, freqlen) { // Iterate over freqlen
+      means[i].Resize(chanlen);
+      sample_std_devs[i].Resize(chanlen);
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
         rolling_powers[i][j].Update(new_datar[i][j]);
+
+        try { // GetStats errors on first update (can't take sample std dev of 1 value)
+          if (event_log.IsSet()) {
+            auto stats = rolling_powers[i][j].GetStats();
+            means[i][j] += stats.means;
+            sample_std_devs[i][j] += stats.sample_std_devs;
+          }
+        } catch (RC::ErrorMsg& err) {}
       }
+    }
+
+    if (event_log.IsSet()) {
+      RC_DEBOUT(means);
+      JSONFile normalization_stats;
+      normalization_stats.Set(means, "means");
+      normalization_stats.Set(sample_std_devs, "sample_std_devs");
+      event_log->Log(MakeResp("NORMALIZATION_STATS", 0, normalization_stats).Line());
     }
   }
 

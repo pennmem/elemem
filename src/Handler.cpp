@@ -927,7 +927,7 @@ namespace CML {
     task_classifier_manager = new TaskClassifierManager(this,
         settings.binned_sampling_rate, circ_buf_duration_ms);
 
-    feature_filters = new FeatureFilters(mor_set.channels, but_set,
+    feature_filters = new FeatureFilters(this, mor_set.channels, but_set,
         mor_set, np_set);
 
     classifier = new ClassifierLogReg(this, classifier_settings,
