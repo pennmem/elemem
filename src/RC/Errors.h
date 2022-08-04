@@ -66,10 +66,10 @@ namespace RC {
   class ErrorMsg : virtual public std::exception {
     public:
     static void SetTaskPid(size_t pid) {
-      task = pid;
+      task_pid = pid;
     }
     protected:
-    static mach_port_name_t task;
+    static size_t task_pid;
 
     size_t GetLoadAddress() {
       #ifdef MACOS
@@ -81,7 +81,7 @@ namespace RC {
       mach_msg_type_number_t vbrcount = 16;
       kern_return_t kr;
 
-      if ((kr = mach_vm_region_recurse(task, &vmoffset, &vmsize,
+      if ((kr = mach_vm_region_recurse(task_pid, &vmoffset, &vmsize,
                    &nesting_depth,
                    (vm_region_recurse_info_t)&vbr,
                    &vbrcount)) != KERN_SUCCESS)

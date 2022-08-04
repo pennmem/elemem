@@ -1,5 +1,5 @@
 #include "Errors.h"
 
 namespace RC {
-  mach_port_name_t ErrorMsg::task = 0;
+  size_t ErrorMsg::task_pid = 0;
 }
