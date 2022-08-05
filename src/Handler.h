@@ -168,6 +168,7 @@ namespace CML {
     RC::RStr elemem_dir;
     RC::RStr non_session_dir;
     RC::RStr session_dir;
+    RC::RStr config_dir;
 
     ExperOPS exper_ops;
     StimMode stim_mode = StimMode::NONE;

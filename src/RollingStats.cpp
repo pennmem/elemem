@@ -69,7 +69,7 @@ namespace CML {
   StatsData RollingStats::GetStats() {
     if (count <= 1) {
       Throw_RC_Type(Bounds, "Cannot calculate statistics on fewer than 2 "
-          "elements");
+          "elements (can't take sample std dev of 1 value).");
     }
     RC::Data1D<double> sample_std_dev(m2s.size());
     RC_ForIndex(i, m2s) {

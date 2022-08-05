@@ -486,6 +486,15 @@ namespace CML {
     File::MakeDir(session_dir);
 
     // Save updated experiment configuration.
+    if (stim_mode == StimMode::CLOSED) {
+      RStr classif_json =
+          settings.exp_config->GetPath("experiment", "classifier",
+          "classifier_file");
+      // Save copy of classifier file.
+      auto jf = JSONFile(File::FullPath(config_dir, classif_json));
+      jf.Save(File::FullPath(session_dir, File::Basename(classif_json)));
+    }
+
     JSONFile current_config = *(settings.exp_config);
     // for CPS
     RC::Data1D<RC::RStr> prev_sessions;
@@ -636,7 +645,7 @@ namespace CML {
 
     APtr<JSONFile> conf = new JSONFile();
     conf->Load(fr);
-    RStr base_dir = File::Dirname(fr.GetFilename());
+    config_dir = File::Dirname(fr.GetFilename());
 
     settings.Clear();
     settings.exp_config = conf.ExtractConst();
@@ -667,9 +676,9 @@ namespace CML {
 
       InitializeChannels_Handler();
 
-      new_chans = settings.LoadElecConfig(base_dir);
+      new_chans = settings.LoadElecConfig(config_dir);
       if (settings.BipolarElecConfigUsed()) {
-        new_chans = settings.LoadBipolarElecConfig(base_dir, new_chans);
+        new_chans = settings.LoadBipolarElecConfig(config_dir, new_chans);
         eeg_acq.SetBipolarChannels(new_chans);
       }
       else {
@@ -695,7 +704,7 @@ namespace CML {
           settings.exp_config->GetPath("experiment", "classifier",
             "classifier_file");
         settings.weight_manager = MakeAPtr<WeightManager>(
-            File::FullPath(base_dir, classif_json), settings.elec_config);
+            File::FullPath(config_dir, classif_json), settings.elec_config);
       }
     }
     catch (ErrorMsg&) {
@@ -918,7 +927,7 @@ namespace CML {
     task_classifier_manager = new TaskClassifierManager(this,
         settings.binned_sampling_rate, circ_buf_duration_ms);
 
-    feature_filters = new FeatureFilters(mor_set.channels, but_set,
+    feature_filters = new FeatureFilters(this, mor_set.channels, but_set,
         mor_set, np_set);
 
     classifier = new ClassifierLogReg(this, classifier_settings,

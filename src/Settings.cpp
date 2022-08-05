@@ -74,7 +74,7 @@ namespace CML {
     }
     RC::Data1D<EEGChan> new_chans(elec_config->data.size2());
     for (size_t r=0; r<elec_config->data.size2(); r++) {
-      uint32_t chan = elec_config->data[r][1].Get_u32();
+      uint32_t chan = elec_config->data[r][1].Get_u32() - 1; // Subtract 1 to convert to 0-indexing
       RC::RStr label = elec_config->data[r][0];
       if (chan > 255) {
         Throw_RC_Type(File, ("Electrode channel (" + RC::RStr(chan) + ") "
@@ -123,8 +123,8 @@ namespace CML {
               "in Bipolar CSV (item " + r + ") is not a valid u32").c_str());
       }
 
-      uint32_t pos = pos_str.Get_u32();
-      uint32_t neg = neg_str.Get_u32();
+      uint32_t pos = pos_str.Get_u32() - 1; // Subract 1 to convert to 0-indexing
+      uint32_t neg = neg_str.Get_u32() - 1; // Subract 1 to convert to 0-indexing
 
       // Validate conversion to u8
       if (pos > 255) {

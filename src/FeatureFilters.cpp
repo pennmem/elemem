@@ -2,6 +2,9 @@
 #include "Popup.h"
 #include "Utils.h"
 #include <cmath>
+#include "Handler.h"
+#include "JSONLines.h"
+#include "Ptr.h"
 
 
 namespace CML {
@@ -12,10 +15,13 @@ namespace CML {
 
 
   // TODO: JPB: (refactor) Make this take const refs
-  FeatureFilters::FeatureFilters(RC::Data1D<BipolarPair> bipolar_reference_channels,
-      ButterworthSettings butterworth_settings, MorletSettings morlet_settings,
+  FeatureFilters::FeatureFilters(RC::Ptr<Handler> hndl,
+      RC::Data1D<BipolarPair> bipolar_reference_channels,
+      ButterworthSettings butterworth_settings,
+      MorletSettings morlet_settings,
       NormalizePowersSettings np_set)
-    : bipolar_reference_channels(bipolar_reference_channels),
+    : hndl(hndl),
+    bipolar_reference_channels(bipolar_reference_channels),
     normalize_powers(np_set) {
     butterworth_transformer.Setup(butterworth_settings);
     morlet_transformer.Setup(morlet_settings);
@@ -250,7 +256,7 @@ namespace CML {
   /** @param EEGDataRaw of electrode channels
     * @return EEGDataDouble of electrode channels
     */
-  RC::APtr<EEGDataDouble> FeatureFilters::MonoSelector(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<size_t> indices) {
+  RC::APtr<EEGDataDouble> FeatureFilters::MonoSelector(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<size_t> indices, RC::Ptr<EventLog> event_log) {
     auto out_data = RC::MakeAPtr<EEGDataDouble>(in_data->sampling_rate, in_data->sample_len);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
@@ -271,6 +277,12 @@ namespace CML {
         out_data->EnableChan(out_i);
         out_datar[out_i].CopyFrom(in_datar[in_i]);
       }
+    }
+
+    if (event_log.IsSet()) {
+      JSONFile selected_channels;
+      selected_channels.Set(indices, "channels");
+      event_log->Log(MakeResp("MONO_SELECTED_CHANNELS", 0, selected_channels).Line());
     }
 
     return out_data;
@@ -280,7 +292,7 @@ namespace CML {
   /** @param EEGDataDouble of electrode channels
     * @return EEGDataDouble of electrode channels
     */
-  RC::APtr<EEGDataDouble> FeatureFilters::ChannelSelector(RC::APtr<const EEGDataDouble>& in_data, RC::Data1D<size_t> indices) {
+  RC::APtr<EEGDataDouble> FeatureFilters::ChannelSelector(RC::APtr<const EEGDataDouble>& in_data, RC::Data1D<size_t> indices, RC::Ptr<EventLog> event_log) {
     auto out_data = RC::MakeAPtr<EEGDataDouble>(in_data->sampling_rate, in_data->sample_len);
     auto& in_datar = in_data->data;
     auto& out_datar = out_data->data;
@@ -303,9 +315,16 @@ namespace CML {
       }
     }
 
+    if (event_log.IsSet()) {
+      JSONFile selected_channels;
+      selected_channels.Set(indices, "channels");
+      event_log->Log(MakeResp("SELECTED_CHANNELS", 0, selected_channels).Line());
+    }
+
     return out_data;
   }
 
+  // TODO: JPB: (need) Remove this
   /// Converts an EEGDataRaw of electrode channels into EEGDataDouble of bipolar pair channels
   /** @param EEGDataRaw of electrode channels
     * @param List of bipolar pairs
@@ -339,7 +358,7 @@ namespace CML {
       } else if (in_datar[pos].size() != in_datar[neg].size()) { // Pos and Neg channel sizes don't match
         Throw_RC_Error(("Size of positive channel " + RC::RStr(pos+1) +
               " (" + RC::RStr(in_datar[pos].size()) + ") " +
-              "and size of negitive channel " + RC::RStr(neg+1) +
+              "and size of negative channel " + RC::RStr(neg+1) +
               " (" + RC::RStr(in_datar[neg].size()) + ") " +
               "are different").c_str());
       }
@@ -467,6 +486,7 @@ namespace CML {
         continue;
       }
 
+
       // Take the ordered derivative
       auto deriv_data = Differentiate<double>(in_events, order);
 
@@ -485,7 +505,7 @@ namespace CML {
     * @param artifact_channel_mask The indicator for each channel if it had artifacts or not
     * @return The provided data with the artifact channels zeroed
     */
-  RC::APtr<EEGPowers> FeatureFilters::ZeroArtifactChannels(RC::APtr<const EEGPowers>& in_data, RC::APtr<const RC::Data1D<bool>>& artifact_channel_mask) {
+  RC::APtr<EEGPowers> FeatureFilters::ZeroArtifactChannels(RC::APtr<const EEGPowers>& in_data, RC::APtr<const RC::Data1D<bool>>& artifact_channel_mask, RC::Ptr<EventLog> event_log) {
 
     auto& in_datar = in_data->data;
     size_t freqlen = in_datar.size3();
@@ -501,14 +521,22 @@ namespace CML {
     auto out_data = RC::MakeAPtr<EEGPowers>(in_data->sampling_rate, eventlen, chanlen, freqlen);
     auto& out_datar = out_data->data;
 
+    RC::Data1D<size_t> zeroed_channels;
     RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
       RC_ForRange(j, 0, chanlen) { // Iterate over channels
         if ((*artifact_channel_mask)[j]) {
+          if (i == 0) { zeroed_channels += (i+1); }
           out_datar[i][j].Zero();
         } else {
           out_datar[i][j].CopyFrom(in_datar[i][j]);
         }
       }
+    }
+
+    if (event_log.IsSet()) {
+      JSONFile artifact_channels;
+      artifact_channels.Set(zeroed_channels, "channels");
+      event_log->Log(MakeResp("ZEROED_ARTIFACT_CHANNELS", 0, artifact_channels).Line());
     }
 
     return out_data;
@@ -690,36 +718,51 @@ namespace CML {
     // This calculates the mirroring duration based on the minimum statistical morlet duration 
     size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
 
-#define TESTING_SYS3_R1384J
-#ifdef TESTING_SYS3_R1384J
-    //auto bipolar_ref_data = BipolarReference(data, bipolar_reference_channels).ExtractConst();
+//#define TESTING_SYS3_R1384J
+#if defined(TESTING_SYS3_R1384J) && defined(DEBUG)
     // For R1384J retrained testing only:
-    // RC::Data1D<size_t> indices{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-    //   14, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-    //   32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
-    //   50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
-    //   68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85,
-    //   86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102,
-    //   103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
-    //   117, 118, 119, 120, 121, 125, 126, 127, 128, 129, 130, 131,
-    //   132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145,
-    //   146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
-    //   160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
-    //   174, 175, 176, 177};
+    //RC::Data1D<size_t> indices{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+    //  14, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+    //  32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+    //  50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
+    //  68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85,
+    //  86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102,
+    //  103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
+    //  117, 118, 119, 120, 121, 125, 126, 127, 128, 129, 130, 131,
+    //  132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145,
+    //  146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
+    //  160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
+    //  174, 175, 176, 177};
+
     // Un-retrained R1384J testing.
     RC::Data1D<size_t> indices{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-      14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
-      50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
-      68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85,
-      86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102,
-      103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
-      117, 118, 119, 120, 121, 122, 123, 125, 126, 127, 128, 129, 130, 131,
-      132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145,
-      146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
-      160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
-      174, 175, 176, 177};
-    auto selected_data = ChannelSelector(data, indices).ExtractConst();
+          14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+          32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+          50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
+          68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85,
+          86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102,
+          103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
+          117, 118, 119, 120, 121, 122, 123, 125, 126, 127, 128, 129, 130, 131,
+          132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145,
+          146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
+          160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
+          174, 175, 176, 177};
+
+    // Un-retrained R1616S testing
+    //RC::Data1D<size_t> indices{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+    //  14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+    //  32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+    //  50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
+    //  68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85,
+    //  86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102,
+    //  103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
+    //  117, 118, 119, 120, 121, 122, 123, 124, 125};
+    // To use new classifier files, Riley added index 124 on 7/30/22 since otherwise
+    // data size 177 < MorletSettings size (dictated by classifier features) of 178
+    // original classifier file only had 177 classifier features
+
+    // TODO: JPB: (need) Ryan check if this is bad programming form
+    auto selected_data = ChannelSelector(data, indices, &(hndl->event_log)).ExtractConst();
     auto mirrored_data = MirrorEnds(selected_data, mirroring_duration_ms).ExtractConst();
 #else
     auto mirrored_data = MirrorEnds(data, mirroring_duration_ms).ExtractConst();
@@ -742,7 +785,7 @@ namespace CML {
     // Normalize Powers
     switch (task_classifier_settings.cl_type) {
       case ClassificationType::NORMALIZE:
-        normalize_powers.Update(avg_data);
+        normalize_powers.Update(avg_data, &(hndl->event_log));
         //normalize_powers.PrintStats(1, 10);
         ExecuteCallbacks(avg_data, task_classifier_settings);
         break;
@@ -758,7 +801,7 @@ namespace CML {
 #else
         auto artifact_channel_mask = FindArtifactChannels(data, 10, 10).ExtractConst();
 #endif  // TESTING_SYS3_R1384J
-        auto cleaned_data = ZeroArtifactChannels(norm_data, artifact_channel_mask).ExtractConst();
+        auto cleaned_data = ZeroArtifactChannels(norm_data, artifact_channel_mask, &(hndl->event_log)).ExtractConst();
 
         //norm_data->Print(1, 10);
         //cleaned_data->Print(2, 10);

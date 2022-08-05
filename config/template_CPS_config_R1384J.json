@@ -1,0 +1,55 @@
+{
+  "electrode_config_file": "R1384J_20220803_mono_L0M0.csv",
+  "bipolar_electrode_config_file": "R1384J_20220803_bi_L0M0.csv",
+  "experiment": {
+    "stim_mode": "closed",
+    "stim_channels": [  // is pulse width not set in the configuration files? stim waveform, e.g., theta-burst?
+      {
+        "electrodes": "LF1_LF2",  // Splitter mode.
+        "amplitude_range_mA": [0, 0.6],
+        "amplitude_search_range_mA": [0.1, 0.4],
+        "frequency_range_Hz": [200, 200],
+        "frequency_search_range_Hz": [200, 200],
+        "duration_range_ms": [250, 250],
+        "duration_search_range_ms": [250, 250]
+      },
+      {
+        "electrodes": [3, 4],  // Add label entry to config box.
+        "amplitude_range_mA": [0, 0.5],
+        "amplitude_search_range_mA": [0.1, 0.3],
+        "frequency_range_Hz": [200, 200],
+        "frequency_search_range_Hz": [200, 200],
+        "duration_range_ms": [650, 650],
+        "duration_search_range_ms": [650, 650]
+      }
+    ],
+    "experiment_specs": {
+      "intertrial_range_ms": [
+        1500,
+        1500
+      ],
+      "with_video_task": false,
+      "default_experiment_duration_secs": 60,  // default experiment length if not using video (with_video_task == false)
+      "sham_duration_ms": 100
+    },
+    "classifier": {
+      "classifier_file": "classifier_R1384J_FR1_sessions0_1_2.json",
+      "morlet_cycles": 1, // 3
+      "circular_buffer_duration_ms": 5000
+    },
+    "type": "CPS"
+  },
+  "global_settings": {
+    "connect_to_task_laptop": true,
+    "data_dir": "AUTOMATIC",
+    "experiment_config_filename": "AUTOMATIC",
+    "hardware_lnc": true,
+    "lnc_time_constant": 10,
+    "dc_offset_correction": true,
+    "plot_window_length": 6000,
+    # "micro_sampling_rate": 30000,
+    "macro_sampling_rate": 1000,
+    "binned_sampling_rate": 1000
+  },
+  "subject": "R1384J"
+}

@@ -208,6 +208,15 @@ namespace CML {
     CCmpndKern kern;
     CSearchComparison search;
 
+    // kernel parameter upper (ub) and lower (lb) bounds
+    double kern_lengthscale_lb;  // fitting kernel lengthscale
+    double kern_lengthscale_ub;
+    double kern_var_lb;  // fitting kernel variance
+    double kern_var_ub;
+    double kern_white_lb;  // white noise variance
+    double kern_white_ub;
+
+
     RC::Ptr<Handler> hndl;
     RC::Ptr<StatusPanel> status_panel;
     RC::RStr buffer;

@@ -187,6 +187,33 @@ namespace CML {
     }
 
     template<class T, class... Keys>
+    void Set(const RC::Data1D<RC::Data1D<RC::Data1D<T>>>& data, Keys... keys) {
+      std::vector<std::vector<std::vector<T>>> v(data.size());
+      for (size_t i=0; i<v.size(); i++) {
+        v[i].resize(data[i].size());
+        for (size_t j=0; j<v[i].size(); j++) {
+          v[i][j].resize(data[i][j].size());
+          for (size_t k=0; k<v[i][j].size(); k++) {
+            v[i][j][k] = data[i][j][k];
+          }
+        }
+      }
+      Set(v, keys...);
+    }
+
+    template<class T, class... Keys>
+    void Set(const RC::Data1D<RC::Data1D<T>>& data, Keys... keys) {
+      std::vector<std::vector<std::vector<T>>> v(data.size());
+      for (size_t i=0; i<v.size(); i++) {
+        v[i].resize(data[i].size());
+        for (size_t j=0; j<v[i].size(); j++) {
+          v[i][j] = data[i][j];
+        }
+      }
+      Set(v, keys...);
+    }
+
+    template<class T, class... Keys>
     void Set(const RC::Data1D<T>& data, Keys... keys) {
       std::vector<T> v(data.size());
       for (size_t i=0; i<v.size(); i++) {

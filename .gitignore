@@ -10,6 +10,7 @@ Makefile
 tags
 html
 latex
+.DS_STORE
 
 # Dist folder (build dir)
 dist/**
