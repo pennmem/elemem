@@ -489,6 +489,7 @@ namespace CML {
         continue;
       }
 
+
       // Take the ordered derivative
       auto deriv_data = Differentiate<double>(in_events, order);
 
@@ -523,9 +524,11 @@ namespace CML {
     auto out_data = RC::MakeAPtr<EEGPowers>(in_data->sampling_rate, eventlen, chanlen, freqlen);
     auto& out_datar = out_data->data;
 
+    RC::Data1D<size_t> zeroed_channels;
     RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
       RC_ForRange(j, 0, chanlen) { // Iterate over channels
         if ((*artifact_channel_mask)[j]) {
+          if (i == 0) { zeroed_channels += (i+1); }
           out_datar[i][j].Zero();
         } else {
           out_datar[i][j].CopyFrom(in_datar[i][j]);
@@ -533,11 +536,10 @@ namespace CML {
       }
     }
 
-    // TODO: JPB: Only list channels that are zeroed
     if (event_log.IsSet()) {
       JSONFile artifact_channels;
-      artifact_channels.Set(*artifact_channel_mask, "channel_mask");
-      event_log->Log(MakeResp("ARTIFACT_CHANNEL_MASK", 0, artifact_channels).Line());
+      artifact_channels.Set(zeroed_channels, "channels");
+      event_log->Log(MakeResp("ZEROED_ARTIFACT_CHANNELS", 0, artifact_channels).Line());
     }
 
     return out_data;
