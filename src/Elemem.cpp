@@ -28,7 +28,15 @@ int main (int argc, char *argv[]) {
     try { // Preserve this scope for DirectCallingScope.
       RCqt::Worker::DirectCallingScope direct;
 
+#ifdef MACOS
       ErrorMsg::SetTaskPid(current_task());
+#elif unix
+      ErrorMsg::SetTaskPid(getpid());
+#elif WIN32
+      ErrorMsg::SetTaskPid(_getpid());
+#else
+      ErrorMsg::SetTaskPid(0);
+#endif
 
       hndl->SetMainWindow(&main_window);
 
