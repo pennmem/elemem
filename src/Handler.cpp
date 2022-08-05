@@ -145,11 +145,11 @@ namespace CML {
 
     NewEEGSave();
 
-    //#define TESTING
-    #ifdef TESTING
+//#define TESTING
+#ifdef TESTING
     std::cerr << "TESTING ENABLED:" << std::endl;
     TestAllCode();
-    #endif
+#endif // TESTING
   }
 
   void Handler::CerebusTest_Handler() {

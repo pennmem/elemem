@@ -556,7 +556,7 @@ namespace CML {
     //TestNormalizePowers();
     //TestFindArtifactChannels();
     //TestFindArtifactChannelsRandomData();
-    //TestDifferentiate();
+    TestDifferentiate();
     //TestProcess_Handler();
     //TestProcess_HandlerRandomData();
     //TestClassification();

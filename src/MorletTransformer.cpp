@@ -56,7 +56,8 @@ namespace CML {
     if (chanlen != datar.size()) {
       Throw_RC_Error((RC::RStr("MorletSettings dimensions (") + chanlen + ", _" + ") " +
                      "and data dimensions (" + datar.size() + ", _" + ") " +
-                     "do not match.").c_str());
+                     "do not match.\nIf the classifier was made with bipolar data,"
+                     "then you should have a bipolar montage loaded").c_str());
     }
 
     // The in data dimensions from outer to inner are: channel->time/event
