@@ -47,10 +47,10 @@ namespace CML {
     static RC::APtr<BinnedData> BinData(RC::APtr<const EEGDataRaw> rollover_data, RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate);
     static RC::APtr<EEGDataRaw> BinDataAvgRollover(RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate);
 
-    static RC::APtr<EEGDataDouble> MonoSelector(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<size_t> indices={}, RC::Ptr<EventLog> event_log=NULL);
+    static RC::APtr<EEGDataDouble> MonoSelector(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<size_t> indices={}, RC::Ptr<EventLog> event_log=nullptr);
     static RC::APtr<EEGDataDouble> BipolarReference(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<BipolarPair> bipolar_reference_channels);
     static RC::APtr<EEGDataDouble> BipolarReference(RC::APtr<const EEGDataRaw>& in_data, RC::Data1D<EEGChan> bipolar_reference_channels);
-    static RC::APtr<EEGDataDouble> ChannelSelector(RC::APtr<const EEGDataDouble>& in_data, RC::Data1D<size_t> indices={}, RC::Ptr<EventLog> event_log=NULL);
+    static RC::APtr<EEGDataDouble> ChannelSelector(RC::APtr<const EEGDataDouble>& in_data, RC::Data1D<size_t> indices={}, RC::Ptr<EventLog> event_log=nullptr);
 
     static RC::APtr<EEGDataDouble> MirrorEnds(RC::APtr<const EEGDataDouble>& in_data, size_t duration_ms);
     static RC::APtr<EEGPowers> RemoveMirrorEnds(RC::APtr<const EEGPowers>& in_data, size_t mirrored_duration_ms);
@@ -60,7 +60,7 @@ namespace CML {
     static RC::APtr<EEGPowers> AvgOverTime(RC::APtr<const EEGPowers>& in_data, bool ignore_inf_and_nan);
 
     static RC::APtr<RC::Data1D<bool>> FindArtifactChannels(RC::APtr<const EEGDataDouble>& in_data, size_t threshold, size_t order);
-    static RC::APtr<EEGPowers> ZeroArtifactChannels(RC::APtr<const EEGPowers>& in_data, RC::APtr<const RC::Data1D<bool>>& artifact_channel_mask, RC::Ptr<EventLog> event_log=NULL);
+    static RC::APtr<EEGPowers> ZeroArtifactChannels(RC::APtr<const EEGPowers>& in_data, RC::APtr<const RC::Data1D<bool>>& artifact_channel_mask, RC::Ptr<EventLog> event_log=nullptr);
 
     // This is only public for testing purposes
     template<typename T>

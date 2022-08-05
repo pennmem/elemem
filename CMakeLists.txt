@@ -296,7 +296,6 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/RC/Data2D.h
   src/RC/Data3D.h
   src/RC/Errors.h
-  src/RC/Errors.cpp
   src/RC/File.h
   src/RC/Iter.h
   src/RC/Macros.h

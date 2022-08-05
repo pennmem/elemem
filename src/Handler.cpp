@@ -491,7 +491,7 @@ namespace CML {
           settings.exp_config->GetPath("experiment", "classifier",
           "classifier_file");
       // Save copy of classifier file.
-      auto jf = JSONFile(File::FullPath(base_dir, classif_json));
+      auto jf = JSONFile(File::FullPath(config_dir, classif_json));
       jf.Save(File::FullPath(session_dir, File::Basename(classif_json)));
     }
 
@@ -645,7 +645,7 @@ namespace CML {
 
     APtr<JSONFile> conf = new JSONFile();
     conf->Load(fr);
-    base_dir = File::Dirname(fr.GetFilename());
+    config_dir = File::Dirname(fr.GetFilename());
 
     settings.Clear();
     settings.exp_config = conf.ExtractConst();
@@ -676,9 +676,9 @@ namespace CML {
 
       InitializeChannels_Handler();
 
-      new_chans = settings.LoadElecConfig(base_dir);
+      new_chans = settings.LoadElecConfig(config_dir);
       if (settings.BipolarElecConfigUsed()) {
-        new_chans = settings.LoadBipolarElecConfig(base_dir, new_chans);
+        new_chans = settings.LoadBipolarElecConfig(config_dir, new_chans);
         eeg_acq.SetBipolarChannels(new_chans);
       }
       else {
@@ -704,7 +704,7 @@ namespace CML {
           settings.exp_config->GetPath("experiment", "classifier",
             "classifier_file");
         settings.weight_manager = MakeAPtr<WeightManager>(
-            File::FullPath(base_dir, classif_json), settings.elec_config);
+            File::FullPath(config_dir, classif_json), settings.elec_config);
       }
     }
     catch (ErrorMsg&) {

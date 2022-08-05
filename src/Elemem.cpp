@@ -29,13 +29,13 @@ int main (int argc, char *argv[]) {
       RCqt::Worker::DirectCallingScope direct;
 
 #ifdef MACOS
-      ErrorMsg::SetTaskPid(current_task());
+      ErrorMsg::TaskPid(current_task());
 #elif unix
-      ErrorMsg::SetTaskPid(getpid());
+      ErrorMsg::TaskPid(getpid());
 #elif WIN32
-      ErrorMsg::SetTaskPid(_getpid());
+      ErrorMsg::TaskPid(_getpid());
 #else
-      ErrorMsg::SetTaskPid(0);
+      ErrorMsg::TaskPid(0);
 #endif
 
       hndl->SetMainWindow(&main_window);

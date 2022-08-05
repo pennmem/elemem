@@ -65,15 +65,19 @@ namespace RC {
    */
   class ErrorMsg : virtual public std::exception {
     public:
-    static void SetTaskPid(size_t pid) {
-      task_pid = pid;
+
+    static size_t TaskPid(size_t pid=0) {
+      static size_t task_pid = 0;
+      if (pid != 0) {
+        task_pid = pid;
+      }
+      return task_pid;
     }
+
     protected:
-    static size_t task_pid;
 
     size_t GetLoadAddress() {
-      #ifdef MACOS
-      //mach_port_name_t task = current_task();
+#ifdef MACOS
       vm_map_offset_t vmoffset;
       vm_map_size_t vmsize;
       uint32_t nesting_depth = 0;
@@ -81,7 +85,7 @@ namespace RC {
       mach_msg_type_number_t vbrcount = 16;
       kern_return_t kr;
 
-      if ((kr = mach_vm_region_recurse(task_pid, &vmoffset, &vmsize,
+      if ((kr = mach_vm_region_recurse(TaskPid(), &vmoffset, &vmsize,
                    &nesting_depth,
                    (vm_region_recurse_info_t)&vbr,
                    &vbrcount)) != KERN_SUCCESS)
@@ -90,9 +94,15 @@ namespace RC {
       } else {
         return vmoffset;
       }
-      #else
+#elif unix
+      // TODO: JPB: (feature) Implement LoadAddress for Linux
       return 0;
-      #endif // MACOS
+#elif WIN32
+      // TODO: JPB: (feature) Implement LoadAddress for Windows
+      return 0;
+#else
+      return 0;
+#endif
     }
 
     size_t AmountWritten(size_t size, size_t written) {
