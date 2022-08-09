@@ -59,13 +59,12 @@ namespace CML {
       }
     }
 
-    if (event_log.IsSet()) {
-      RC_DEBOUT(means);
-      JSONFile normalization_stats;
-      normalization_stats.Set(means, "means");
-      normalization_stats.Set(sample_std_devs, "sample_std_devs");
-      event_log->Log(MakeResp("NORMALIZATION_STATS", 0, normalization_stats).Line());
-    }
+//    if (event_log.IsSet()) {
+//      JSONFile normalization_stats;
+//      normalization_stats.Set(means, "means");
+//      normalization_stats.Set(sample_std_devs, "sample_std_devs");
+//      event_log->Log(MakeResp("NORMALIZATION_STATS", 0, normalization_stats).Line());
+//    }
   }
 
   /// Z-score the powers with the current statistics
