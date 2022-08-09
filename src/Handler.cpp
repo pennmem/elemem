@@ -569,6 +569,7 @@ namespace CML {
       current_config.Get(with_video, "experiment", "experiment_specs", "with_video_task");
       if (with_video) { SetupNetworkTask(); }
       else {  // for testing without the video task
+          if (!ConfirmWin("Running CPS without video task. Continue?")) { return; }
           size_t runtime_s;
           current_config.Get(runtime_s, "experiment", "experiment_specs", "default_experiment_duration_secs");
           exper_cps.Start(runtime_s);

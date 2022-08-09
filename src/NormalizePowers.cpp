@@ -49,22 +49,20 @@ namespace CML {
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
         rolling_powers[i][j].Update(new_datar[i][j]);
 
-        try { // GetStats errors on first update (can't take sample std dev of 1 value)
-          if (event_log.IsSet()) {
-            auto stats = rolling_powers[i][j].GetStats();
-            means[i][j] += stats.means;
-            sample_std_devs[i][j] += stats.sample_std_devs;
-          }
-        } catch (RC::ErrorMsg& err) {}
+        if (event_log.IsSet() & (rolling_powers[i][j].GetCount() > 1)) {
+          auto stats = rolling_powers[i][j].GetStats();
+          means[i][j] += stats.means;
+          sample_std_devs[i][j] += stats.sample_std_devs;
+        }
       }
     }
 
-//    if (event_log.IsSet()) {
-//      JSONFile normalization_stats;
-//      normalization_stats.Set(means, "means");
-//      normalization_stats.Set(sample_std_devs, "sample_std_devs");
-//      event_log->Log(MakeResp("NORMALIZATION_STATS", 0, normalization_stats).Line());
-//    }
+    if (event_log.IsSet()) {
+      JSONFile normalization_stats;
+      normalization_stats.Set(means, "means");
+      normalization_stats.Set(sample_std_devs, "sample_std_devs");
+      event_log->Log(MakeResp("NORMALIZATION_STATS", 0, normalization_stats).Line());
+    }
   }
 
   /// Z-score the powers with the current statistics
