@@ -76,39 +76,42 @@ These are messages that Elemem does something as a result of receiving them.
 * EXIT:
     * Message: {“type”: “EXIT”, “data”: {}, “id”: 42, “time”: <float>}
     * Response: None
+    * Purpose: Used to end the session
 
 * TRIAL:
     * Message: {“type”: “TRIAL”, “data”: {“trial”: [int], “stim”:[bool]}, “id”: 42, “time”: <float>}
-    * Response: None	
+    * Response: None
+    * Purpose: Indicate which trial number you're on
 
 * TRIALEND:
     * Message: {“type”: “TRIALEND”, “data”: {}, “id”: 42, “time”: <float>}
     * Reponse: None
+    * Purpose: Indicates the end of a trial
 
 * STIMSELECT:
     * Message: {“type”: “STIMSELECT”, “data”: {“tag”: <string>}, “id”: 42, “time”: <float>}
     * Response: None
-    * Note: Selects the pre-approved stim configuration matching the tag for subsequent stim events.
+    * Purpose: Selects the pre-approved stim configuration matching the tag for subsequent stim events.
 
 * STIM:
     * Message: {“type”: “STIM”, “data”: {}, “id”: 42, “time”: <float>}
     * Response: None
-    * Note: This triggers one open-loop stim event.  Synchronized stimulation during word presentation can instead be triggered by the WORD event with “data”:{“stim”:true}.
+    * Purpose: This triggers one open-loop stim event.  Synchronized stimulation during word presentation can instead be triggered by the WORD event with “data”:{“stim”:true}.
 
 * CLSTIM:
     * Message: {“type”: “CLSTIM”, “data”: {“classifyms”: 1366}, “id”: 42, “time”: <float>}
     * Response: None
-    * Note: This initiates a closed-loop classification epoch for the duration in milliseconds specified by classifyms.  Stimulation is initiated following this duration as soon as processing is completed if the classification result is below the threshold, typically 0.5.
+    * Purpose: This initiates a closed-loop classification epoch for the duration in milliseconds specified by classifyms.  Stimulation is initiated following this duration as soon as processing is completed if the classification result is below the threshold, typically 0.5.
 
 * CLSHAM:
     * Message: {“type”: “CLSHAM”, “data”: {“classifyms”: 1366}, “id”: 42, “time”: <float>}
     * Response: None
-    * Note: This initiates a closed-loop classification epoch for the duration in milliseconds specified by classifyms.  This is identical to CLSTIM except that no stimulation is performed, and instead an event is simply logged reporting whether or not stim would have been performed.
+    * Purpose: This initiates a closed-loop classification epoch for the duration in milliseconds specified by classifyms.  This is identical to CLSTIM except that no stimulation is performed, and instead an event is simply logged reporting whether or not stim would have been performed.
 
 * CLNORMALIZE:
     * Message: {“type”: “CLNORMALIZE”, “data”: {“ classifyms”: 1366}, “id”: 42, “time”: <float>}
     * Response: None
-    * Note: This initiates a closed-loop normalization update epoch for the duration in milliseconds specified by classifyms.
+    * Purpose: This initiates a closed-loop normalization update epoch for the duration in milliseconds specified by classifyms.
 
 * WORD:
     * Message: {“type”: “WORD”, “data”: {“word”: <string>, “serialpos”: [int], “stim”:[bool]}, “id”: 42, “time”: <float>}
