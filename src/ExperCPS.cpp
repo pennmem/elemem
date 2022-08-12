@@ -15,51 +15,14 @@ namespace CML {
     AddToThread(this);
 
     seed = 1;
+    // TODO: RDD: should be set from number of stim parameters being optimized
     n_var = 1;
-    obsNoise = 0.2;
-    exp_bias = 0.25;  // largely doesn't matter from simulations
 
     #ifdef DEBUG_EXPERCPS
     verbosity = 1;
-    n_init_samples = 5;
     #else
     verbosity = 0;
-    n_init_samples = 30;  // based on simulations; this parameter largely doesn't matter
     #endif
-
-    // kernel for each stim site
-    // kernel parameters largely make little difference.
-    // Most critical parameters are lower bounds on fitting kernel lengthscale and white noise variance (both for stability)
-    CMatern32Kern k(n_var);
-    kern = CCmpndKern(n_var);
-    kern.addKern(&k);
-    CWhiteKern whitek(n_var);
-    kern.addKern(&whitek);
-    CMatrix b(1, 2);
-    b(0, 0) = 0.25;
-    b(0, 1) = 4.0;
-    kern.setBoundsByName("matern32_0__variance", b);
-    b(0, 0) = 0.01;
-    b(0, 1) = 4.0;
-    kern.setBoundsByName("white_1__variance", b);
-
-    // TODO: RDD: LATER load parameters from config file
-
-    // CPS task parameters
-    #ifdef DEBUG_EXPERCPS
-    n_normalize_events = 5;
-    classify_ms = 700;
-    #else
-    n_normalize_events = 25;  // same as PS4 in expectation
-    // TODO: consider shortening for more events; check classifier performance with shorter feature intervals, higher min freqs
-    // Near classification interval length of Ezzyat et al., 2018 (1366 ms)
-    // Riley confirmed that FR1 classifier AUCs dropped off considerably with shorter classification intervals
-    // only slightly shorter than Ezzyat et al.'s for timing and additional samples
-    classify_ms = 1200;
-    #endif
-    // based on post-stim artifact analysis with OPS, and post-stim artifact criteria from Solomon et al. (2018)
-    // majority of post-stim artifact decayed by 400 ms after stim offset
-    poststim_classif_lockout_ms = 400;
 
     // classifier event counter
     classif_id = 0;
@@ -87,9 +50,6 @@ namespace CML {
   void ExperCPS::SetStimProfiles_Handler(
         const RC::Data1D<StimProfile>& new_min_stim_loc_profiles,
         const RC::Data1D<StimProfile>& new_max_stim_loc_profiles) {
-//    #ifdef DEBUG_EXPERCPS
-//    RC_DEBOUT(RC::RStr("ExperCPS::SetStimProfiles\n"));
-//    #endif
     if (new_min_stim_loc_profiles.size() != new_max_stim_loc_profiles.size()) {
       Throw_RC_Error("ExperCPS::SetStimProfiles: Min and max stimulation profiles must have the same length.");
     }
@@ -120,7 +80,7 @@ namespace CML {
       }
       #ifdef DEBUG_EXPERCPS
       #else
-      uint64_t min_pre_post_len = new_min_stim_loc_profiles[i][0].duration/1000 + poststim_classif_lockout_ms + 2 * classify_ms;
+      uint64_t min_pre_post_len = new_min_stim_loc_profiles[i][0].duration/1000 + cps_specs.poststim_biomarker_lockout_ms + 2 * cps_specs.classify_ms;
       if (cps_specs.intertrial_range_ms[0] < min_pre_post_len) {
         Throw_RC_Error((string("Configuration file error: intertrial_range_ms[0] < minimum possible pre-post event length of ")
                        + to_string(min_pre_post_len)
@@ -154,15 +114,15 @@ namespace CML {
 
       CCmpndKern kern_clone(kern);
       CMatrix b(1, 2);
-      b(0, 0) = 0.25 * bounds_diff;
-      b(0, 1) = 2.0 * bounds_diff;
+      b(0, 0) = cps_specs.kern_lengthscale_lb * bounds_diff; // 0.25
+      b(0, 1) = cps_specs.kern_lengthscale_ub * bounds_diff;  // 2.0
       kern_clone.setBoundsByName("matern32_0__lengthScale", b);
 
       kernels.push_back(kern_clone);
       param_bounds.push_back(bounds);
-      observation_noises.push_back(obsNoise * obsNoise);
-      exploration_biases.push_back(exp_bias);
-      init_samples.push_back(n_init_samples);
+      observation_noises.push_back(cps_specs.obsNoise * cps_specs.obsNoise);
+      exploration_biases.push_back(cps_specs.exp_bias);
+      init_samples.push_back(cps_specs.n_init_samples);
       rng_seeds.push_back(seed + n_searches * 100000);
 
       double amplitude_resolution = 0.1;  // mA
@@ -178,13 +138,11 @@ namespace CML {
       all_grid_vals.push_back(grid_vals);
     }
 
+    // CSearchComparison just being used as a convenience container for multiple
+    // Bayesian optimization processes; functionality for selecting between BO processes
+    // is not currently being used
     search = CSearchComparison(n_searches, 0.05, kernels, param_bounds, observation_noises,
         exploration_biases, init_samples, rng_seeds, verbosity, all_grid_vals);
-
-    // log parameter search metadata
-    JSONFile metadata = MakeResp("PS_METADATA");
-    metadata.Set(search.models[0].json_structure(), "data");
-    hndl->event_log.Log(metadata.Line());
 
     min_stim_loc_profiles = new_min_stim_loc_profiles;
     max_stim_loc_profiles = new_max_stim_loc_profiles;
@@ -546,7 +504,6 @@ namespace CML {
 
           StimProfile prof;
           prof += chan;
-          // TODO: RDD: add bounds checking on CBayesianSearch functions
           search.add_sample(m, xmat, biomarker_mat);
 
           UpdateEvent ev;
@@ -595,6 +552,11 @@ namespace CML {
     #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::Start_Handler\n"));
     #endif
+
+    // log parameter search metadata
+    JSONFile metadata = MakeResp("PS_METADATA");
+    metadata.Set(search.models[0].json_structure(), "data");
+    hndl->event_log.Log(metadata.Line());
 
     exp_start = RC::Time::Get();
 
@@ -762,7 +724,7 @@ namespace CML {
     }
     else if (next_classif_state == ClassificationType::STIM) {
       // check that stim happens after lockout period
-      if (eeg_times[eeg_times.size() - 1] + classify_ms - prev_stim_offset_ms < stim_lockout_ms) {
+      if (eeg_times[eeg_times.size() - 1] + cps_specs.classify_ms - prev_stim_offset_ms < stim_lockout_ms) {
         Abort();
         Throw_RC_Error((string("Stimulation requested with onset before ") +
                         to_string(stim_lockout_ms) +
@@ -771,7 +733,7 @@ namespace CML {
     }
 
     hndl->task_classifier_manager->ProcessClassifierEvent(
-        next_classif_state, classify_ms, classif_id);
+        next_classif_state, cps_specs.classify_ms, classif_id);
   }
 
 
@@ -797,7 +759,7 @@ namespace CML {
     NormalizingPanel();
     next_min_event_time = event_time +
         rng.GetRange(cps_specs.intertrial_range_ms[0], cps_specs.intertrial_range_ms[1]);
-    if (eeg_times.size() < n_normalize_events) {
+    if (eeg_times.size() < cps_specs.n_normalize_events) {
       #ifdef DEBUG_EXPERCPS
       RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler request normalization event\n"));
       #endif
@@ -805,7 +767,7 @@ namespace CML {
       // TODO consider adding some jitter here and to timeouts in general
       next_classif_state = ClassificationType::NORMALIZE;
     }
-    else if (eeg_times.size() == n_normalize_events) {
+    else if (eeg_times.size() == cps_specs.n_normalize_events) {
       // TODO log event info
       #ifdef DEBUG_EXPERCPS
       RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler request sham/stim event ")
@@ -908,7 +870,7 @@ namespace CML {
         //#ifdef DEBUG_EXPERCPS
         //RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler: just after stim_offset_ms assignment\n"));
         //#endif
-        next_min_event_time = stim_offset_ms + poststim_classif_lockout_ms;
+        next_min_event_time = stim_offset_ms + cps_specs.poststim_biomarker_lockout_ms;
         next_classif_state = ClassificationType::NOSTIM;
         if (classif_state == ClassificationType::STIM) {
           prev_sham = false;

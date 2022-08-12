@@ -1,7 +1,7 @@
 {
-  #"electrode_config_file": "R1384J_20220804_mono_L0M0.csv",
-  "electrode_config_file": "R1384_montage.csv",
-  #"bipolar_electrode_config_file": "R1384J_20220518_bi_L0M0.csv",
+  "electrode_config_file": "R1384J_20220803_mono_L0M0.csv",
+  #"electrode_config_file": "R1384_montage.csv",
+  "bipolar_electrode_config_file": "R1384J_20220803_bi_L0M0.csv",
   "experiment": {
     "stim_mode": "closed",
     "stim_channels": [  // is pulse width not set in the configuration files? stim waveform, e.g., theta-burst?
@@ -25,16 +25,30 @@
       }
     ],
     "experiment_specs": {
+      "with_video_task": false,
+      "default_experiment_duration_secs": 1600,  // default experiment length if not using video (with_video_task == false)
       "intertrial_range_ms": [
         3800,
         4000
       ],
-      "with_video_task": false,
-      "default_experiment_duration_secs": 1600,  // default experiment length if not using video (with_video_task == false)
-      "sham_duration_ms": 500
+      "sham_duration_ms": 500,
+      "n_normalize_events": 25,
+      "classify_ms": 1200,
+      "poststim_biomarker_lockout_ms": 400,
+      "Bayesian_optimization": {
+        "observation_noise": 0.2,
+        "exploration_bias": 0.25,
+        "n_initial_samples": 30,
+        "kernel_lengthscale_lowerbound": 0.25,
+        "kernel_lengthscale_upperbound": 2.0,
+        "kernel_variance_lowerbound": 0.25,
+        "kernel_variance_upperbound": 4.0,
+        "kernel_white_variance_lowerbound": 0.01,
+        "kernel_white_variance_upperbound": 4.0
+      }
     },
     "classifier": {
-      "classifier_file": "converted_classifier_R1384J_session_0.json",
+      "classifier_file": "classifier_R1384J_FR1_sessions0_1_2.json",
       "morlet_cycles": 5,
       "circular_buffer_duration_ms": 5000
     },

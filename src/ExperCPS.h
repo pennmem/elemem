@@ -112,6 +112,42 @@ namespace CML {
     protected:
     void SetCPSSpecs_Handler(const CPSSpecs& new_cps_specs) {
       cps_specs = new_cps_specs;
+      //    obsNoise = cps_specs.obsNoise;  //0.2;
+      //    exp_bias = cps_specs.obsNoise;  //0.25;  // largely doesn't matter from simulations
+  //    n_init_samples = cps_specs.n_init_samples;  //30;  // based on simulations; this parameter largely doesn't matter
+
+      // kernel for each stim site
+      // kernel parameters largely make little difference.
+      // Most critical parameters are lower bounds on fitting kernel lengthscale and white noise variance (both for stability)
+      CMatern32Kern k(n_var);
+      kern = CCmpndKern(n_var);
+      kern.addKern(&k);
+      CWhiteKern whitek(n_var);
+      kern.addKern(&whitek);
+      CMatrix b(1, 2);
+      b(0, 0) = cps_specs.kern_var_lb;  // 0.25;
+      b(0, 1) = cps_specs.kern_var_ub;  // 4.0;
+      kern.setBoundsByName("matern32_0__variance", b);
+      b(0, 0) = cps_specs.kern_white_lb;  //0.01;
+      b(0, 1) = cps_specs.kern_white_ub;  //4.0;
+      kern.setBoundsByName("white_1__variance", b);
+
+      // CPS task parameters
+      #ifdef DEBUG_EXPERCPS
+  //    n_normalize_events = 5;
+  //    classify_ms = 700;
+      #else
+  //    n_normalize_events = 25;  // same as PS4 in expectation
+      // TODO: consider shortening for more events; check classifier performance with shorter feature intervals, higher min freqs
+      // Near classification interval length of Ezzyat et al., 2018 (1366 ms)
+      // Riley confirmed that FR1 classifier AUCs dropped off considerably with shorter classification intervals
+      // only slightly shorter than Ezzyat et al.'s for timing and additional samples
+  //    classify_ms = 1200;
+      #endif
+      // delay between stim offset and onset of post-stim biomarker evaluation interval
+      // based on post-stim artifact analysis with OPS, and post-stim artifact criteria from Solomon et al. (2018)
+      // majority of post-stim artifact decayed by 400 ms after stim offset
+  //    poststim_biomarker_lockout_ms = 400;
     }
 
     void SetStimProfiles_Handler(
@@ -186,19 +222,9 @@ namespace CML {
 
     // experiment configuration variables
     uint64_t experiment_duration; // in seconds
-    // number of events for normalizing EEG features
-    size_t n_normalize_events;
-    // classification interval duration
-    uint64_t classify_ms;
-    // lockout period between stim offset and post-stim classification interval onset
-    uint64_t poststim_classif_lockout_ms;
 
+    // Bayesian optimization parameters
     int seed;
-    uint64_t n_var;
-    vector<CMatrix> param_bounds;
-    double obsNoise;
-    double exp_bias;
-    size_t n_init_samples;
     // number of distinct search locations (or more precisely, number of continuous distinct search spaces,
     // i.e. a single location could have different isolated blocks of stim parameters allowed for search, e.g.
     // search is allowed from 1-10 Hz and from 50-100 Hz for a single stim location. Both ranges are searched
@@ -207,15 +233,8 @@ namespace CML {
     int verbosity;
     CCmpndKern kern;
     CSearchComparison search;
-
-    // kernel parameter upper (ub) and lower (lb) bounds
-    double kern_lengthscale_lb;  // fitting kernel lengthscale
-    double kern_lengthscale_ub;
-    double kern_var_lb;  // fitting kernel variance
-    double kern_var_ub;
-    double kern_white_lb;  // white noise variance
-    double kern_white_ub;
-
+    uint64_t n_var;
+    vector<CMatrix> param_bounds;
 
     RC::Ptr<Handler> hndl;
     RC::Ptr<StatusPanel> status_panel;
@@ -250,6 +269,7 @@ namespace CML {
     #else
     const uint64_t stim_lockout_ms = 500;
     #endif
+    // stim offset time (relative to experiment start) for previous stim event
     uint64_t prev_stim_offset_ms = 0;
     // array of distinct stim profile indices in order of event selection; index zero indicates sham
     RC::Data1D<unsigned int> model_idxs;

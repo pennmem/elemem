@@ -49,7 +49,7 @@ namespace CML {
       RC_ForRange(j, 0, chanlen) { // Iterate over chanlen
         rolling_powers[i][j].Update(new_datar[i][j]);
 
-        if (event_log.IsSet() & (rolling_powers[i][j].GetCount() > 1)) {
+        if (event_log.IsSet() && (rolling_powers[i][j].GetCount() > 1)) {
           auto stats = rolling_powers[i][j].GetStats();
           means[i][j] += stats.means;
           sample_std_devs[i][j] += stats.sample_std_devs;

@@ -60,13 +60,27 @@
             }
         ],
         "experiment_specs": {
-            "intertrial_range_ms": [
-                3800,
-                4000
-            ],
             "with_video_task": false,
             "default_experiment_duration_secs": 60,
-            "sham_duration_ms": 500
+            "intertrial_range_ms": [
+                1500,
+                1500
+            ],
+            "sham_duration_ms": 100,
+            "n_normalize_events": 5,
+            "classify_ms": 700,
+            "poststim_biomarker_lockout_ms": 400,
+            "Bayesian_optimization": {
+                "observation_noise": 0.2,
+                "exploration_bias": 0.25,
+                "n_initial_samples": 5,
+                "kernel_lengthscale_lowerbound": 0.25,
+                "kernel_lengthscale_upperbound": 2.0,
+                "kernel_variance_lowerbound": 0.25,
+                "kernel_variance_upperbound": 4.0,
+                "kernel_white_variance_lowerbound": 0.01,
+                "kernel_white_variance_upperbound": 4.0
+            }
         },
         "classifier": {
             "classifier_file": "classifier_R1616S_catFR1_sessions0_1_2_3_4_5.json",
