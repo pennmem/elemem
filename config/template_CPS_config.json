@@ -4,7 +4,7 @@
   "bipolar_electrode_config_file": "R1384J_20220803_bi_L0M0.csv",
   "experiment": {
     "stim_mode": "closed",
-    "stim_channels": [  // is pulse width not set in the configuration files? stim waveform, e.g., theta-burst?
+    "stim_channels": [
       {
         "electrodes": [1, 2],  // Splitter mode.
         "amplitude_range_mA": [0.1, 0.5],
