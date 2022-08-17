@@ -40,5 +40,10 @@ Add unreleased user-relevant updates to Dev section at end.
 2022-05-15
  - Resolved issues with high channel count micros plus bipolar referencing.
 
+2022-08-17
+ - CPS Experiment added.
+ - Resolved off-by-one issue on bipolar referencing.
+ - Event logging for artifact channels and normalization.
+
 Dev
 
