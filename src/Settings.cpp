@@ -509,8 +509,60 @@ namespace CML {
   void Settings::LoadStimParamsCPS() {
     exp_config->Get(cps_specs.intertrial_range_ms, "experiment",
         "experiment_specs", "intertrial_range_ms");
+
     exp_config->Get(cps_specs.sham_duration_ms, "experiment",
         "experiment_specs", "sham_duration_ms");
+
+    exp_config->Get(cps_specs.n_normalize_events, "experiment",
+        "experiment_specs", "n_normalize_events");
+
+    exp_config->Get(cps_specs.classify_ms, "experiment",
+        "experiment_specs", "classify_ms");
+
+    exp_config->Get(cps_specs.poststim_biomarker_lockout_ms, "experiment",
+        "experiment_specs", "poststim_biomarker_lockout_ms");
+
+    exp_config->Get(cps_specs.obsNoise, "experiment",
+        "experiment_specs", "Bayesian_optimization", "observation_noise");
+
+    exp_config->Get(cps_specs.exp_bias, "experiment",
+        "experiment_specs", "Bayesian_optimization", "exploration_bias");
+
+    exp_config->Get(cps_specs.n_init_samples, "experiment",
+        "experiment_specs", "Bayesian_optimization", "n_initial_samples");
+
+    exp_config->Get(cps_specs.kern_lengthscale_lb, "experiment",
+        "experiment_specs", "Bayesian_optimization", "kernel_lengthscale_lowerbound");
+
+    exp_config->Get(cps_specs.kern_lengthscale_ub, "experiment",
+        "experiment_specs", "Bayesian_optimization", "kernel_lengthscale_upperbound");
+
+    if (cps_specs.kern_lengthscale_ub < cps_specs.kern_lengthscale_lb) {
+      Throw_RC_Type(File, (RC::RStr("ERROR: Kernel lengthscale upper bound below") +
+                           "lower bound in experiment config. Please fix.").c_str());
+    }
+
+    exp_config->Get(cps_specs.kern_var_lb, "experiment",
+        "experiment_specs", "Bayesian_optimization", "kernel_variance_lowerbound");
+
+    exp_config->Get(cps_specs.kern_var_ub, "experiment",
+        "experiment_specs", "Bayesian_optimization", "kernel_variance_upperbound");
+
+    if (cps_specs.kern_var_ub < cps_specs.kern_var_lb) {
+      Throw_RC_Type(File, (RC::RStr("ERROR: Kernel variance upper bound below") +
+                           "lower bound in experiment config. Please fix.").c_str());
+    }
+
+    exp_config->Get(cps_specs.kern_white_lb, "experiment",
+        "experiment_specs", "Bayesian_optimization", "kernel_white_variance_lowerbound");
+
+    exp_config->Get(cps_specs.kern_white_ub, "experiment",
+        "experiment_specs", "Bayesian_optimization", "kernel_white_variance_upperbound");
+
+    if (cps_specs.kern_white_ub < cps_specs.kern_white_lb) {
+      Throw_RC_Type(File, (RC::RStr("ERROR: Kernel white variance upper bound below") +
+                           "lower bound in experiment config. Please fix.").c_str());
+    }
   }
 
 

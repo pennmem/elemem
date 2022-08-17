@@ -3,7 +3,7 @@
   "bipolar_electrode_config_file": "R1384J_20220803_bi_L0M0.csv",
   "experiment": {
     "stim_mode": "closed",
-    "stim_channels": [  // is pulse width not set in the configuration files? stim waveform, e.g., theta-burst?
+    "stim_channels": [
       {
         "electrodes": "LF1_LF2",  // Splitter mode.
         "amplitude_range_mA": [0, 0.6],
@@ -24,13 +24,27 @@
       }
     ],
     "experiment_specs": {
+      "with_video_task": false,
+      "default_experiment_duration_secs": 60,  // default experiment length if not using video (with_video_task == false)
       "intertrial_range_ms": [
         1500,
         1500
       ],
-      "with_video_task": false,
-      "default_experiment_duration_secs": 60,  // default experiment length if not using video (with_video_task == false)
-      "sham_duration_ms": 100
+      "sham_duration_ms": 100,
+      "n_normalize_events": 5,
+      "classify_ms": 700,
+      "poststim_biomarker_lockout_ms": 400,
+      "Bayesian_optimization": {
+        "observation_noise": 0.2,
+        "exploration_bias": 0.25,
+        "n_initial_samples": 5,
+        "kernel_lengthscale_lowerbound": 0.25,
+        "kernel_lengthscale_upperbound": 2.0,
+        "kernel_variance_lowerbound": 0.25,
+        "kernel_variance_upperbound": 4.0,
+        "kernel_white_variance_lowerbound": 0.01,
+        "kernel_white_variance_upperbound": 4.0
+      }
     },
     "classifier": {
       "classifier_file": "classifier_R1384J_FR1_sessions0_1_2.json",

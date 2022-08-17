@@ -21,6 +21,7 @@ namespace CML {
 
     size_t size();
     void SetSize(size_t num_values);
+    int GetCount();
     void Reset();
     void Update(const RC::Data1D<double>& new_values);
     RC::Data1D<double> ZScore(const RC::Data1D<double>& data, bool div_by_zero_eq_zero);

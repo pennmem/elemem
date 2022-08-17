@@ -31,6 +31,8 @@ namespace CML {
     m2s.Zero();
   }
 
+  int RollingStats::GetCount() { return count; }
+
   /// Update the rolling statistics with a new set of values
   /** @param The new values to be added to the rolling statics
    */
