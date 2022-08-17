@@ -106,7 +106,6 @@ namespace CML {
 
     RC::Ptr<QWidget> stim_panel = new QWidget();
     stim_panel->setLayout(stim_grid);
-    RC_DEBOUT(RC::RStr("MainWindow.cpp::BuildStimPanelCPS exit\n"));
     return stim_panel;
   }
 
