@@ -30,9 +30,9 @@ int main (int argc, char *argv[]) {
 
 #ifdef MACOS
       ErrorMsg::TaskPid(current_task());
-#elif unix
+#elif defined(unix)
       ErrorMsg::TaskPid(getpid());
-#elif WIN32
+#elif defined(WIN32)
       ErrorMsg::TaskPid(_getpid());
 #else
       ErrorMsg::TaskPid(0);
