@@ -134,6 +134,12 @@ namespace CML {
 
     cbSdkResult res = cbSdkOpen(instance, CBSDKCONNECTION_DEFAULT);
 
+    if (res == CBSDKRESULT_TIMEOUT) {
+      cbSdkClose(instance);
+      CSleep(1);
+      res = cbSdkOpen(instance, CBSDKCONNECTION_DEFAULT);
+    }
+
     if (res != CBSDKRESULT_SUCCESS) {
       throw CBException(res, "Open of Neuroport failed.", instance);
     }
