@@ -118,7 +118,9 @@ namespace CML {
   }
 
   void StimWorker::CloseStim_Handler() {
-    stim_interface->CloseInterface();
+    if (stim_interface.IsSet()) {
+      stim_interface->CloseInterface();
+    }
   }
 }
 
