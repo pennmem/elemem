@@ -94,10 +94,10 @@ namespace RC {
       } else {
         return vmoffset;
       }
-#elif unix
+#elif defined(unix)
       // TODO: JPB: (feature) Implement LoadAddress for Linux
       return 0;
-#elif WIN32
+#elif defined(WIN32)
       // TODO: JPB: (feature) Implement LoadAddress for Windows
       return 0;
 #else
