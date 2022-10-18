@@ -178,7 +178,7 @@ namespace CML {
     }
 
     // Verify electrodes are all unique.
-    //std::vector<uint8_t> uniqueness_check(256);
+    //std::vector<uint16_t> uniqueness_check(256);
     //for (size_t i=0; i<profile.size(); i++) {
     //  auto& prof =  profile[i];
 
@@ -263,7 +263,7 @@ namespace CML {
             "duration too long for " + std::to_string(afd.frequency) + "Hz "
             "stimulus.");
       }
-      uint8_t pulses = uint8_t(pulses_64);
+      uint16_t pulses = uint16_t(pulses_64);
       // Anodic/positive first waveform
       ErrorCheck(
         CS_ConfigureStimulusPattern(uint16_t(2*i+1), 0, pulses, afd.amplitude,
@@ -341,7 +341,7 @@ namespace CML {
 //    }
 //
 //    // Verify electrodes are all unique.
-//    std::vector<uint8_t> uniqueness_check(256);
+//    std::vector<uint16_t> uniqueness_check(256);
 //    for (size_t i=0; i<profile.stim_profile.size(); i++) {
 //      auto& prof =  profile.stim_profile[i];
 //
@@ -427,7 +427,7 @@ namespace CML {
 //            "duration too long for " + std::to_string(afd.frequency) + "Hz "
 //            "stimulus.");
 //      }
-//      uint8_t pulses = uint8_t(pulses_64);
+//      uint16_t pulses = uint16_t(pulses_64);
 //      // Anodic/positive first waveform
 //      ErrorCheck(
 //        CS_ConfigureStimulusPattern(uint16_t(2*i+1), 0, pulses, afd.amplitude,

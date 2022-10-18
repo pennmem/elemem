@@ -338,8 +338,8 @@ namespace CML {
     out_datar.Resize(chanlen);
 
     RC_ForIndex(i, out_datar) { // Iterate over channels
-      uint8_t pos = bipolar_reference_channels[i].pos;
-      uint8_t neg = bipolar_reference_channels[i].neg;
+      uint16_t pos = bipolar_reference_channels[i].pos;
+      uint16_t neg = bipolar_reference_channels[i].neg;
 
       if (pos >= in_datar.size()) { // Pos channel not in data
         Throw_RC_Error(("Positive channel " + RC::RStr(pos+1) +
@@ -388,8 +388,8 @@ namespace CML {
     out_datar.Resize(chanlen);
 
     RC_ForIndex(i, out_datar) { // Iterate over channels
-      uint8_t pos = bipolar_reference_channels[i].GetBipolarChannels().pos;
-      uint8_t neg = bipolar_reference_channels[i].GetBipolarChannels().neg;
+      uint16_t pos = bipolar_reference_channels[i].GetBipolarChannels().pos;
+      uint16_t neg = bipolar_reference_channels[i].GetBipolarChannels().neg;
 
       if (pos >= in_datar.size()) { // Pos channel not in data
         Throw_RC_Error(("Positive channel " + RC::RStr(pos+1) +

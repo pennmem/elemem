@@ -30,7 +30,7 @@ namespace CML {
     RC::APtr<H5::H5File> hdf_hdl;
     RC::APtr<H5::DataSet> hdf_data;
     RC::APtr<H5::DataSpace> hdf_dataspace;
-    RC::Data1D<uint8_t> channels;
+    RC::Data1D<uint16_t> channels;
     RC::Data1D<int16_t> serialize;
     size_t sampling_rate;
   };

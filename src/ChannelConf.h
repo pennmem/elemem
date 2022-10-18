@@ -7,8 +7,8 @@
 namespace CML {
   class StimChannel {
     public:
-    uint8_t electrode_pos = 0;  // Goes positive first / anodic
-    uint8_t electrode_neg = 0;  // Goes negative first / cathodic
+    uint16_t electrode_pos = 0;  // Goes positive first / anodic
+    uint16_t electrode_neg = 0;  // Goes negative first / cathodic
     uint16_t amplitude = 0; // Unit 1uA, granularity 100uA for macro.
     uint32_t frequency = 0; // Unit Hz.
     uint32_t duration = 0;  // Unit us.
@@ -19,8 +19,8 @@ namespace CML {
 
   class BipolarPair {
     public:
-    uint8_t pos = 0;
-    uint8_t neg = 0;
+    uint16_t pos = 0;
+    uint16_t neg = 0;
   };
 
   inline std::ostream& operator<< (std::ostream& out, const BipolarPair& bp) {
@@ -34,14 +34,14 @@ namespace CML {
   class EEGChan {
     public:
     EEGChan() {}
-    EEGChan(uint8_t channel, uint32_t data_index, RC::RStr label="") {
+    EEGChan(uint16_t channel, uint32_t data_index, RC::RStr label="") {
       SetMono(channel, data_index, label);
     }
-    EEGChan(uint8_t pos, uint8_t neg, uint32_t data_index, RC::RStr label="") {
+    EEGChan(uint16_t pos, uint16_t neg, uint32_t data_index, RC::RStr label="") {
       SetBipolar(pos, neg, data_index, label);
     }
 
-    void SetMono(uint8_t channel, uint32_t new_data_index, RC::RStr label="") {
+    void SetMono(uint16_t channel, uint32_t new_data_index, RC::RStr label="") {
       chan_type = ChanType::Mono;
 
       channels[0] = channel;
@@ -54,7 +54,7 @@ namespace CML {
       }
     }
 
-    void SetBipolar(uint8_t pos, uint8_t neg, uint32_t new_data_index, RC::RStr label="") { 
+    void SetBipolar(uint16_t pos, uint16_t neg, uint32_t new_data_index, RC::RStr label="") { 
       chan_type = ChanType::Bipolar;
       channels[0] = pos;
       channels[1] = neg;
@@ -105,7 +105,7 @@ namespace CML {
       Throw_RC_Error("Unrecognized ChanType.");
     }
 
-    uint8_t GetMonoChannel() const {
+    uint16_t GetMonoChannel() const {
       switch (chan_type) {
         case ChanType::None:
           Throw_RC_Error("EEGChan has not been set before trying to get mono channel.");
@@ -131,7 +131,7 @@ namespace CML {
 
     protected:
     ChanType chan_type = ChanType::None;
-    RC::Data1D<uint8_t> channels{0, 0};
+    RC::Data1D<uint16_t> channels{0, 0};
     uint32_t data_index = 0;
     RC::RStr label = "";
   };

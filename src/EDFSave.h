@@ -35,7 +35,7 @@ namespace CML {
     void SetChanParam(F func, P p, RC::RStr error_msg);
 
     int edf_hdl = -1;
-    RC::Data1D<uint8_t> channels;
+    RC::Data1D<uint16_t> channels;
     EEGData buffer;
     size_t amount_buffered = 0;
     size_t amount_written = 0;

@@ -30,7 +30,7 @@
       }
     ],
     "experiment_specs": {},
-    "type": "Courier"
+    "type": "EFRCourierOpenLoop"
   },
   "global_settings": {
     "connect_to_task_laptop": true,

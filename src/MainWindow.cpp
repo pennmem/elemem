@@ -191,7 +191,7 @@ namespace CML {
 
     channel_selector = new ChannelSelector(this);
     Data1D<EEGChan> demo_chans;
-    for (uint8_t i=1; i<1+16; i++) {
+    for (uint16_t i=1; i<1+16; i++) {
       demo_chans += EEGChan(i, i);
     }
     channel_selector->SetChannels(demo_chans);

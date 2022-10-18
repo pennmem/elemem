@@ -93,7 +93,7 @@ namespace CML {
               "in Montage CSV (item " + RC::RStr(r+1) +
               ") is greater than " + RC::RStr(chan_count)).c_str());
       }
-      new_chans[r] = EEGChan(static_cast<uint8_t>(chan), chan, label);
+      new_chans[r] = EEGChan(static_cast<uint16_t>(chan), chan, label);
     }
 
     return new_chans;
@@ -171,7 +171,7 @@ namespace CML {
       }
 
       // Construct EEG channel
-      new_chans[r] = EEGChan(static_cast<uint8_t>(pos), static_cast<uint8_t>(neg), r, label);
+      new_chans[r] = EEGChan(static_cast<uint16_t>(pos), static_cast<uint16_t>(neg), r, label);
     }
 
     return new_chans;

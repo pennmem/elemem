@@ -95,7 +95,7 @@ namespace CML {
     }
 
     // Verify electrodes are all unique.
-    std::vector<uint8_t> uniqueness_check(256);
+    std::vector<uint16_t> uniqueness_check(256);
     for (size_t i=0; i<profile.size(); i++) {
       auto& prof =  profile[i];
 
