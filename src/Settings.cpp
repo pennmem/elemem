@@ -26,6 +26,14 @@ namespace CML {
     }
     load_sys_conf->Load(fr);
 
+    uint32_t chan_count;
+    load_sys_conf->Get(chan_count, "channel_count");
+    if (chan_count > std::numeric_limits<uint16_t>::max()) {
+      Throw_RC_Type(File, (RC::RStr("channel_count exceeds maximum ") +
+          "channel count of " +
+          RC::RStr(std::numeric_limits<uint16_t>::max())).c_str());
+    }
+
     sys_config = load_sys_conf.ExtractConst();
   }
 
@@ -72,13 +80,18 @@ namespace CML {
       elec_config.Delete();
       Throw_RC_Type(Note, "Montage CSV file has insufficient columns.");
     }
+
+    uint32_t chan_count;
+    sys_config->Get(chan_count, "channel_count");
+
     RC::Data1D<EEGChan> new_chans(elec_config->data.size2());
     for (size_t r=0; r<elec_config->data.size2(); r++) {
       uint32_t chan = elec_config->data[r][1].Get_u32() - 1; // Subtract 1 to convert to 0-indexing
       RC::RStr label = elec_config->data[r][0];
-      if (chan > 255) {
-        Throw_RC_Type(File, ("Electrode channel (" + RC::RStr(chan) + ") "
-              "in Montage CSV (item " + r + ") is greater than 255").c_str());
+      if (chan >= chan_count) {
+        Throw_RC_Type(File, ("Electrode channel (" + RC::RStr(chan+1) + ") "
+              "in Montage CSV (item " + RC::RStr(r+1) +
+              ") is greater than " + RC::RStr(chan_count)).c_str());
       }
       new_chans[r] = EEGChan(static_cast<uint8_t>(chan), chan, label);
     }
@@ -105,6 +118,9 @@ namespace CML {
       Throw_RC_Type(Note, "Bipolar CSV file has insufficient columns.");
     }
 
+    uint32_t chan_count;
+    sys_config->Get(chan_count, "channel_count");
+
     RC::Data1D<EEGChan> new_chans(bipolar_config->data.size2());
     for (size_t r=0; r<bipolar_config->data.size2(); r++) {
       auto& chan = bipolar_config->data[r];
@@ -126,15 +142,19 @@ namespace CML {
       uint32_t pos = pos_str.Get_u32() - 1; // Subract 1 to convert to 0-indexing
       uint32_t neg = neg_str.Get_u32() - 1; // Subract 1 to convert to 0-indexing
 
-      // Validate conversion to u8
-      if (pos > 255) {
-        Throw_RC_Type(File, ("Positive electrode (" + RC::RStr(pos) + ") of bipolar pair (" + RC::RStr(label) + ") "
-              "in Bipolar CSV (item " + r + ") is greater than 255").c_str());
+      // Validate values within channel limits.
+      if (pos >= chan_count) {
+        Throw_RC_Type(File, ("Positive channel (" + RC::RStr(pos+1) +
+              ") of biopolar pair (" + RC::RStr(label) +
+              ") in Bipolar CSV (item " + RC::RStr(r+1) +
+              ") is greater than " + RC::RStr(chan_count)).c_str());
       }
 
-      if (neg > 255) {
-        Throw_RC_Type(File, ("Negative electrode (" + RC::RStr(neg) + ") of bipolar pair (" + RC::RStr(label) + ") "
-              "in Bipolar CSV (item " + r + ") is greater than 255").c_str());
+      if (neg >= chan_count) {
+        Throw_RC_Type(File, ("Negative channel (" + RC::RStr(pos+1) +
+              ") of biopolar pair (" + RC::RStr(label) +
+              ") in Bipolar CSV (item " + RC::RStr(r+1) +
+              ") is greater than " + RC::RStr(chan_count)).c_str());
       }
 
       // Validate that bipolar electrodes are present in mono electrode config
