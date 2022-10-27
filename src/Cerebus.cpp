@@ -221,7 +221,6 @@ namespace CML {
     SetTrialConfig();
   }
 
-
   void Cerebus::SetChannelRange(uint16_t first_channel, uint16_t last_channel,
       uint32_t samprate_index) {
     if (first_channel > last_channel) {
@@ -350,7 +349,7 @@ namespace CML {
 
   void Cerebus::SetTrialConfig() {
     cbSdkResult res;
-    res = cbSdkSetTrialConfig(instance, 1, first_chan+1, 0, 0, last_chan+1,
+    res = cbSdkSetTrialConfig(instance, 1, 0, 0, 0, 0,
         0, 0, false, 0, cbSdk_CONTINUOUS_DATA_SAMPLES, 0, 0, 0, true);
 
     if (res != CBSDKRESULT_SUCCESS) {
