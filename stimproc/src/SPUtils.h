@@ -42,7 +42,7 @@ namespace SP {
 
   template<class T>
   void CheckedUnsignedCopy(unsigned long long val, T& t) {
-    static_assert(std::is_unsigned_v<T>, "Most copy to unsigned.");
+    static_assert(std::is_unsigned_v<T>, "Must copy to unsigned.");
     if (val > std::numeric_limits<T>::max()) {
       throw std::runtime_error(std::to_string(val) + " is larger than the "
           "maximum allowed for the numeric type.");
