@@ -45,7 +45,9 @@ namespace CML {
   // All channel numbers are zero-based.  For user-interfacing use one-based.
   class Cerebus : public EEGSource {
     public:
-    Cerebus(uint32_t chan_count=256, uint32_t instance_=0);
+    Cerebus(uint32_t lower_chan_count=256,
+            const std::vector<uint32_t>& unique_chans=std::vector<uint32_t>(),
+            uint32_t instance_=0);
     ~Cerebus();
 
     // Rule of 5.
@@ -81,9 +83,10 @@ namespace CML {
     void BeOpen();
 
     uint32_t instance;
-    uint32_t chan_count=256;
+    uint32_t lower_chan_count=256;
     uint16_t first_chan=uint16_t(-1);  // unset
     uint16_t last_chan=0;
+    std::vector<uint32_t>& unique_chans;
 
     std::vector<TrialData> channel_data =
         std::vector<TrialData>(cbNUM_ANALOG_CHANS);
