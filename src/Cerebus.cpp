@@ -119,7 +119,10 @@ namespace CML {
 
 
   Cerebus::Cerebus(uint32_t lower_chan_count, const std::vector<uint32_t>& unique_chans, uint32_t instance_)
-      : instance(instance_), unique_chans(unique_chans), lower_chan_count(lower_chan_count) {
+      : instance(instance_), lower_chan_count(lower_chan_count), unique_chans(unique_chans) {
+    for (auto& chan : this->unique_chans) {
+      chan -= 1;
+    }
   }
 
 

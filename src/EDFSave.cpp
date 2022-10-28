@@ -164,7 +164,7 @@ namespace CML {
           DebugLog(deb_msg);
 
           Throw_RC_Type(File,
-              ("Data missing on edf save, channel " + RC::RStr(c+1)).c_str());
+              ("Data missing on edf save, channel " + RC::RStr(channels[c]+1)).c_str());
         }
 
         int write_err = edfwrite_digital_short_samples(edf_hdl,
