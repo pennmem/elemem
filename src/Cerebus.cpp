@@ -118,9 +118,9 @@ namespace CML {
   }
 
 
-  Cerebus::Cerebus(uint32_t lower_chan_count, const std::vector<uint32_t>& unique_chans, uint32_t instance_)
-      : instance(instance_), lower_chan_count(lower_chan_count), unique_chans(unique_chans) {
-    for (auto& chan : this->unique_chans) {
+  Cerebus::Cerebus(uint32_t chan_count, const std::vector<uint32_t>& extra_chans, uint32_t instance_)
+      : instance(instance_), chan_count(chan_count), extra_chans(extra_chans) {
+    for (auto& chan : this->extra_chans) {
       chan -= 1;
     }
   }
@@ -195,12 +195,12 @@ namespace CML {
     }
 
     first_chan = 0;
-    last_chan = lower_chan_count-1;
+    last_chan = chan_count-1;
     for (uint16_t c=first_chan; c<=last_chan; c++) {
       ConfigureChannel(c, samprate_index);
     }
 
-    for (uint32_t c : unique_chans) {
+    for (uint32_t c : extra_chans) {
       ConfigureChannel(static_cast<uint16_t>(c), samprate_index);
     }
 

@@ -27,16 +27,16 @@ namespace CML {
     load_sys_conf->Load(fr);
 
     uint32_t chan_count;
-    load_sys_conf->Get(chan_count, "lower_channel_count");
+    load_sys_conf->Get(chan_count, "channel_count");
     if (chan_count > std::numeric_limits<uint16_t>::max()) {
-      Throw_RC_Type(File, (RC::RStr("lower_channel_count exceeds maximum ") +
+      Throw_RC_Type(File, (RC::RStr("channel_count exceeds maximum ") +
           "channel count of " +
           RC::RStr(std::numeric_limits<uint16_t>::max())).c_str());
     }
 
-    RC::Data1D<uint32_t> unique_chans;
-    load_sys_conf->Get(unique_chans, "unique_channels");
-    for (uint32_t c : unique_chans) {
+    RC::Data1D<uint32_t> extra_chans;
+    load_sys_conf->Get(extra_chans, "extra_channels");
+    for (uint32_t c : extra_chans) {
       if (c > std::numeric_limits<uint16_t>::max()) {
       std::cout << "TEST3" << std::endl;
         Throw_RC_Type(File, (RC::RStr("unique chan ") + RC::RStr(c) +
@@ -93,19 +93,19 @@ namespace CML {
     }
 
     uint32_t chan_count;
-    RC::Data1D<uint32_t> unique_chans;
-    sys_config->Get(chan_count, "lower_channel_count");
-    sys_config->Get(unique_chans, "unique_channels");
+    RC::Data1D<uint32_t> extra_chans;
+    sys_config->Get(chan_count, "channel_count");
+    sys_config->Get(extra_chans, "extra_channels");
 
     RC::Data1D<EEGChan> new_chans(elec_config->data.size2());
     for (size_t r=0; r<elec_config->data.size2(); r++) {
       uint32_t chan = elec_config->data[r][1].Get_u32() - 1; // Subtract 1 to convert to 0-indexing
       RC::RStr label = elec_config->data[r][0];
-      if (chan >= chan_count && !unique_chans.Contains(chan+1)) {
+      if (chan >= chan_count && !extra_chans.Contains(chan+1)) {
         Throw_RC_Type(File, ("Electrode channel (" + RC::RStr(chan+1) + ") "
               "in Montage CSV (item " + RC::RStr(r+1) +
               ") is greater than " + RC::RStr(chan_count) +
-              " and it is not in the unique_channels").c_str());
+              " and it is not in the extra_channels").c_str());
       }
       new_chans[r] = EEGChan(static_cast<uint16_t>(chan), chan, label);
     }
@@ -133,9 +133,9 @@ namespace CML {
     }
 
     uint32_t chan_count;
-    RC::Data1D<uint32_t> unique_chans;
-    sys_config->Get(chan_count, "lower_channel_count");
-    sys_config->Get(unique_chans, "unique_channels");
+    RC::Data1D<uint32_t> extra_chans;
+    sys_config->Get(chan_count, "channel_count");
+    sys_config->Get(extra_chans, "extra_channels");
 
     RC::Data1D<EEGChan> new_chans(bipolar_config->data.size2());
     for (size_t r=0; r<bipolar_config->data.size2(); r++) {
@@ -159,20 +159,20 @@ namespace CML {
       uint32_t neg = neg_str.Get_u32() - 1; // Subract 1 to convert to 0-indexing
 
       // Validate values within channel limits.
-      if (pos >= chan_count && !unique_chans.Contains(pos+1)) {
+      if (pos >= chan_count && !extra_chans.Contains(pos+1)) {
         Throw_RC_Type(File, ("Positive channel (" + RC::RStr(pos+1) +
               ") of biopolar pair (" + RC::RStr(label) +
               ") in Bipolar CSV (item " + RC::RStr(r+1) +
               ") is greater than " + RC::RStr(chan_count) +
-              " and it is not in the unique_channels").c_str());
+              " and it is not in the extra_channels").c_str());
       }
 
-      if (neg >= chan_count && !unique_chans.Contains(neg+1)) {
+      if (neg >= chan_count && !extra_chans.Contains(neg+1)) {
         Throw_RC_Type(File, ("Negative channel (" + RC::RStr(neg+1) +
               ") of biopolar pair (" + RC::RStr(label) +
               ") in Bipolar CSV (item " + RC::RStr(r+1) +
               ") is greater than " + RC::RStr(chan_count) +
-              " and it is not in the unique_channels").c_str());
+              " and it is not in the extra_channels").c_str());
       }
 
       // Validate that bipolar electrodes are present in mono electrode config
