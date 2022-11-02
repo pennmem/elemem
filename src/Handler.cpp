@@ -785,9 +785,6 @@ namespace CML {
     main_window->GetStatusPanel()->SetExperiment(settings.exper);
     main_window->GetStatusPanel()->SetEvent("RECORDING");
 
-    // The Neuroport hardware needs some time to initialize and adjust
-    // to the new settings before we start making use of the data.
-    RC::Time::Sleep(1);
     SaveDefaultEEG();
     main_window->SetReadyToStart(true);
   }

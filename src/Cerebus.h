@@ -79,6 +79,7 @@ namespace CML {
     void ClearChannels();
     void ConfigureChannel(uint16_t channel, uint32_t samprate_index);
     void SetTrialConfig();
+    void SyncChannels();
 
     void BeOpen();
 

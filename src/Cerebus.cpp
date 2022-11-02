@@ -25,9 +25,10 @@ namespace CML {
       return;
     }
   #ifdef WIN32
-    ::Sleep(seconds*1000);
+    ::Sleep(seconds*1000+0.5);
   #else // POSIX
     struct timespec req;
+    seconds += 0.5e-9;
     req.tv_sec = time_t(seconds);
     req.tv_nsec = long(1e9*(seconds-(uint64_t)(seconds)));
     nanosleep(&req, NULL);
@@ -208,7 +209,9 @@ namespace CML {
 
     SetTrialConfig();
 
-    CSleep(0.5);
+    CSleep(0.25);
+
+    SyncChannels();
   }
 
 
@@ -357,6 +360,60 @@ namespace CML {
 
     if (res != CBSDKRESULT_SUCCESS) {
       throw CBException(res, "cbSdkSetTrialConfig", instance);
+    }
+  }
+
+  void Cerebus::SyncChannels() {
+    bool synched = false;
+    float sample_time = 0.01;
+    size_t runs = size_t(3/sample_time + 0.5);  // Max 3 seconds.
+    uint32_t first_bad = uint32_t(-1);
+    size_t data_len = 0;
+
+    for (size_t r=0; r < runs && (!synched); r++) {
+      CSleep(0.01);
+      const std::vector<TrialData>& data = GetData();
+
+      data_len = 0;
+      synched = true;
+
+      auto check_if_bad = [&](auto c) {
+        if (data_len == 0) {
+          data_len = data[c].data.size();
+        }
+        else if (data[c].data.size() != data_len) {
+          synched = false;
+          first_bad = c;
+          return true;
+        }
+        return false;
+      };
+
+      for (uint16_t c=first_chan; c<=last_chan; c++) {
+        if (check_if_bad(c)) {
+          break;
+        }
+      }
+
+      if (synched) {
+        for (uint32_t c : extra_chans) {
+          if (check_if_bad(c)) {
+            break;
+          }
+        }
+      }
+    }
+
+    if ( ! synched ) {
+      if (data_len == 0) {
+        throw std::runtime_error("No data on any channels after initialize!");
+      }
+      else {
+        throw std::runtime_error(
+            std::string("Could not obtain synchronized data across channels.")
+            + std::string("  First channel with mismatched data count: ")
+            + std::to_string(first_bad));
+      }
     }
   }
 }
