@@ -10,7 +10,6 @@
 
 #include <cstdint>
 #include <vector>
-#include <RC/Macros.h>
 
 namespace CML {
   struct TrialData {

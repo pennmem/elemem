@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <ctime>
+#include <iostream>  // TODO remove
 #include <utility>
 #ifdef WIN32
 #include <winsock2.h>
@@ -25,7 +26,7 @@ namespace CML {
       return;
     }
   #ifdef WIN32
-    ::Sleep(seconds*1000+0.5);
+    ::Sleep(static_cast<unsigned long>(seconds*1000+0.5));
   #else // POSIX
     struct timespec req;
     seconds += 0.5e-9;
@@ -197,7 +198,10 @@ namespace CML {
 
     first_chan = 0;
     last_chan = chan_count-1;
-    for (uint16_t c=first_chan; c<=last_chan; c++) {
+    if (last_chan > std::numeric_limits<uint16_t>::max()) {
+        throw std::runtime_error("Last channel out of 16-bit bounds.");
+    }
+    for (uint16_t c=uint16_t(first_chan); c<=last_chan; c++) {
       ConfigureChannel(c, samprate_index);
     }
 
@@ -255,8 +259,8 @@ namespace CML {
     ClearChannels();
 
     for (size_t i=0; i<channel_list.size(); i++) {
-      first_chan = std::min(first_chan, channel_list[i]);
-      last_chan = std::max(last_chan, channel_list[i]);
+      first_chan = std::min(first_chan, uint32_t(channel_list[i]));
+      last_chan = std::max(last_chan, uint32_t(channel_list[i]));
       ConfigureChannel(channel_list[i], samprate_index);
     }
 
@@ -290,17 +294,36 @@ namespace CML {
       throw CBException(res, "cbSdkGetTrialData", instance);
     }
 
-    // Set vector sizes to actually acquired data.
-    if (trial.count > channel_data.size()) {
-      channel_data.resize(trial.count);
-    }
-    for (uint32_t c=0; c<trial.count; c++) {
-      channel_data[c].chan = trial.chan[c]-1;
-      channel_data[c].data.resize(trial.num_samples[c]);
-    }
+    // Pre-mark all channels as -1.
     for (uint32_t c=trial.count; c<channel_data.size(); c++) {
       channel_data[c].chan = uint16_t(-1);
-      channel_data[c].data.resize(0);
+    }
+
+    for (uint32_t c=0; c<trial.count; c++) {
+      size_t cnum = trial.chan[c]-1;
+      // Set vector sizes to fit actually acquired data.
+      if (cnum >= channel_data.size()) {
+        throw std::runtime_error("Neuroport provided channel number out "
+                                 "of cbsdk supported range.");
+      }
+      channel_data[cnum].chan = uint16_t(cnum);
+      // Must swap data from where it was put to where it belongs.
+      // TODO - Fix bug, or undo this and rearrange order in EEGAcq??
+      if (cnum != c) {
+        if (cnum < c) {
+          throw std::runtime_error(
+            "cnum less than c indicates unexpected Neuroport behavior.");
+        }
+        std::swap(channel_data[cnum].data, channel_data[c].data);
+      }
+      channel_data[cnum].data.resize(trial.num_samples[c]);
+    }
+
+    // Clear all vectors for channels still marked as -1.
+    for (uint32_t c=0; c<channel_data.size(); c++) {
+      if (channel_data[c].chan == uint16_t(-1)) {
+        channel_data[c].data.resize(0);
+      }
     }
 
     return channel_data;
@@ -365,7 +388,7 @@ namespace CML {
 
   void Cerebus::SyncChannels() {
     bool synched = false;
-    float sample_time = 0.01;
+    float sample_time = 0.01f;
     size_t runs = size_t(3/sample_time + 0.5);  // Max 3 seconds.
     uint32_t first_bad = uint32_t(-1);
     size_t data_len = 0;
@@ -389,7 +412,7 @@ namespace CML {
         return false;
       };
 
-      for (uint16_t c=first_chan; c<=last_chan; c++) {
+      for (uint16_t c=uint16_t(first_chan); c<=last_chan; c++) {
         if (check_if_bad(c)) {
           break;
         }

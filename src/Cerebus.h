@@ -85,8 +85,8 @@ namespace CML {
 
     uint32_t instance;
     uint32_t chan_count=256;
-    uint16_t first_chan=uint16_t(-1);  // unset
-    uint16_t last_chan=0;
+    uint32_t first_chan=uint32_t(-1);  // unset
+    uint32_t last_chan=0;
     std::vector<uint32_t> extra_chans;
 
     std::vector<TrialData> channel_data =
