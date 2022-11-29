@@ -38,7 +38,6 @@ namespace CML {
     load_sys_conf->Get(extra_chans, "extra_channels");
     for (uint32_t c : extra_chans) {
       if (c > std::numeric_limits<uint16_t>::max()) {
-      std::cout << "TEST3" << std::endl;
         Throw_RC_Type(File, (RC::RStr("unique chan ") + RC::RStr(c) +
             "exceeds maximum channel count of " +
             RC::RStr(std::numeric_limits<uint16_t>::max())).c_str());
