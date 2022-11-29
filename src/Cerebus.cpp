@@ -10,7 +10,6 @@
 
 #include <cstdint>
 #include <ctime>
-#include <iostream>  // TODO remove
 #include <utility>
 #ifdef WIN32
 #include <winsock2.h>
@@ -307,8 +306,7 @@ namespace CML {
                                  "of cbsdk supported range.");
       }
       channel_data[cnum].chan = uint16_t(cnum);
-      // Must swap data from where it was put to where it belongs.
-      // TODO - Fix bug, or undo this and rearrange order in EEGAcq??
+      // Active channels should come in order from a Neuroport.
       if (cnum != c) {
         if (cnum < c) {
           throw std::runtime_error(
