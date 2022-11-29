@@ -46,7 +46,7 @@ namespace CML {
       data.Resize(cbNUM_ANALOG_CHANS);
 
       for(size_t i=0; i<cereb_chandata.size(); i++) {
-        auto cereb_chan = cereb_chandata[i].chan;
+        uint16_t cereb_chan = cereb_chandata[i].chan;
         // Unsigned -1 used for deactivated channel.
         if (cereb_chan >= data.size()) {
           continue;

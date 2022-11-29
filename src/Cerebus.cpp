@@ -305,16 +305,8 @@ namespace CML {
         throw std::runtime_error("Neuroport provided channel number out "
                                  "of cbsdk supported range.");
       }
-      channel_data[cnum].chan = uint16_t(cnum);
-      // Active channels should come in order from a Neuroport.
-      if (cnum != c) {
-        if (cnum < c) {
-          throw std::runtime_error(
-            "cnum less than c indicates unexpected Neuroport behavior.");
-        }
-        std::swap(channel_data[cnum].data, channel_data[c].data);
-      }
-      channel_data[cnum].data.resize(trial.num_samples[c]);
+      channel_data[c].chan = uint16_t(cnum);
+      channel_data[c].data.resize(trial.num_samples[c]);
     }
 
     // Clear all vectors for channels still marked as -1.
@@ -399,6 +391,9 @@ namespace CML {
       synched = true;
 
       auto check_if_bad = [&](auto c) {
+        if (data[c].chan == uint16_t(-1)) {
+          return false;
+        }
         if (data_len == 0) {
           data_len = data[c].data.size();
         }
