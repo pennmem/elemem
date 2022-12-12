@@ -67,6 +67,7 @@ namespace CML {
     f64 cur_stim_onset_time_sec = RC::Time::Get();
     if (cur_stim_onset_time_sec - prev_stim_offset_time_sec < stim_lockout_sec) {
       Abort();
+      hndl->Abort();
       Throw_RC_Error((string("Stimulation requested before ") +
                       to_string(stim_lockout_sec) +
                       string(" seconds after start of previous stimulation event. Aborting experiment for safety.")).c_str());
@@ -114,7 +115,7 @@ namespace CML {
     }
 
     // Safety check stim offset
-    prev_stim_offset_time_sec = RC::Time::Get() + static_cast<f64>(max_duration) * 1e-6;
+    prev_stim_offset_time_sec = RC::Time::Get();
   }
 
   void StimWorker::CloseStim_Handler() {
