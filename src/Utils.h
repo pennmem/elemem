@@ -9,6 +9,7 @@ namespace CML {
   RC::RStr GetDesktop();
   int CeilDiv(int dividend, int divisor);
   size_t CeilDiv(size_t dividend, size_t divisor);
+  bool CheckStorage(RC::RStr path, size_t amount);
 }
 
 #endif // UTILS_H

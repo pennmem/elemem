@@ -6,6 +6,7 @@
 #include "Handler.h"
 #include "ConfigFile.h"
 #include "Popup.h"
+#include "Utils.h"
 
 namespace CML {
   template<class F, class P>
@@ -40,6 +41,8 @@ namespace CML {
       Throw_RC_Type(File,
           (RC::RStr("Could not open ")+filename+" for edf writing").c_str());
     }
+    error_triggered = false;
+    current_filename = filename;
 
     int datarecord_scaleby = 1;
     if (sampling_rate <= 10000) {
@@ -109,13 +112,33 @@ namespace CML {
   void EDFSave::StopSaving_Handler() {
     hndl->eeg_acq.RemoveEEGMonoCallback(callback_ID);
 
+    RC::RStr message = "";
     if (edf_hdl >= 0) {
-      // No error check, can be a destructor cleanup call.
-      edfwrite_annotation_utf8(edf_hdl,
-          static_cast<long long>(amount_written * 10000 / sampling_rate),
-          -1LL, "Recording ends");
+      if ( ! error_triggered ) {
+        // No error check, can be a destructor cleanup call.
+        edfwrite_annotation_utf8(edf_hdl,
+            static_cast<long long>(amount_written * 10000 / sampling_rate),
+            -1LL, "Recording ends");
+      }
+      else {
+        message += "  EDF annotations could not be completed due to "
+            "a write error from edflib.";
+      }
 
-      EDFSynch::Close(edf_hdl);
+      // Due to serious flaws in edflib, we must check for free space
+      // before calling close!
+      if (CheckStorage(current_filename, 512*1024*1024)) {
+        EDFSynch::Close(edf_hdl);
+      }
+      else {
+        message += "  Insufficient free space to properly close EDF file.";
+      }
+
+      if (message.length() > 0) {
+        ErrorWin("Error during EDF write." + message +
+                 "  EDF file will be invalid.");
+      }
+
       edf_hdl = -1;
     }
   }
@@ -126,6 +149,13 @@ namespace CML {
     if (edf_hdl < 0) {
       StopSaving_Handler();
       return;
+    }
+    if ( ! CheckStorage(current_filename, 1024*1024*1024)) {
+      ErrorWin("Free disk space below 1GB.  Halting edf save to "
+               "close file and preserve existing data.  "
+               "Experiment stop triggered.");
+      StopSaving_Handler();
+      hndl->StopExperiment();
     }
 
     if (buffer.data.size() < datar.size()) {
@@ -144,12 +174,14 @@ namespace CML {
       // Write data in the order of the montage CSV.
       for (size_t c=0; c<channels.size(); c++) {
         if (c >= buffer.data.size()) {
+          error_triggered = true;
           StopSaving_Handler();
           Throw_RC_Type(File, ("EDF save, configured channel " +
                 RC::RStr(c+1) + " out of bounds").c_str());
         }
 
         if (buffer.data[channels[c]].size() < datarecord_len) {
+          error_triggered = true;
           StopSaving_Handler();
 
           RC::RStr deb_msg("Data missing details\n");
@@ -170,6 +202,7 @@ namespace CML {
         int write_err = edfwrite_digital_short_samples(edf_hdl,
             buffer.data[channels[c]].Raw());
         if (write_err) {
+          error_triggered = true;
           StopSaving_Handler();
           Throw_RC_Type(File, ("Could not save data to edf file, error code" +
                         RC::RStr(write_err)).c_str());

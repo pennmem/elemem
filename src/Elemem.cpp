@@ -41,6 +41,7 @@ int main (int argc, char *argv[]) {
       hndl->SetMainWindow(&main_window);
 
       hndl->LoadSysConfig();  // Must come before RegisterEEGDisplay.
+      // TODO Catch and handle LoadSys errors, and still do initialize.
       hndl->Initialize();
     }
     // We need to separately catch all the exceptions from the

@@ -382,6 +382,12 @@ namespace CML {
       return;
     }
 
+    if ( ! CheckStorage(elemem_dir, 1024*1024*1024) ) {
+      ErrorWin("Cannot start experiment with less than 1GB of free space at "
+               "configured ElememData directory: " + elemem_dir);
+      return;
+    }
+
     if (settings.grid_exper) {  // OPS
       size_t grid_size = settings.GridSize();
       if (grid_size == 0) {
@@ -538,9 +544,20 @@ namespace CML {
     version_info.Set(ElememVersion(), "version");
     event_log.Log(MakeResp("ELEMEM", 0, version_info).Line());
 
+    RC::RStr eeg_file = File::FullPath(session_dir,
+        RC::RStr("eeg_data.") + eeg_save->GetExt());
+
+    // Estimate storage needed for one hour of acquisition, 2-bytes/sample.
+    size_t size_needed = 2 * settings.sampling_rate *
+        settings.elec_config->data.size2() * 60 * 60;
+    if ( ! CheckStorage(session_dir, size_needed) ) {
+      ErrorWin(RC::RStr("Insufficient space to complete experiment!")
+               + "  Approximately " + RC::RStr(1+size_needed/1024/1024) +
+               "MB needed for 1 hour of acquisition.");
+    }
+
     // Start acqusition
-    eeg_save->StartFile(File::FullPath(session_dir,
-          RC::RStr("eeg_data.") + eeg_save->GetExt()), GetConfig_Handler());
+    eeg_save->StartFile(eeg_file, GetConfig_Handler());
 
     // Mark when eeg file started in event log.
     JSONFile evlog_start_data;
@@ -807,6 +824,18 @@ namespace CML {
     if (settings.exp_config.IsNull()) {
       return;
     }
+
+    static bool ran_once = false;
+    // Don't even try if there is less than 1GB.
+    if ( ! CheckStorage(elemem_dir, 1024*1024*1024) ) {
+      if ( ! ran_once ) {
+        ErrorWin("Cannot start saving non-session EEG data with less than "
+                 "1GB of free space at configured ElememData directory: "
+                 + elemem_dir);
+      }
+      return;
+    }
+    ran_once = true;
 
     std::string sub_name;
     settings.exp_config->Get(sub_name, "subject");

@@ -258,6 +258,7 @@ namespace CML {
     if (ConfirmWin("Are you sure you want to quit?", "Quit Elemem?")) {
       hndl->Shutdown();
       hndl->eeg_acq.RemoveEEGCallback("EEGDisplay");
+      RC::Time::Sleep(0.5);
       Worker::ExitAllWorkers();
       event->accept();
     }
