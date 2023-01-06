@@ -34,11 +34,11 @@ namespace CML {
 
 
   void PopupManager::Info_Handler(const RStr& message, const RStr& title) {
-    QMessageBox::information(0, title.c_str(), message.c_str());
+    QMessageBox::information(nullptr, title.c_str(), message.c_str());
   }
 
   bool PopupManager::Confirm_Handler(const RStr& message, const RStr& title) {
-    return (QMessageBox::question(0, title.c_str(), message.c_str(),
+    return (QMessageBox::question(nullptr, title.c_str(), message.c_str(),
             QMessageBox::No | QMessageBox::Yes, QMessageBox::Yes)
             == QMessageBox::Yes);
   }
@@ -65,11 +65,41 @@ namespace CML {
     else {
       LogMsg_Handler(title + "\n" + log_message);
     }
-    QMessageBox::warning(0, title.c_str(), message.c_str());
+    QMessageBox::warning(nullptr, title.c_str(), message.c_str());
   }
 
   void PopupManager::SetLogFile_Handler(const RStr& filename) {
     log_file.Open(filename, APPEND);
+  }
+
+
+  void DispatchError(RC::ErrorMsgFatal& err) {
+    RC::RStr errormsg = RC::RStr("Fatal Error:  ")+err.what();
+    ErrorWin(errormsg);
+    exit(-1);
+  }
+
+  void DispatchError(RC::ErrorMsgNote& err) {
+    RC::RStr errormsg = RC::RStr(err.GetError());
+    ErrorWin(errormsg);
+  }
+
+  void DispatchError(RC::ErrorMsg& err) {
+    RC::RStr errormsg = RC::RStr("Error:  ")+err.GetError();
+    RC::RStr logmsg = RC::RStr("Error:  ")+err.what();
+    ErrorWin(errormsg, "Error", logmsg);
+  }
+
+  #ifndef NO_HDF5
+  void DispatchError(H5::Exception& ex) {
+    RC::RStr errormsg = RC::RStr("HDF5 Error:  ")+ex.getCDetailMsg();
+    ErrorWin(errormsg);
+  }
+  #endif // NO_HDF5
+
+  void DispatchError(std::exception &ex) {
+    RC::RStr errormsg = RC::RStr("Unhandled exception: ") + ex.what();
+    ErrorWin(errormsg);
   }
 }
 

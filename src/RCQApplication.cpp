@@ -18,39 +18,7 @@ bool RCQApplication::notify(QObject *receiver, QEvent *e) {
   try {
     return QApplication::notify(receiver, e);
   }
-  catch (RC::ErrorMsgFatal& err) {
-    RStr errormsg = RStr("Fatal Error:  ")+err.what();
-    ErrorWin(errormsg);
-    exit(-1);
-  }
-  catch (RC::ErrorMsgNote& err) {
-    RStr errormsg = RStr(err.GetError());
-    ErrorWin(errormsg);
-    return true;
-  }
-  catch (RC::ErrorMsg& err) {
-    RStr errormsg = RStr("Error:  ")+err.GetError();
-    RStr logmsg = RStr("Error:  ")+err.what();
-    ErrorWin(errormsg, "Error", logmsg);
-    return true;
-  }
-#ifndef NO_HDF5
-  catch (H5::Exception& ex) {
-    RStr errormsg = RStr("HDF5 Error:  ")+ex.getCDetailMsg();
-    ErrorWin(errormsg);
-    return true;
-  }
-#endif // NO_HDF5
-  catch (std::exception &ex) {
-    RStr errormsg = RStr("Unhandled exception: ") + ex.what();
-    ErrorWin(errormsg);
-    return true;
-  }
-  catch (...) {
-    RStr errormsg = "Unknown exception type";
-    ErrorWin(errormsg);
-    return true;
-  }
+  CatchErrorsReturn();
 
   return false;
 }

@@ -13,6 +13,21 @@ namespace RC {
 #define DEBLOG_OUT_HELP(v) + ", " + #v + " = " + RC::RStr([&](){std::stringstream ss; ss << v; return ss.str();}())
 #define DEBLOG_OUT(...) CML::DebugLog(RC::RStr(__FILE__) + ":" + RC::RStr(__LINE__) RC_ARGS_EACH(DEBLOG_OUT_HELP,__VA_ARGS__));
 
+#define CatchErrorsReturn() \
+  catch(std::exception& ex) { CML::DispatchError(ex); return true; } \
+  catch (...) { \
+    RStr errormsg = "Unknown exception type"; \
+    CML::ErrorWin(errormsg); \
+    return true; \
+  }
+
+#define CatchErrors() \
+  catch(std::exception& ex) { CML::DispatchError(ex); } \
+  catch (...) { \
+    RStr errormsg = "Unknown exception type"; \
+    CML::ErrorWin(errormsg); \
+  }
+
 namespace CML {
   void PopupWin(const RC::RStr& message, const RC::RStr& title="");
   bool ConfirmWin(const RC::RStr& message, const RC::RStr& title="");
@@ -59,6 +74,14 @@ namespace CML {
     void ConfirmSlot(RC::RStr message, RC::RStr title);
     void ErrorSlot(RC::RStr message, RC::RStr title);
   };
+
+  void DispatchError(RC::ErrorMsgFatal& err);
+  void DispatchError(RC::ErrorMsgNote& err);
+  void DispatchError(RC::ErrorMsg& err);
+  #ifndef NO_HDF5
+  void DispatchError(H5::Exception& ex);
+  #endif // NO_HDF5
+  void DispatchError(std::exception &ex);
 }
 
 
