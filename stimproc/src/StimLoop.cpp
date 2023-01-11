@@ -122,7 +122,7 @@ void StimLoop::StimConfig(const std::vector<std::string>& cmd,
     return;
   }
 
-  const uint64_t elem_cnt = thetaburst ? 6 : 5;
+  const uint64_t elem_cnt = thetaburst ? 7 : 5;
   uint64_t pair_cnt = 0;
   try {
     pair_cnt = To_uint64(cmd.at(1));
@@ -165,6 +165,9 @@ void StimLoop::StimConfig(const std::vector<std::string>& cmd,
             std::ceil(1000 * csc.burst_frac / limits.max_dur_ms));
         ConvertRange(cmd.at(i+4), csc.burst_slow_freq, min_slow_freq,
             csc.frequency);
+
+        uint64_t num_bursts = 1;
+        ConvertRange(cmd.at(i+6), num_bursts, 1, 60);
       }
 
       else { // Conventional stim pattern, not theta-burst.

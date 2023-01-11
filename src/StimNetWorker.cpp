@@ -64,8 +64,15 @@ namespace CML {
           {sc.electrode_pos, sc.electrode_neg, sc.amplitude, sc.frequency}
           , ",");
       if (burst_frac < 1) { // Theta-burst
+        uint64_t num_bursts = size_t(std::round(1e-6 * sc.duration *
+              sc.burst_slow_freq));
+        if (num_bursts > 60) {
+          Throw_RC_Error(("Theta burst num_bursts "+ RC::RStr(num_bursts) +
+              " exceeded hard limit of 60.").c_str());
+        }
         config += "," + RC::RStr(burst_slow_freq) +
-                  "," + RC::RStr(burst_frac);
+                  "," + RC::RStr(burst_frac) +
+                  "," + RC::RStr(num_bursts);
       }
       else {
         config += "," + RC::RStr(uint32_t(std::round(sc.duration/1000.0)));
