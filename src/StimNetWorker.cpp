@@ -111,7 +111,6 @@ namespace CML {
     RC::RStr& cmdName = cmdParts[0];
     RC::RStr& cmdVals = cmdParts[1];
 
-    RC_DEBOUT(cmdName);
     if (cmdName == "SPREADY") {
       // Do Nothing
     }

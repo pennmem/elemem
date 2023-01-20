@@ -157,7 +157,6 @@ namespace CML {
   void MinMaxStimConfigBox::SetChannel_Handler(const StimChannel& minvals,
       const StimChannel& maxvals, const RC::RStr& label,
       const RC::RStr& stimtag, const size_t& index) {
-    RC_DEBOUT(RC::RStr("StimGUIConfig.cpp::SetChannel \n"));
     disabled = true;
     RC::RStr new_title = RStr(minvals.electrode_pos) + "_" +
           RStr(minvals.electrode_neg);
@@ -182,7 +181,6 @@ namespace CML {
 
   void MinMaxStimConfigBox::SetParameters_Handler(const StimChannel& params) {
     disabled = true;
-    RC_DEBOUT(RC::RStr("StimGUIConfig.cpp::SetParameters \n"));
     settings.params = params;
     amp->Set(params.amplitude * 1e-3);
     freq->Set(params.frequency);

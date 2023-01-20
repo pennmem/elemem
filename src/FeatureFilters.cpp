@@ -440,7 +440,6 @@ namespace CML {
 
     auto out_data = in_data.Copy();
     RC_ForRange(n, 0, order) { // Loop for order of derivative iterations
-      RC_DEBOUT(out_data);
       RC_ForRange(i, 0, out_data.size()-1) { // Iterate over events
         out_data[i] = out_data[i+1] - out_data[i];
       }
