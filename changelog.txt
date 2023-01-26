@@ -49,6 +49,12 @@ Add unreleased user-relevant updates to Dev section at end.
  - Workaround to resolve startup initialization error of Neuroport.
  - Added support for up to 65536 channels to enable analog Neuroport inputs.
 
+2023-01-26
+ - Improved CereStim initialization failure handling.
+ - Graceful handling of disk shortage errors on edf saving.
+ - Warnings on inadequate disk space at experiment start.
+ - Added extra_channels feature to sys_config for channel gap support.
+
 Dev
- - Improved cerestim initialization failure handling.
+ - 
 
