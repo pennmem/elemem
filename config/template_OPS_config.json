@@ -24,7 +24,7 @@
       }
     ],
     "stim_parameters": {
-      "amplitudes_mA": [0.1, 0.25, 0.5],
+      "amplitudes_mA": [0.1, 0.3, 0.5],
       "frequencies_Hz": [100, 150, 200],
       "durations_ms": [250, 375, 500]
     },
