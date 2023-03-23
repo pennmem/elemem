@@ -212,7 +212,7 @@ namespace CML {
 
     SetTrialConfig();
 
-    CSleep(0.25);
+    CSleep(0.75);
 
     SyncChannels();
   }
@@ -383,6 +383,13 @@ namespace CML {
     uint32_t first_bad = uint32_t(-1);
     size_t data_len = 0;
 
+    // Purge data.
+    for (size_t r=0; r < 25; r++) {
+      CSleep(0.01);
+      const std::vector<TrialData>& data = GetData();
+    }
+
+    // Enforce synchronization.
     for (size_t r=0; r < runs && (!synched); r++) {
       CSleep(0.01);
       const std::vector<TrialData>& data = GetData();

@@ -55,6 +55,9 @@ Add unreleased user-relevant updates to Dev section at end.
  - Warnings on inadequate disk space at experiment start.
  - Added extra_channels feature to sys_config for channel gap support.
 
+2023-03-23
+ - Increased Neuroport initialization wait, and purge before channel sync.
+
 Dev
  - 
 
