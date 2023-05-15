@@ -9,6 +9,7 @@
 #define EEGSOURCE_H
 
 #include <cstdint>
+#include <cstddef>
 #include <vector>
 
 namespace CML {

@@ -8,8 +8,10 @@
 
 #include "Cerebus.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <ctime>
+#include <limits>
 #include <utility>
 #ifdef WIN32
 #include <winsock2.h>
@@ -376,6 +378,8 @@ namespace CML {
     }
   }
 
+  template<class T> inline void CerebusUnusedVar(const T&) { }
+
   void Cerebus::SyncChannels() {
     bool synched = false;
     float sample_time = 0.01f;
@@ -387,6 +391,7 @@ namespace CML {
     for (size_t r=0; r < 25; r++) {
       CSleep(0.01);
       const std::vector<TrialData>& data = GetData();
+      CerebusUnusedVar(data);
     }
 
     // Enforce synchronization.
