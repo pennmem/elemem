@@ -738,7 +738,7 @@ namespace CML {
 
 
   void ExperCPS::HandleNormalization_Handler(
-      RC::APtr<const EEGPowers>& data,
+      RC::APtr<const EEGPowers>& /*data*/,
       const TaskClassifierSettings& task_classifier_settings) {
      #ifdef DEBUG_EXPERCPS
      RC_DEBOUT(RC::RStr("ExperCPS::HandleNormalization_Handler\n"));
@@ -784,7 +784,7 @@ namespace CML {
 
 
   void ExperCPS::ClassifierDecision_Handler(const double& result,
-        const TaskClassifierSettings& task_classifier_settings) {
+        const TaskClassifierSettings& /*task_classifier_settings*/) {
 //    #ifdef DEBUG_EXPERCPS
 //    RC_DEBOUT(RC::RStr("ExperCPS::ClassifierDecision_Handler\n"));
 //    // ~220 ms on old clinical laptop for classification interval of 500 ms, ~470 ms for clf interval of 1366 ms
@@ -800,7 +800,7 @@ namespace CML {
     if (stim_decision_arrived) { ProcessEvent(); }
   }
 
-  void ExperCPS::StimDecision_Handler(const bool& stim_event, const TaskClassifierSettings& classif_settings, const f64& stim_time_sec) {
+  void ExperCPS::StimDecision_Handler(const bool& stim_event, const TaskClassifierSettings& /*classif_settings*/, const f64& stim_time_sec) {
     #ifdef DEBUG_EXPERCPS
     RC_DEBOUT(RC::RStr("ExperCPS::StimDecision_Handler decision: ") + RC::RStr(to_string(stim_event)) + RC::RStr("\n"));
     // 0 ms as expected
