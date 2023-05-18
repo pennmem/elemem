@@ -48,6 +48,7 @@ namespace CML {
   Handler::Handler()
     : stim_worker(this),
       task_net_worker(this),
+      sig_quality(&eeg_acq),
       exper_cps(this),
       exper_ops(this) {
     // For error management, everything that could error must go into
@@ -503,14 +504,14 @@ namespace CML {
       jf.Save(File::FullPath(session_dir, File::Basename(classif_json)));
     }
 
-    JSONFile current_config = *(settings.exp_config);
+    cps_setup.current_config = *(settings.exp_config);
     // for CPS
-    RC::Data1D<RC::RStr> prev_sessions;
     if (settings.exper.find("OPS") == 0) {
-      settings.UpdateConfOPS(current_config);
+      settings.UpdateConfOPS(cps_setup.current_config);
     }
     else if (settings.exper.find("CPS") == 0) {
-      prev_sessions = settings.UpdateConfCPS(current_config, elemem_dir, session_dir, settings.elec_config->GetFilename());
+      cps_setup.prev_sessions = settings.UpdateConfCPS(cps_setup.current_config,
+          elemem_dir, session_dir, settings.elec_config->GetFilename());
       settings.grid_exper = false;
       settings.task_driven = false;
       classifier->RegisterCallback("CPSClassifierDecision", exper_cps.ClassifierDecision);
@@ -518,9 +519,9 @@ namespace CML {
       task_stim_manager->SetCallback(exper_cps.StimDecision);
     }
     else {
-      settings.UpdateConfFR(current_config);
+      settings.UpdateConfFR(cps_setup.current_config);
     }
-    current_config.Save(File::FullPath(session_dir,
+    cps_setup.current_config.Save(File::FullPath(session_dir,
           "experiment_config.json"));
 
     // Save copy of loaded electrode config.
@@ -564,6 +565,66 @@ namespace CML {
     evlog_start_data.Set(sub_dir, "sub_dir");
     event_log.Log(MakeResp("EEGSTART", 0, evlog_start_data).Line());
 
+    main_window->GetStatusPanel()->SetEvent("SIGQUAL");
+    PopupWin("Running 30 second signal quality check", "Signal Quality");
+    sig_quality.RegisterCallback("StartExperiment",
+        Handler::SigQualityDone);
+    sig_quality.Start();  // Upon success this ends up in RunExperiment.
+  }
+
+
+  RC::RStr Handler::SigQualityResultsLine(const SigQualityResults& results) {
+    RStr rep_str = RStr::Join(results.report_messages, " ");
+    JSONFile data;
+    data.Set(results.linenoise_frac, "linenoise_frac");
+    data.Set(rep_str, "report");
+    data.Set(results.measured_freq, "measured_freq");
+    data.Set(results.success, "success");
+    return MakeResp("signal_quality", 0, data).Line();
+  }
+
+
+  void Handler::RunSignalQuality_Handler() {
+    if (experiment_running) {
+      ErrorWin("Cannot manually run signal quality check while experiment "
+          "running.");
+      return;
+    }
+    main_window->SetReadyToStart(false);
+    PopupWin("Running 30 second signal quality check", "Signal Quality");
+    sig_quality.RegisterCallback("RunSignalQuality",
+        Handler::RunSigQualDone);
+    sig_quality.Start();  // Upon success this ends up in RunExperiment.
+  }
+
+
+  void Handler::RunSigQualDone_Handler(const SigQualityResults& results) {
+    RStr msg = "Signal Quality Check ";
+    msg += results.success ? "passed.\n\n" : "failed.\n\n";
+    msg += RStr::Join(results.report_messages, "\n");
+    msg += "\n\nAdditional information in ErrorLog.";
+    DebugLog(SigQualityResultsLine(results));
+    PopupWin(msg, "Signal Quality Check");
+    main_window->SetReadyToStart(settings.exp_config.IsSet());
+  }
+
+
+  void Handler::SigQualityDone_Handler(const SigQualityResults& results) {
+    event_log.Log(SigQualityResultsLine(results));
+    if (results.success) {
+      RunExperiment();
+    }
+    else {
+      StopExperiment_Handler();
+      RStr msg = RStr("Signal Quality Check failed.\n\n") +
+        RStr::Join(results.report_messages, "\n") +
+        "\nAdditional information in event log.";
+      ErrorWin(msg);
+    }
+  }
+
+
+  void Handler::RunExperiment() {
     auto SetupNetworkTask = [&]() {
       // Note:  Binding to a specific LAN address is a safety feature.
       std::string ipaddress = "192.168.137.1";
@@ -583,14 +644,16 @@ namespace CML {
       exper_ops.Start();
     }
     else if (settings.exper.find("CPS") == 0) {
-      exper_cps.Setup(prev_sessions);
+      exper_cps.Setup(cps_setup.prev_sessions);
       bool with_video;
-      current_config.Get(with_video, "experiment", "experiment_specs", "with_video_task");
+      cps_setup.current_config.Get(with_video, "experiment",
+          "experiment_specs", "with_video_task");
       if (with_video) { SetupNetworkTask(); }
       else {  // for testing without the video task
           if (!ConfirmWin("Running CPS without video task. Continue?")) { return; }
           size_t runtime_s;
-          current_config.Get(runtime_s, "experiment", "experiment_specs", "default_experiment_duration_secs");
+          cps_setup.current_config.Get(runtime_s, "experiment",
+              "experiment_specs", "default_experiment_duration_secs");
           exper_cps.Start(runtime_s);
       }
     }

@@ -15,6 +15,7 @@
 #include "ExperOPS.h"
 #include "TaskNetWorker.h"
 #include "Settings.h"
+#include "SigQuality.h"
 #include "StimWorker.h"
 #include "LocGUIConfig.h"
 #include "StimGUIConfig.h"
@@ -23,12 +24,10 @@
 
 namespace CML {
   class MainWindow;
-  class JSONFile;
   class CSVFile;
   enum class StimMode { NONE=0, OPEN=1, CLOSED=2 };
   StimMode ToStimMode(const RC::RStr& stim_mode_str);
   RC::RStr FromStimMode(StimMode stim_mode);
-
 
   class Handler : public RCqt::WorkerThread {
     public:
@@ -87,6 +86,15 @@ namespace CML {
     RCqt::TaskCaller<> StartExperiment =
       TaskHandler(Handler::StartExperiment_Handler);
 
+    RCqt::TaskCaller<> RunSignalQuality =
+      TaskHandler(Handler::RunSignalQuality_Handler);
+
+    // Call only after SigQuality check.
+    RCqt::TaskCaller<const SigQualityResults> RunSigQualDone =
+      TaskHandler(Handler::RunSigQualDone_Handler);
+    RCqt::TaskCaller<const SigQualityResults> SigQualityDone =
+      TaskHandler(Handler::SigQualityDone_Handler);
+
     RCqt::TaskCaller<> StopExperiment =
       TaskHandler(Handler::StopExperiment_Handler);
 
@@ -111,6 +119,7 @@ namespace CML {
     RC::APtr<TaskStimManager> task_stim_manager;
     TaskNetWorker task_net_worker;
     EventLog event_log;
+    SigQuality sig_quality;
 
     ExperCPS exper_cps; // Needs to be public for TaskNetWorker
 
@@ -143,6 +152,11 @@ namespace CML {
     void SelectStim_Handler(const RC::RStr& stimtag);
 
     void StartExperiment_Handler();
+    RC::RStr SigQualityResultsLine(const SigQualityResults& results);
+    void RunSignalQuality_Handler();
+    void RunSigQualDone_Handler(const SigQualityResults& results);
+    void SigQualityDone_Handler(const SigQualityResults& results);
+    void RunExperiment();  // Continuation of StartExperiment after SigQual
     void StopExperiment_Handler();
     void ExperimentExit_Handler();
     void HandleExit();
@@ -172,6 +186,11 @@ namespace CML {
 
     ExperOPS exper_ops;
     StimMode stim_mode = StimMode::NONE;
+
+    struct CPSSetup {
+      JSONFile current_config;
+      RC::Data1D<RC::RStr> prev_sessions;
+    } cps_setup;
 
     RC::APtr<QTimer> exit_timer;
     bool do_exit = false;

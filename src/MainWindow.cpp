@@ -61,6 +61,8 @@ namespace CML {
                  &MainWindow::close, QKeySequence::Quit);
 
     Ptr<QMenu> setup_menu = menuBar()->addMenu(tr("&Setup"));
+    SubMenuEntry(setup_menu, "Signal &Quality", "Signal quality check",
+                 &MainWindow::SignalQualityClicked, Qt::Key_Q);
     RC::UnusedVar(setup_menu);
 
     Ptr<QMenu> help_menu = menuBar()->addMenu(tr("&Help"));
@@ -224,6 +226,11 @@ namespace CML {
     if (fr.IsOpen()) {
       hndl->OpenConfig(fr);
     }
+  }
+
+
+  void MainWindow::SignalQualityClicked() {
+    hndl->RunSignalQuality();
   }
 
 

@@ -25,7 +25,7 @@ namespace CML {
     RCqt::TaskCaller<const RC::RStr, const ClassifierCallback> RegisterCallback =
       TaskHandler(Classifier::RegisterCallback_Handler);
 
-    RCqt::TaskCaller<const RC::RStr> RemoveCallback =
+    RCqt::TaskBlocker<const RC::RStr> RemoveCallback =
       TaskHandler(Classifier::RemoveCallback_Handler);
 
 

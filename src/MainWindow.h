@@ -83,6 +83,7 @@ namespace CML {
     public slots:
 
     void FileOpenClicked();
+    void SignalQualityClicked();
     void HelpAboutClicked();
 
     protected:

@@ -64,7 +64,8 @@ if(WIN32)
   set_source_files_properties( include/BayesGPc/ndlfortran_linpack.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
   set_source_files_properties( include/BayesGPc/ndlfortran_lbfgsb.f PROPERTIES COMPILE_FLAGS -fdefault-integer-8 )
 
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses -Wno-error=non-template-friend -Wno-error=unused-value")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN")
+  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=overloaded-virtual -Wno-error=sign-compare -Wno-error=ignored-qualifiers -Wno-error=reorder -Wno-error=parentheses -Wno-error=non-template-friend -Wno-error=unused-value")
 
 else()
   # CBayes dependencies
@@ -84,7 +85,7 @@ else (APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 endif (APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffp-contract=fast -DBOOST_MATH_STANDALONE -DDBG")
-set(CMAKE_Fortran_FLAGS "-std=f2008 -funroll-all-loops -O${OPT_LEVEL} -fPIC")
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w -std=f2008 -funroll-all-loops -O${OPT_LEVEL} -fPIC")
 
 set (BAYES_FILES
   ${BAYES_DIR}/CSearchComparison.cpp
@@ -262,6 +263,8 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/RollingStats.cpp
   src/Settings.h
   src/Settings.cpp
+  src/SigQuality.h
+  src/SigQuality.cpp
   src/StatusPanel.h
   src/StatusPanel.cpp
   src/StimInterface.h
@@ -313,6 +316,16 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   src/RC/Tuple.h
   src/RC/Types.h
 
+  src/RCmath/Affine.h
+  src/RCmath/Calc.h
+  src/RCmath/Coord.h
+  src/RCmath/Hash.h
+  src/RCmath/MathBits.h
+  src/RCmath/RCmathconfig.h
+  src/RCmath/RCmath.h
+  src/RCmath/Sig.h
+  src/RCmath/Stats.h
+
   src/RCqt/RCqtconfig.h
   src/RCqt/RCqt.h
   src/RCqt/Worker.h
@@ -361,8 +374,8 @@ if (WIN32)
 else (WIN32)
   find_package(PkgConfig REQUIRED)
   pkg_search_module(FFTW REQUIRED fftw3 IMPORTED_TARGET)
-  include_directories(PkgConfig::FFTW)
-  set(FFTW_LIB PkgConfig::FFTW)
+  include_directories(${FFTW_INCLUDE_DIRS})
+  set(FFTW_LIB ${FFTW_LIBRARIES})
 endif (WIN32)
 
 
