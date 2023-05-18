@@ -40,7 +40,7 @@ namespace CML {
     RCqt::TaskCaller<const RC::RStr, const FeatureCallback> RegisterCallback =
       TaskHandler(FeatureFilters::RegisterCallback_Handler);
 
-    RCqt::TaskCaller<const RC::RStr> RemoveCallback =
+    RCqt::TaskBlocker<const RC::RStr> RemoveCallback =
       TaskHandler(FeatureFilters::RemoveCallback_Handler);
 
     static RC::APtr<BinnedData> BinData(RC::APtr<const EEGDataRaw> in_data, size_t new_sampling_rate);
