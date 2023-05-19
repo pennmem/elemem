@@ -196,6 +196,7 @@ namespace CML {
     bool do_exit = false;
 
     bool experiment_running = false;
+    bool sigqual_running = false;
     bool classifier_running = false;
     bool stim_api_test_warning = true;
   };

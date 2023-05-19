@@ -11,6 +11,8 @@ namespace CML {
   class SigQualityResults {
     public:
     RC::Data1D<double> linenoise_frac;
+    RC::Data1D<double> worst_channel;
+    size_t worst_channum;
     RC::Data1D<RC::RStr> report_messages;
     RC::RStr measured_freq;
     bool success;
@@ -31,6 +33,12 @@ namespace CML {
     RCqt::TaskCaller<> Start =
       TaskHandler(SigQuality::Start_Handler);
 
+    RCqt::TaskCaller<> Stop =
+      TaskHandler(SigQuality::Stop_Handler);
+
+    RCqt::TaskCaller<const RC::Data1D<bool>> SetChannelMask =
+      TaskHandler(SigQuality::SetChannelMask_Handler);
+
     TaskSigQualityIncoming Process =
       TaskHandler(SigQuality::Process_Handler);
 
@@ -45,6 +53,8 @@ namespace CML {
 
     protected:
     void Start_Handler();
+    void Stop_Handler();
+    void SetChannelMask_Handler(const RC::Data1D<bool>& mask);
     void Process_Handler(RC::APtr<const EEGDataRaw>&);
     void RegisterCallback_Handler(const RC::RStr& tag,
         const SigResultCallback& callback);
@@ -62,6 +72,7 @@ namespace CML {
 
     RC::Ptr<EEGAcq> eeg_acq;
 
+    RC::Data1D<bool> channels;
     RC::Data1D<RC::Data1D<double>> unwrapped;
     RC::Data1D<RC::Data1D<double>> wrapped20; // 60Hz
     RC::Data1D<RC::Data1D<double>> wrapped25; // 50Hz

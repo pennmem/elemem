@@ -29,6 +29,18 @@ namespace CML {
     eeg_acq->RegisterEEGMonoCallback("SigQuality", Process);
   }
 
+  void SigQuality::Stop_Handler() {
+    eeg_acq->RemoveEEGMonoCallback("SigQuality");
+    Abort();
+
+    channels.Clear();
+    callbacks.Clear();
+  }
+
+  void SigQuality::SetChannelMask_Handler(const RC::Data1D<bool>& mask) {
+    channels = mask;
+  }
+
   void SigQuality::Process_Handler(RC::APtr<const EEGDataRaw>& data) {
     auto& datar = data->data;
 
@@ -47,8 +59,11 @@ namespace CML {
 
       for (size_t c=0; c<datar.size(); c++) {
         unwrapped[c].Resize(target_amnt);
+        unwrapped[c].Zero();
         wrapped20[c].Resize(target_20);
+        wrapped20[c].Zero();
         wrapped25[c].Resize(target_25);
+        wrapped25[c].Zero();
       }
     }
     else {
@@ -73,6 +88,9 @@ namespace CML {
 
     size_t check_amnt = 0;
     for (size_t c=0; c<datar.size(); c++) {
+      if (channels.size() > c && !channels[c]) {
+        continue;
+      }
       size_t ch_amnt = std::min(datar[c].size(), amnt_to_copy);
       if (ch_amnt > 0) {
         if (check_amnt == 0) {
@@ -169,9 +187,15 @@ namespace CML {
     }
 
     size_t bad_cnt = 0;
+    double worst_linenoise = 0;
+    size_t worst_chanindex = 0;
     for (size_t i=0; i<linenoise_frac.size(); i++) {
       if (linenoise_frac[i] > bad_line_noise) {
         bad_cnt++;
+      }
+      if (linenoise_frac[i] > worst_linenoise) {
+        worst_chanindex = i;
+        worst_linenoise = linenoise_frac[i];
       }
     }
     double frac_bad = bad_cnt / double(linenoise_frac.size());
@@ -182,13 +206,17 @@ namespace CML {
       report_messages += "Bad channel count exceeds line noise standards!";
     }
 
-    SigQualityResults results{linenoise_frac, report_messages,
-      measured_freq, success};
+    RC::Data1D<double>& worst_channel = (measured_freq == "50Hz") ?
+          wrapped25[worst_chanindex] : wrapped20[worst_chanindex];
+
+    SigQualityResults results{linenoise_frac, worst_channel,
+          worst_chanindex+1, report_messages, measured_freq, success};
     // Call the appropriate callbacks.
     for (size_t cb=0; cb<callbacks.size(); cb++) {
       callbacks[cb].callback(results);
     }
-    callbacks.Clear();
+
+    Stop_Handler();
   }
 
   /// Handler that registers a callback for the signal quality results.

@@ -383,6 +383,11 @@ namespace CML {
       return;
     }
 
+    if (sigqual_running) {
+      ErrorWin("The Signal Quality check must complete before starting "
+               "an experiment.");
+    }
+
     if ( ! CheckStorage(elemem_dir, 1024*1024*1024) ) {
       ErrorWin("Cannot start experiment with less than 1GB of free space at "
                "configured ElememData directory: " + elemem_dir);
@@ -565,11 +570,33 @@ namespace CML {
     evlog_start_data.Set(sub_dir, "sub_dir");
     event_log.Log(MakeResp("EEGSTART", 0, evlog_start_data).Line());
 
-    main_window->GetStatusPanel()->SetEvent("SIGQUAL");
-    PopupWin("Running 30 second signal quality check", "Signal Quality");
-    sig_quality.RegisterCallback("StartExperiment",
-        Handler::SigQualityDone);
-    sig_quality.Start();  // Upon success this ends up in RunExperiment.
+    bool skip_signal_quality = false;
+    if (settings.sys_config->TryGet(skip_signal_quality, "skip_signal_quality")
+        && skip_signal_quality) {
+      RunExperiment();
+    }
+    else {
+      // Set monopolar montage channels for signal quality check.
+      u64 chan_count;
+      settings.sys_config->Get(chan_count, "channel_count");
+      RC::Data1D<bool> chan_mask(chan_count);
+      chan_mask.Zero();
+      for (size_t i=0; i<settings.elec_config->data.size2(); i++) {
+        u64 chnum = settings.elec_config->data[i][1].Get_u64();
+        if (chnum-1 < chan_mask.size()) {
+          chan_mask[chnum-1] = true;
+        }
+      }
+      sig_quality.SetChannelMask(chan_mask);
+
+      // Run signal quality check.
+      main_window->GetStatusPanel()->SetEvent("SIGQUAL");
+      PopupWin("Running 30 second signal quality check", "Signal Quality");
+      sig_quality.RegisterCallback("StartExperiment",
+          Handler::SigQualityDone);
+      sig_quality.Start();  // Upon success this ends up in RunExperiment.
+      sigqual_running = true;
+    }
   }
 
 
@@ -577,6 +604,8 @@ namespace CML {
     RStr rep_str = RStr::Join(results.report_messages, " ");
     JSONFile data;
     data.Set(results.linenoise_frac, "linenoise_frac");
+    data.Set(results.worst_channum, "worst_channum");
+    data.Set(results.worst_channel, "worst_channel");
     data.Set(rep_str, "report");
     data.Set(results.measured_freq, "measured_freq");
     data.Set(results.success, "success");
@@ -595,10 +624,12 @@ namespace CML {
     sig_quality.RegisterCallback("RunSignalQuality",
         Handler::RunSigQualDone);
     sig_quality.Start();  // Upon success this ends up in RunExperiment.
+    sigqual_running = true;
   }
 
 
   void Handler::RunSigQualDone_Handler(const SigQualityResults& results) {
+    sigqual_running = false;
     RStr msg = "Signal Quality Check ";
     msg += results.success ? "passed.\n\n" : "failed.\n\n";
     msg += RStr::Join(results.report_messages, "\n");
@@ -610,6 +641,7 @@ namespace CML {
 
 
   void Handler::SigQualityDone_Handler(const SigQualityResults& results) {
+    sigqual_running = false;
     event_log.Log(SigQualityResultsLine(results));
     if (results.success) {
       RunExperiment();
@@ -709,6 +741,12 @@ namespace CML {
     if (experiment_running) {
       ErrorWin("You must stop the experiment before opening a new "
                "configuration");
+      return;
+    }
+
+    if (sigqual_running) {
+      ErrorWin("The Signal Quality check must complete before "
+               "opening a new configuration");
       return;
     }
 
@@ -1076,6 +1114,8 @@ namespace CML {
     task_net_worker.Close();
     exper_ops.Stop();
     exper_cps.Stop();
+    sig_quality.Stop();
+    sigqual_running = false;
 
     eeg_save->StopSaving();
     event_log.CloseFile();
