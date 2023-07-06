@@ -27,6 +27,10 @@ namespace CML {
 
     Abort();
     eeg_acq->RegisterEEGMonoCallback("SigQuality", Process);
+    if (meas_seconds > 5) {
+      PopupWin("Running " + RC::RStr(meas_seconds) +
+          " second signal quality check", "Signal Quality");
+    }
   }
 
   void SigQuality::Stop_Handler() {
@@ -204,6 +208,16 @@ namespace CML {
     if (frac_bad >= bad_chan_frac) {
       success = false;
       report_messages += "Bad channel count exceeds line noise standards!";
+    }
+
+    if (!success && linenoise_frac.size()>0) {
+      auto sorted_frac = linenoise_frac.Copy();
+      sorted_frac.Sort();
+      auto thresh_frac = sorted_frac[
+        size_t(sorted_frac.size() * (1-bad_chan_frac))];
+      report_messages += "Worst " + RC::RStr(uint64_t(bad_chan_frac*100)) +
+        "% of channels has line noise >= " +
+        RC::RStr(thresh_frac, RC::FIXED, 3);
     }
 
     RC::Data1D<double>& worst_channel = (measured_freq == "50Hz") ?

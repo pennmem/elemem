@@ -86,7 +86,7 @@ namespace CML {
     size_t target_25 = 0;
     size_t sampling_rate = 0;
 
-    size_t meas_seconds = 30;
+    size_t meas_seconds = 2;
     double bad_line_noise = 0.3;
     size_t bank_size = 32;
     size_t bad_per_bank_thresh = 16;
