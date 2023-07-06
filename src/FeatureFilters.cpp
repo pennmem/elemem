@@ -133,7 +133,7 @@ namespace CML {
     auto& total_in_datar = total_in_data.data;
     total_in_datar.Resize(in_datar.size());
     RC_ForIndex(i, in_datar) { // Iterate over channels
-      if (!in_datar.IsEmpty()) {
+      if (!in_datar[i].IsEmpty()) {
         total_in_data.EnableChan(i);
         total_in_datar[i].CopyAt(0, rollover_datar[i]);
         total_in_datar[i].CopyAt(rollover_data->sample_len, in_datar[i]);
