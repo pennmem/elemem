@@ -145,86 +145,91 @@ namespace CML {
 
 
   void EDFSave::SaveData_Handler(RC::APtr<const EEGData>& data) {
-    auto& datar = data->data;
-    if (edf_hdl < 0) {
-      StopSaving_Handler();
-      return;
-    }
-    if ( ! CheckStorage(current_filename, 1024*1024*1024)) {
-      ErrorWin("Free disk space below 1GB.  Halting edf save to "
-               "close file and preserve existing data.  "
-               "Experiment stop triggered.");
-      StopSaving_Handler();
-      hndl->StopExperiment();
-    }
+    try {
+      auto& datar = data->data;
+      if (edf_hdl < 0) {
+        StopSaving_Handler();
+        return;
+      }
+      if ( ! CheckStorage(current_filename, 1024*1024*1024)) {
+        ErrorWin("Free disk space below 1GB.  Halting edf save to "
+                 "close file and preserve existing data.  "
+                 "Experiment stop triggered.");
+        StopSaving_Handler();
+        hndl->StopExperiment();
+        return;
+      }
 
-    if (buffer.data.size() < datar.size()) {
-      buffer.data.Resize(datar.size());
-    }
+      if (buffer.data.size() < datar.size()) {
+        buffer.data.Resize(datar.size());
+      }
 
-    size_t max_written = 0;
-    for (size_t c=0; c<datar.size(); c++) {
-      buffer.data[c] += datar[c];
-      max_written = std::max(max_written, datar[c].size());
-    }
-    amount_buffered += max_written;
+      size_t max_written = 0;
+      for (size_t c=0; c<datar.size(); c++) {
+        buffer.data[c] += datar[c];
+        max_written = std::max(max_written, datar[c].size());
+      }
+      amount_buffered += max_written;
 
-    // Must write data_record_duration at a time.  (sampling_rate by default)
-    while (amount_buffered > datarecord_len) {
-      // Write data in the order of the montage CSV.
-      for (size_t c=0; c<channels.size(); c++) {
-        if (c >= buffer.data.size()) {
-          error_triggered = true;
-          StopSaving_Handler();
-          Throw_RC_Type(File, ("EDF save, configured channel " +
-                RC::RStr(c+1) + " out of bounds").c_str());
-        }
-
-        if (buffer.data[channels[c]].size() < datarecord_len) {
-          error_triggered = true;
-          StopSaving_Handler();
-
-          RC::RStr deb_msg("Data missing details\n");
-          deb_msg += "sampling_rate = " + RC::RStr(sampling_rate) + ", ";
-          deb_msg += "data_record_duration = " + RC::RStr(datarecord_len) + ", ";
-          deb_msg += "amount_buffered = " + RC::RStr(amount_buffered) + "\n";
-          for (size_t dc=0; dc<channels.size(); dc++) {
-            deb_msg += RC::RStr(buffer.data[channels[dc]].size()) + " elements:  ";
-            deb_msg += RC::RStr::Join(buffer.data[channels[dc]], ", ");
-            deb_msg += "\n";
+      // Must write data_record_duration at a time.  (sampling_rate by default)
+      while (amount_buffered > datarecord_len) {
+        // Write data in the order of the montage CSV.
+        for (size_t c=0; c<channels.size(); c++) {
+          if (channels[c] >= buffer.data.size()) {
+            error_triggered = true;
+            Throw_RC_Type(File, ("EDF save, configured channel " +
+                  RC::RStr(c+1) + " out of bounds").c_str());
           }
-          DebugLog(deb_msg);
 
-          Throw_RC_Type(File,
-              ("Data missing on edf save, channel " + RC::RStr(channels[c]+1)).c_str());
+          if (buffer.data[channels[c]].size() < datarecord_len) {
+            error_triggered = true;
+
+            RC::RStr deb_msg("Data missing details\n");
+            deb_msg += "sampling_rate = " + RC::RStr(sampling_rate) + ", ";
+            deb_msg += "data_record_duration = " + RC::RStr(datarecord_len) + ", ";
+            deb_msg += "amount_buffered = " + RC::RStr(amount_buffered) + "\n";
+            for (size_t dc=0; dc<channels.size(); dc++) {
+              deb_msg += RC::RStr(buffer.data[channels[dc]].size()) + " elements:  ";
+              deb_msg += RC::RStr::Join(buffer.data[channels[dc]], ", ");
+              deb_msg += "\n";
+            }
+            DebugLog(deb_msg);
+
+            Throw_RC_Type(File,
+                ("Data missing on edf save, channel " + RC::RStr(channels[c]+1)).c_str());
+          }
+
+          int write_err = edfwrite_digital_short_samples(edf_hdl,
+              buffer.data[channels[c]].Raw());
+          if (write_err) {
+            error_triggered = true;
+            Throw_RC_Type(File, ("Could not save data to edf file, error code" +
+                          RC::RStr(write_err)).c_str());
+          }
         }
 
-        int write_err = edfwrite_digital_short_samples(edf_hdl,
-            buffer.data[channels[c]].Raw());
-        if (write_err) {
-          error_triggered = true;
-          StopSaving_Handler();
-          Throw_RC_Type(File, ("Could not save data to edf file, error code" +
-                        RC::RStr(write_err)).c_str());
+        // Move remaining data in buffer to beginning and efficiently shrink.
+        for (size_t c=0; c<buffer.data.size(); c++) {
+          if (buffer.data[c].size() < datarecord_len) {
+            continue;
+          }
+          if (buffer.data[c].size() > datarecord_len) {
+            // Not else, can't copy if == data_record_duration.
+            buffer.data[c].CopyData(0, datarecord_len);
+          }
+          buffer.data[c].Resize(buffer.data[c].size()-datarecord_len);
         }
+        amount_buffered -= datarecord_len;
+        amount_written += datarecord_len;
       }
 
-      // Move remaining data in buffer to beginning and efficiently shrink.
-      for (size_t c=0; c<buffer.data.size(); c++) {
-        if (buffer.data[c].size() < datarecord_len) {
-          continue;
-        }
-        if (buffer.data[c].size() > datarecord_len) {
-          // Not else, can't copy if == data_record_duration.
-          buffer.data[c].CopyData(0, datarecord_len);
-        }
-        buffer.data[c].Resize(buffer.data[c].size()-datarecord_len);
-      }
-      amount_buffered -= datarecord_len;
-      amount_written += datarecord_len;
+      buffer.sample_len = amount_buffered; // Keep the buffer sample_len in line with the manual editing
     }
-
-    buffer.sample_len = amount_buffered; // Keep the buffer sample_len in line with the manual editing
+    catch (...) {
+      StopSaving_Handler();
+      ErrorWin("EDF saving halted.");
+      throw;
+    }
   }
 }
 
