@@ -173,10 +173,10 @@ namespace CML {
     for (uint32_t c=0; c<channel_data.size(); c++) {
       channel_data[c].data.resize(data_len);
       for (uint64_t d=0; d<channel_data[c].data.size(); d++) {
-        double wt = 2*3.14159265358979*(sim_offset+d) / double(sim_base_samp);
+        double wt = 3*3.14159265358979*(sim_offset+d) / double(sim_base_samp);
         wt += c;
-        wt *= c % 5;
-        channel_data[c].data[d] = int16_t(1000*std::cos(wt));
+        wt *= 0.79*(c % 5);
+        channel_data[c].data[d] = int16_t((1000-100*(c%7))*std::sin(wt));
       }
     }
     sim_offset += data_len;

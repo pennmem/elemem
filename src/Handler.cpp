@@ -127,6 +127,14 @@ namespace CML {
     }
     stim_worker.SetStimInterface(stim_interface);
     stim_worker.Open();
+
+    u64 chan_count;
+    settings.sys_config->Get(chan_count, "channel_count");
+    Data1D<EEGChan> sys_chans;
+    for (uint16_t i=0; i<chan_count; i++) {
+      sys_chans += EEGChan(i, i);
+    }
+    main_window->GetChannelSelector()->SetChannels(sys_chans);
   }
 
   void Handler::Initialize_Handler() {
@@ -591,7 +599,6 @@ namespace CML {
 
       // Run signal quality check.
       main_window->GetStatusPanel()->SetEvent("SIGQUAL");
-      PopupWin("Running 30 second signal quality check", "Signal Quality");
       sig_quality.RegisterCallback("StartExperiment",
           Handler::SigQualityDone);
       sig_quality.Start();  // Upon success this ends up in RunExperiment.
@@ -620,7 +627,6 @@ namespace CML {
       return;
     }
     main_window->SetReadyToStart(false);
-    PopupWin("Running 30 second signal quality check", "Signal Quality");
     sig_quality.RegisterCallback("RunSignalQuality",
         Handler::RunSigQualDone);
     sig_quality.Start();  // Upon success this ends up in RunExperiment.

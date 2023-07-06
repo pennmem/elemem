@@ -41,13 +41,12 @@ namespace CML {
     stim_conf->addLayout(stim_approve);
 
     setLayout(stim_conf);
-    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
 
     SetEnabled_Handler(false);
   }
 
   QSize StimConfigBox::sizeHint() const {
-    return QSize(100, 100);
+    return QSize(70, 70);
   }
 
 

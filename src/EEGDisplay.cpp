@@ -11,6 +11,7 @@ namespace CML {
     height = new_height;
 
     SetSamplingRate(1000);  // Default 1000Hz
+    setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   }
 
   EEGDisplay::~EEGDisplay() {
@@ -61,21 +62,35 @@ namespace CML {
       if (chan > data.data.size()) {
         continue;
       }
-      float dmax = std::numeric_limits<float>::lowest()/4;
-      float dmin = std::numeric_limits<float>::max()/4;
-      for (size_t i=0; i<data.data[chan].size(); i++) {
-        dmax = std::max(dmax, float(data.data[chan][i]));
-        dmin = std::min(dmin, float(data.data[chan][i]));
+
+      float dmid = 0;
+      if (autoscale) {
+        float dmax = std::numeric_limits<float>::lowest()/4;
+        float dmin = std::numeric_limits<float>::max()/4;
+        for (size_t i=0; i<data.data[chan].size(); i++) {
+          dmax = std::max(dmax, float(data.data[chan][i]));
+          dmin = std::min(dmin, float(data.data[chan][i]));
+        }
+        float ddiff = dmax-dmin;
+        dmid = (dmax-dmin)/2 + dmin;
+        if (ddiff < 1) {
+          ddiff = 1;
+        }
+        yscale = float(draw_height) / ddiff;
       }
-      float ddiff = dmax-dmin;
-      float dmid = (dmax-dmin)/2 + dmin;
-      if (ddiff < 1) {
-        ddiff = 1;
+      else {
+        dmid = 0;
+        yscale = float(draw_height) / (2*scale_val);
       }
-      yscale = float(draw_height) / ddiff;
 
       if (data.data[chan].size() > 0) {
-        SetPen(palette.NormToARGB(0.0f, 0.4f, 1.0f, 1.0f));
+        if (autoscale) {
+          SetPen(palette.NormToARGB(0.0f, 0.4f, 1.0f, 1.0f));
+        }
+        else {
+          Color c = palette.GetSpacedColor(chan_i);
+          SetPen(palette.NormToARGB(c.r, c.g, c.b, 1.0f));
+        }
         QPointF last(qreal(margin_left), qreal(draw_mid - (data.data[chan][0]*yscale)));
         // Skip data for display, slicing at 500Hz.
         size_t inc = data.sample_len / (window_seconds*500);
@@ -89,7 +104,12 @@ namespace CML {
       draw_mid += draw_step;
     }
 
-    SetPen(palette.NormToARGB(1.0f, 0.0f, 0.2f, 0.7f), 2);
+    if (autoscale) {
+      SetPen(palette.NormToARGB(1.0f, 0.0f, 0.2f, 0.7f), 2);
+    }
+    else {
+      SetPen(u32(0xfffffffful));
+    }
     QPointF offset_bot{qreal(data_offset * xscale),
           qreal(height - margin_bot)};
     QPointF offset_top{qreal(data_offset * xscale),
@@ -102,7 +122,13 @@ namespace CML {
       QFont font = painter.font();
       font.setPixelSize(14);
       painter.setFont(font);
-      SetPen(palette.GetFG_ARGB(0.9f));
+      if (autoscale) {
+        SetPen(palette.GetFG_ARGB(0.9f));
+      }
+      else {
+        Color c = palette.GetSpacedColor(chan_i);
+        SetPen(palette.NormToARGB(c.r, c.g, c.b, 1.0f));
+      }
       painter.drawText(4, draw_mid-draw_height/2, width-2, draw_height,
         Qt::AlignTop | Qt::AlignLeft, eeg_channels[chan_i].GetLabel().ToQString());
 
@@ -181,6 +207,17 @@ namespace CML {
         i--;
       }
     }
+  }
+
+  void EEGDisplay::SetAutoScale_Handler(const bool& on) {
+    autoscale = on;
+  }
+
+  void EEGDisplay::SetScale_Handler(const i64& val) {
+    if (scale_val < 1) {
+      Throw_RC_Error("Invalid EEG scale value from gui element.");
+    }
+    scale_val = val;
   }
 
   void EEGDisplay::Clear_Handler() {

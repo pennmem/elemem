@@ -13,7 +13,11 @@ namespace RC {
 #define DEBLOG_OUT_HELP(v) + ", " + #v + " = " + RC::RStr([&](){std::stringstream ss; ss << v; return ss.str();}())
 #define DEBLOG_OUT(...) CML::DebugLog(RC::RStr(__FILE__) + ":" + RC::RStr(__LINE__) RC_ARGS_EACH(DEBLOG_OUT_HELP,__VA_ARGS__));
 
+// TODO, handle H5::Exception& if support for this to be readded.
 #define CatchErrorsReturn() \
+  catch(RC::ErrorMsgFatal& ex) { CML::DispatchError(ex); return true; } \
+  catch(RC::ErrorMsgNote& ex) { CML::DispatchError(ex); return true; } \
+  catch(RC::ErrorMsg& ex) { CML::DispatchError(ex); return true; } \
   catch(std::exception& ex) { CML::DispatchError(ex); return true; } \
   catch (...) { \
     RStr errormsg = "Unknown exception type"; \
@@ -21,7 +25,11 @@ namespace RC {
     return true; \
   }
 
+// TODO, handle H5::Exception& if support for this to be readded.
 #define CatchErrors() \
+  catch(RC::ErrorMsgFatal& ex) { CML::DispatchError(ex); } \
+  catch(RC::ErrorMsgNote& ex) { CML::DispatchError(ex); } \
+  catch(RC::ErrorMsg& ex) { CML::DispatchError(ex); } \
   catch(std::exception& ex) { CML::DispatchError(ex); } \
   catch (...) { \
     RStr errormsg = "Unknown exception type"; \

@@ -16,7 +16,6 @@
 #include <QGridLayout>
 #include <QScrollArea>
 #include <QStackedLayout>
-#include <QGroupBox>
 #include <QMenu>
 #include <QMenuBar>
 #include <QStandardPaths>
@@ -36,6 +35,7 @@ namespace CML {
 
     PrepareMenus();
     BuildLayout();
+    setWindowState(Qt::WindowMaximized);
     SetReadyToStart_Handler(false);
   }
 
@@ -86,7 +86,8 @@ namespace CML {
       }
     }
 
-    RC::Ptr<QWidget> stim_panel = new QWidget();
+    stim_grid->setContentsMargins(5,5,5,5);
+    RC::Ptr<QWidget> stim_panel= new QWidget();
     stim_panel->setLayout(stim_grid);
     return stim_panel;
   }
@@ -159,7 +160,7 @@ namespace CML {
     RC::Ptr<QScrollArea> FR_panel_scroll = new QScrollArea();
     FR_panel_scroll->setWidget(BuildStimPanelFR());
     FR_panel_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    FR_panel_scroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
+    //FR_panel_scroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
     stim_panels->addWidget(FR_panel_scroll);
 
     RC::Ptr<QScrollArea> Loc_panel_scroll = new QScrollArea();
@@ -173,7 +174,7 @@ namespace CML {
     CPS_panel_scroll->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
     stim_panels->addWidget(CPS_panel_scroll);
 
-    stim_and_start->addLayout(stim_panels);
+    stim_and_start->addLayout(stim_panels, 1);
 
     RC::Ptr<QHBoxLayout> start_stop_buttons = new QHBoxLayout();
     start_button = new Button(hndl->StartExperiment,
@@ -184,20 +185,37 @@ namespace CML {
     stop_button->SetColor({1.0f, 0.2f, 0.2f});
     start_stop_buttons->addWidget(start_button);
     start_stop_buttons->addWidget(stop_button);
-    stim_and_start->addLayout(start_stop_buttons);
+    stim_and_start->addLayout(start_stop_buttons, 0);
 
     RC::Ptr<QHBoxLayout> eeg_and_chan = new QHBoxLayout();
 
     eeg_disp = new EEGDisplay(800, 800);
-    eeg_and_chan->addWidget(eeg_disp);
+    eeg_and_chan->addWidget(eeg_disp, 1);
+
+    RC::Ptr<QVBoxLayout> chan_and_scaling = new QVBoxLayout();
 
     channel_selector = new ChannelSelector(this);
     Data1D<EEGChan> demo_chans;
-    for (uint16_t i=1; i<1+16; i++) {
+    for (uint16_t i=0; i<16; i++) {
       demo_chans += EEGChan(i, i);
     }
     channel_selector->SetChannels(demo_chans);
-    eeg_and_chan->addWidget(channel_selector, 0);
+    chan_and_scaling->addWidget(channel_selector, 1);
+
+    RC::Ptr<CheckBox> autoscale =
+      new CheckBox(eeg_disp->SetAutoScale, "Autoscale");
+    autoscale->Set(true);
+    chan_and_scaling->addWidget(autoscale, 0);
+    chan_and_scaling->setAlignment(autoscale, Qt::AlignRight);
+    RC::Ptr<LabeledI64> scale_val =
+      new LabeledI64(eeg_disp->SetScale, "Scale:");
+    scale_val->SetRange(1, MAX_VAL<i64>());
+    scale_val->Set(32768);
+    chan_and_scaling->addWidget(scale_val, 0);
+
+    chan_and_scaling->setContentsMargins(5, 5, 5, 5);
+
+    eeg_and_chan->addLayout(chan_and_scaling, 0);
 
     status_panel = new StatusPanel();
 
