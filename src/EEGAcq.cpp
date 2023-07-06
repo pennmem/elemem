@@ -43,7 +43,7 @@ namespace CML {
 
       RC::APtr<EEGData> data_aptr = new EEGData(sampling_rate, max_len);
       auto& data = data_aptr->data;
-      data.Resize(cbNUM_ANALOG_CHANS);
+      data.Resize(cereb_chandata.size());
 
       for(size_t i=0; i<cereb_chandata.size(); i++) {
         uint16_t cereb_chan = cereb_chandata[i].chan;
