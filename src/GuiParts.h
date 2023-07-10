@@ -118,6 +118,8 @@ namespace CML {
     RCqt::TaskCaller<const i64> Set = TaskHandler(LabeledI64::Set_Handler);
     RCqt::TaskCaller<const bool> SetReadOnly =
       TaskHandler(LabeledI64::SetReadOnly_Handler);
+    RCqt::TaskCaller<const bool> SetAdaptiveDecimal =
+      TaskHandler(LabeledI64::SetAdaptiveDecimal_Handler);
 
     void SetRange(i64 new_min, i64 new_max);
 
@@ -136,6 +138,15 @@ namespace CML {
 
     void SetReadOnly_Handler(const bool& state) {
       spin.setReadOnly(state);
+    }
+
+    void SetAdaptiveDecimal_Handler(const bool& state) {
+      if (state) {
+        spin.setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
+      }
+      else {
+        spin.setStepType(QAbstractSpinBox::DefaultStepType);
+      }
     }
 
     QLabel label;

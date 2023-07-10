@@ -7,6 +7,7 @@
   // "replay_file": "$DESKTOP/ElememData/eeg_data/eeg_data_R1616S.edf",
   // "replay_file": "$DESKTOP/ElememData/eeg_data/eeg_data.edf",
   "eeg_system": "Cerebus",
+  "eeg_uV_per_unit": 0.25,
   "stim_system": "CereStim",
   "channel_count": 272,
   "extra_channels": [],

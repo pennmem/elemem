@@ -1,5 +1,6 @@
 #include "EEGDisplay.h"
 #include "RC/RC.h"
+#include "RCmath/MathBits.h"
 #include <algorithm>
 #include <cmath>
 
@@ -214,10 +215,14 @@ namespace CML {
   }
 
   void EEGDisplay::SetScale_Handler(const i64& val) {
-    if (scale_val < 1) {
+    if (val < 1) {
       Throw_RC_Error("Invalid EEG scale value from gui element.");
     }
-    scale_val = val;
+    scale_val = val / eeg_uV_per_unit;
+  }
+
+  void EEGDisplay::SetScaleUnit_Handler(const double& uV_per_unit) {
+    eeg_uV_per_unit = uV_per_unit;
   }
 
   void EEGDisplay::Clear_Handler() {

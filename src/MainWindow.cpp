@@ -208,9 +208,10 @@ namespace CML {
     chan_and_scaling->addWidget(autoscale, 0);
     chan_and_scaling->setAlignment(autoscale, Qt::AlignRight);
     RC::Ptr<LabeledI64> scale_val =
-      new LabeledI64(eeg_disp->SetScale, "Scale:");
+      new LabeledI64(eeg_disp->SetScale, "Scale (uV):");
     scale_val->SetRange(1, MAX_VAL<i64>());
-    scale_val->Set(32768);
+    scale_val->Set(default_uV_scale);
+    scale_val->SetAdaptiveDecimal(true);
     chan_and_scaling->addWidget(scale_val, 0);
 
     chan_and_scaling->setContentsMargins(5, 5, 5, 5);
@@ -276,6 +277,12 @@ namespace CML {
 
   void MainWindow::SwitchToStimPanelCPS_Handler() {
     stim_panels->setCurrentIndex(2);
+  }
+
+
+  void MainWindow::SetEEGUnit_Handler(const double& eeg_uV_per_unit) {
+    eeg_disp->SetScaleUnit(eeg_uV_per_unit);
+    eeg_disp->SetScale(default_uV_scale);
   }
 
 

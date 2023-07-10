@@ -29,6 +29,9 @@ namespace CML {
       TaskHandler(EEGDisplay::SetAutoScale_Handler);
     RCqt::TaskCaller<const i64> SetScale =
       TaskHandler(EEGDisplay::SetScale_Handler);
+    RCqt::TaskCaller<const double> SetScaleUnit =
+      TaskHandler(EEGDisplay::SetScaleUnit_Handler);
+
 
     RCqt::TaskCaller<> Clear =
       TaskHandler(EEGDisplay::Clear_Handler);
@@ -40,6 +43,7 @@ namespace CML {
     void UnsetChannel_Handler(EEGChan& chan);
     void SetAutoScale_Handler(const bool& on);
     void SetScale_Handler(const i64& val);
+    void SetScaleUnit_Handler(const double& uV_per_unit);
     void Clear_Handler();
 
     void SetSamplingRate(size_t sampling_rate);
@@ -60,7 +64,8 @@ namespace CML {
     size_t update_cnt = 0;
 
     bool autoscale = false;
-    u64 scale_val = 32768;
+    double scale_val = 500;
+    double eeg_uV_per_unit = 1;
   };
 }
 

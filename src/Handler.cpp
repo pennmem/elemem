@@ -104,6 +104,13 @@ namespace CML {
     }
     eeg_acq.SetSource(eeg_source);
     InitializeChannels_Handler();
+    double uV_per_unit;
+    settings.sys_config->Get(uV_per_unit, "eeg_uV_per_unit");
+    if (uV_per_unit < 1e-6) {
+      Throw_RC_Type(File, "sys_config.json eeg_uV_per_unit value is "
+                          "unreasonably low");
+    }
+    main_window->SetEEGUnit(uV_per_unit);
 
     // Stim System
     RC::RStr stim_system;

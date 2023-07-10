@@ -80,6 +80,9 @@ namespace CML {
     RCqt::TaskCaller<> SwitchToStimPanelLoc =
       TaskHandler(MainWindow::SwitchToStimPanelLoc_Handler);
 
+    RCqt::TaskCaller<const double> SetEEGUnit =
+      TaskHandler(MainWindow::SetEEGUnit_Handler);
+
     public slots:
 
     void FileOpenClicked();
@@ -109,6 +112,9 @@ namespace CML {
     void SwitchToStimPanelFR_Handler();
     void SwitchToStimPanelCPS_Handler();
     void SwitchToStimPanelLoc_Handler();
+
+    void SetEEGUnit_Handler(const double& eeg_uV_per_unit);
+    double default_uV_scale = 500;
 
     RC::Ptr<EEGDisplay> eeg_disp;
     RC::Ptr<StatusPanel> status_panel;
