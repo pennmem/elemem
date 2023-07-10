@@ -61,6 +61,11 @@ Add unreleased user-relevant updates to Dev section at end.
 2023-05-19
  - Add Signal Quality Check for 60Hz/50Hz linenoise level detection.
 
+2023-07-10
+ - Adjust signal quality check to 2s check for frequency tolerance.
+ - Terminate edf saving for all rapid repetitive saving errors.
+ - Add fixed eeg display scaling option in uV units.
+
 Dev
  - 
 
