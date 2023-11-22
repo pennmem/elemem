@@ -66,6 +66,9 @@ Add unreleased user-relevant updates to Dev section at end.
  - Terminate edf saving for all rapid repetitive saving errors.
  - Add fixed eeg display scaling option in uV units.
 
+2023-11-22
+ - Resolve 255 channel limit for closed loop.
+
 Dev
  - 
 
