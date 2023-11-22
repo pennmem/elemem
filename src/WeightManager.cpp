@@ -46,6 +46,11 @@ namespace CML {
                 "montage file.").c_str());
           }
           check[1].Get(pn);
+          if (pn <= 0) {
+            Throw_RC_Type(File, ("Montage entry for " + contact + " must have "
+                          "channel of 1 or greater.").c_str());
+          }
+          pn--;  // Becomes BipolarPair later, 0 indexed.
         }
       };
       for (size_t e=0; e<datar.size2(); e++) {
@@ -56,10 +61,6 @@ namespace CML {
       if (pos < 0 || neg < 0) {
         Throw_RC_Type(File, ("Could not find bipolar pairs for " + chanstr[i] +
               " in montage file.").c_str());
-      }
-      if (pos > 255 || neg > 255) {
-        Throw_RC_Type(File, ("Channel out of 256 channel range when looking "
-              "up " + chanstr[i] + " in montage file.").c_str());
       }
 
       chansr[i].pos = pos;
