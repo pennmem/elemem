@@ -68,7 +68,7 @@ namespace CML {
     virtual void CloseInterface() = 0;
     virtual void Stimulate() = 0;
 
-    virtual uint32_t GetBurstSlowFreq() = 0;
+    virtual float GetBurstSlowFreq() = 0;
     virtual uint32_t GetBurstDuration_us() = 0;
 
 
@@ -82,7 +82,7 @@ namespace CML {
     void OpenInterface_Handler();
     void CloseInterface_Handler();
     void Stimulate_Handler();
-    uint32_t GetBurstSlowFreq_Handler();
+    float GetBurstSlowFreq_Handler();
     uint32_t GetBurstDuration_us_Handler();
 
     uint16_t ShannonCriteria(float area_mmsq);
@@ -94,7 +94,7 @@ namespace CML {
 
     bool is_configured = false;
 
-    uint32_t burst_slow_freq = 0; // Unit Hz.  Slower envelope freq of bursts.
+    float burst_slow_freq = 0; // Unit Hz.  Slower envelope freq of bursts.
     float burst_frac = 1; // Fraction of 1/burst_slow_freq to stimulate for.
     uint32_t burst_duration_us = 0;
 

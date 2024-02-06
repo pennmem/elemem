@@ -57,7 +57,7 @@ namespace CML {
     // Setup theta-burst values
     size_t num_bursts = 1;
     f64 burst_period = 0;
-    if (stim_interface->GetBurstSlowFreq() != 0) {
+    if (stim_interface->GetBurstSlowFreq() > 0) {
       num_bursts = std::round(1e-6 * stim_interface->GetBurstDuration_us() *
           stim_interface->GetBurstSlowFreq());
       burst_period = 1.0 / stim_interface->GetBurstSlowFreq();

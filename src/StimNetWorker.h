@@ -28,7 +28,7 @@ namespace CML {
     void CloseInterface() override { RCqt::TaskCaller<> close = TaskHandler(StimNetWorker::CloseInterface_Handler); close(); }
     void Stimulate() override { RCqt::TaskCaller<> stim = TaskHandler(StimNetWorker::Stimulate_Handler); stim(); }
 
-    uint32_t GetBurstSlowFreq() override { RCqt::TaskGetter<uint32_t> getFreq = TaskHandler(StimNetWorker::GetBurstSlowFreq_Handler); return getFreq(); }
+    float GetBurstSlowFreq() override { RCqt::TaskGetter<float> getFreq = TaskHandler(StimNetWorker::GetBurstSlowFreq_Handler); return getFreq(); }
     uint32_t GetBurstDuration_us() override { RCqt::TaskGetter<uint32_t> getDur = TaskHandler(StimNetWorker::GetBurstDuration_us_Handler); return getDur(); }
     
     //typedef uint32_t (StimNetWorker::*FooType)() const;
@@ -47,7 +47,7 @@ namespace CML {
     void Stimulate_Handler() { StimInterface::Stimulate_Handler(); }
     void OpenInterface_Handler() { StimInterface::OpenInterface_Handler(); }
     void CloseInterface_Handler() { StimInterface::CloseInterface_Handler(); }
-    uint32_t GetBurstSlowFreq_Handler() { return StimInterface::GetBurstSlowFreq_Handler(); }
+    float GetBurstSlowFreq_Handler() { return StimInterface::GetBurstSlowFreq_Handler(); }
     uint32_t GetBurstDuration_us_Handler() { return StimInterface::GetBurstDuration_us_Handler(); }
 
     void ProcessCommand(RC::RStr cmd) override;

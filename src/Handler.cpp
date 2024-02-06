@@ -83,9 +83,11 @@ namespace CML {
       #ifdef CEREBUS_HW
       uint32_t chan_count;
       std::vector<uint32_t> extra_chans;
+      bool hardware_lnc;
       settings.sys_config->Get(chan_count, "channel_count");
       settings.sys_config->Get(extra_chans, "extra_channels");
-      eeg_source = new Cerebus(chan_count, extra_chans);
+      settings.sys_config->Get(hardware_lnc, "hardware_lnc");
+      eeg_source = new Cerebus(chan_count, extra_chans, hardware_lnc);
       #else
       Throw_RC_Type(File, "sys_config.json eeg_system set to \"Cerebus\", "
           "but this build does not have Cerebus Hardware support.");

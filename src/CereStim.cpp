@@ -543,7 +543,10 @@ namespace CML {
       case -4:
         return "Null pointer";
       case -5:
-        return "CereStim unit not found";
+        return "CereStim unit not found. Check the USB connection, and try "
+          "turning the CereStim unit off and back on again. Then restart "
+          "Elemem. If no CereStim is intended to be used, alter the "
+          "stim_system setting in the sys_config.json file.";
         //return "Invalid intrface specified or interface not supported";
       case -6:
         return "Timeout in creating the interface";

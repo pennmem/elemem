@@ -260,9 +260,9 @@ namespace CML {
 
       // burst settings
       float burst_frac = 1;
-      uint32_t burst_slow_freq = 0;
+      float burst_slow_freq = 0;
       if (!stim_channels[c].TryGet(burst_frac, "burst_fraction")) {
-        uint32_t throwaway = 0;
+        float throwaway = 0;
         if (stim_channels[c].TryGet(throwaway, "burst_slow_freq_Hz")) {
           Throw_RC_Type(File, "In experiment stim_channels config, "
               "burst_slow_freq_Hz cannot be processed if "
@@ -272,10 +272,10 @@ namespace CML {
 
       if (burst_frac != 1) {
         stim_channels[c].Get(burst_slow_freq, "burst_slow_freq_Hz");
-        if (burst_slow_freq == 0) {
+        if (burst_slow_freq <= 0) {
           Throw_RC_Type(File, "In experiment stim_channels config, if "
               "burst_fraction is set and not equal to 1, "
-              "burst_slow_freq_Hz must be set and non-zero.");
+              "burst_slow_freq_Hz must be set and greater than zero.");
         }
       }
 

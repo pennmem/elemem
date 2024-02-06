@@ -39,7 +39,7 @@ namespace CML {
     void OpenInterface() override { OpenInterface_Handler(); }
     void CloseInterface() override { CloseInterface_Handler(); }
     void Stimulate() override { Stimulate_Handler(); }
-    uint32_t GetBurstSlowFreq() override { return GetBurstSlowFreq_Handler(); }
+    float GetBurstSlowFreq() override { return GetBurstSlowFreq_Handler(); }
     uint32_t GetBurstDuration_us() override { return GetBurstDuration_us_Handler(); }
 
     CSMaxValues GetMaxValues();
@@ -54,7 +54,7 @@ namespace CML {
 //    void ShannonAssert(float area_mmsq, uint16_t amplitude_uA);
 //    void ShannonAssert(const StimChannel& chan);
 //
-//    uint32_t GetBurstSlowFreq() const { return burst_slow_freq; }
+//    float GetBurstSlowFreq() const { return burst_slow_freq; }
 //    uint32_t GetBurstDuration_us() const { return burst_duration_us; }
 
     protected:
@@ -68,7 +68,7 @@ namespace CML {
     void BeOpen();
     void ErrorCheck(int err);
 
-//    uint32_t burst_slow_freq = 0; // Unit Hz.  Slower envelope freq of bursts.
+//    float burst_slow_freq = 0; // Unit Hz.  Slower envelope freq of bursts.
 //    float burst_frac = 1; // Fraction of 1/burst_slow_freq to stimulate for.
 //    uint32_t burst_duration_us = 0;
 

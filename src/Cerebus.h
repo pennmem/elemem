@@ -47,7 +47,7 @@ namespace CML {
     public:
     Cerebus(uint32_t chan_count=256,
             const std::vector<uint32_t>& extra_chans=std::vector<uint32_t>(),
-            uint32_t instance_=0);
+            bool hardware_lnc=false, uint32_t instance_=0);
     ~Cerebus();
 
     // Rule of 5.
@@ -91,6 +91,7 @@ namespace CML {
 
     std::vector<TrialData> channel_data =
         std::vector<TrialData>(cbNUM_ANALOG_CHANS);
+    bool hardware_lnc = true;
 
     cbSdkTrialCont trial{};
 

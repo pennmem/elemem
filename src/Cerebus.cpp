@@ -121,8 +121,11 @@ namespace CML {
   }
 
 
-  Cerebus::Cerebus(uint32_t chan_count, const std::vector<uint32_t>& extra_chans, uint32_t instance_)
-      : instance(instance_), chan_count(chan_count), extra_chans(extra_chans) {
+  Cerebus::Cerebus(uint32_t chan_count,
+      const std::vector<uint32_t>& extra_chans, bool hardware_lnc,
+      uint32_t instance_)
+      : instance(instance_), chan_count(chan_count), extra_chans(extra_chans),
+        hardware_lnc(hardware_lnc) {
     for (auto& chan : this->extra_chans) {
       chan -= 1;
     }
@@ -337,7 +340,10 @@ namespace CML {
 
       // Enable hardware line noise correction.
       // Enable DC offset correction.
-      channel_info.ainpopts = cbAINP_LNC_RUN_HARD | cbAINP_OFFSET_CORRECT;
+      channel_info.ainpopts = cbAINP_OFFSET_CORRECT;
+      if (hardware_lnc) {
+        channel_info.ainpopts |= cbAINP_LNC_RUN_HARD;
+      }
 
       if (res == CBSDKRESULT_SUCCESS) {
         // 0=None, 1=500Hz, 2=1kHz, 3=2kHz, 4=10kHz, 5=30kHz

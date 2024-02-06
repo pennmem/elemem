@@ -179,7 +179,7 @@ namespace CML {
     is_configured = true;
   }
 
-  uint32_t StimInterface::GetBurstSlowFreq_Handler() {
+  float StimInterface::GetBurstSlowFreq_Handler() {
     return burst_slow_freq;
   }
 
