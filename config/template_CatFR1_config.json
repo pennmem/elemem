@@ -8,13 +8,6 @@
     "type": "CatFR1"
   },
   "global_settings": {
-    "connect_to_task_laptop": true,
-    "data_dir": "AUTOMATIC",
-    "experiment_config_filename": "AUTOMATIC",
-    "hardware_lnc": true,
-    "lnc_time_constant": 10,
-    "dc_offset_correction": true,
-    "plot_window_length": 6000,
     # "micro_sampling_rate": 30000,
     "macro_sampling_rate": 1000,
     "binned_sampling_rate": 1000

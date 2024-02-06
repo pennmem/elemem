@@ -48,19 +48,12 @@
     },
     "classifier": {
       "classifier_file": "classifier_R1384J_FR1_sessions0_1_2.json",
-      "morlet_cycles": 1, // 3
+      "morlet_cycles": 5,
       "circular_buffer_duration_ms": 5000
     },
     "type": "CPS"
   },
   "global_settings": {
-    "connect_to_task_laptop": true,
-    "data_dir": "AUTOMATIC",
-    "experiment_config_filename": "AUTOMATIC",
-    "hardware_lnc": true,
-    "lnc_time_constant": 10,
-    "dc_offset_correction": true,
-    "plot_window_length": 6000,
     # "micro_sampling_rate": 30000,
     "macro_sampling_rate": 1000,
     "binned_sampling_rate": 1000
