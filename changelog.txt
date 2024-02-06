@@ -69,6 +69,10 @@ Add unreleased user-relevant updates to Dev section at end.
 2023-11-22
  - Resolve 255 channel limit for closed loop.
 
+2024-02-06
+ - Add hardware_lnc bool to sys_config.json (defaults to former true value).
+ - Allow theta burst slow frequencies to be floats.
+
 Dev
  - 
 
