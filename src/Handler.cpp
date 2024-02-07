@@ -743,7 +743,7 @@ namespace CML {
     }
 
     do_exit = true;
-    exit_timer->setSingleShot(5000);
+    exit_timer->start(5000);
   }
 
   void Handler::HandleExit() {
