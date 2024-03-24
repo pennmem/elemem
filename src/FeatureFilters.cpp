@@ -521,13 +521,13 @@ namespace CML {
     auto& out_datar = out_data->data;
 
     RC::Data1D<size_t> zeroed_channels;
-    RC_ForRange(i, 0, freqlen) { // Iterate over frequencies
-      RC_ForRange(j, 0, chanlen) { // Iterate over channels
-        if ((*artifact_channel_mask)[j]) {
-          if (i == 0) { zeroed_channels += (i+1); }
-          out_datar[i][j].Zero();
+    RC_ForRange(f, 0, freqlen) { // Iterate over frequencies
+      RC_ForRange(c, 0, chanlen) { // Iterate over channels
+        if ((*artifact_channel_mask)[c]) {
+          if (f == 0) { zeroed_channels += (c+1); }
+          out_datar[f][c].Zero();
         } else {
-          out_datar[i][j].CopyFrom(in_datar[i][j]);
+          out_datar[f][c].CopyFrom(in_datar[f][c]);
         }
       }
     }
