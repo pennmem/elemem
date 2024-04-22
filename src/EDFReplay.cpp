@@ -44,15 +44,15 @@ namespace CML {
     amnt_buffered = 0;
     max_requested = 1024;
 
+    if (first_run) {
+      PopupWin("EDFReplay activated", "Warning");
+      first_run = false;
+    }
+
     if (prebuffer) {
       Prebuffer();
 
       TimeSinceLast_samples();
-    }
-
-    if (first_run) {
-      PopupWin("EDFReplay activated", "Warning");
-      first_run = false;
     }
   }
 

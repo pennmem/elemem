@@ -74,6 +74,7 @@ namespace CML {
     RC::Data1D<bool> stimgrid_freq_on;
     RC::Data1D<bool> stimgrid_dur_on;
 
+    RC::Data2D<double> butter_freq_bands;
     RC::APtr<WeightManager> weight_manager;
     OPSSpecs ops_specs;
     CPSSpecs cps_specs;

@@ -38,7 +38,9 @@ namespace CML {
     if (stim_type && stim) {
       hndl->stim_worker.Stimulate();
     }
-    callback(stim, task_classifier_settings, stim_time_sec);
+    if (callback.IsSet()) {
+      callback(stim, task_classifier_settings, stim_time_sec);
+    }
   }
 
   void TaskStimManager::SetCallback_Handler(const TaskStimCallback& new_callback) {

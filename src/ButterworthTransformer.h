@@ -6,17 +6,16 @@
 #include "ChannelConf.h"
 #include "EEGData.h"
 #include "RC/Data1D.h"
+#include "RC/Data2D.h"
 #include "RC/APtr.h"
 
-//#include "ButterworthTransformMP.h"
-// TODO: JPB: (refactor) Move include to cpp file and use
-//class ButterworthTransformMP;
 
 namespace CML {
   class ButterworthSettings {
     public:
     RC::Data1D<BipolarPair> channels;
     size_t sampling_rate = 1000;
+    RC::Data2D<double> frequency_bands = {{58, 62}};
     uint32_t cpus = 2;
   };
 
@@ -25,12 +24,10 @@ namespace CML {
     ButterworthTransformer();
 
     void Setup(const ButterworthSettings& butterworth_settings);
-    RC::APtr<EEGData> Filter(RC::APtr<const EEGData>& data, double freq);
-    RC::APtr<EEGData> Filter(RC::APtr<const EEGData>& data, double high_freq, double low_freq);
+    RC::APtr<EEGDataDouble> Filter(RC::APtr<const EEGDataDouble>& data);
 
     protected:
     ButterworthSettings but_set;
-    //RC::APtr<ButerworthTransformMP> bt;
   };
 }
 

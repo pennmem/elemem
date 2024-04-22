@@ -13,6 +13,7 @@ option(CEREBUS_HW "Use the Cerebus/Neuroport interface" ON) # cmake -DCEREBUS_HW
 option(CERESTIM_STUB # cmake -DCERESTIM_STUB=ON ..
   "Use the CereStim simulator (default ON for non-Windows)" OFF)
 option(HDF5_EXPORT "Use HDF5 data export" OFF) # cmake -DHDF5_EXPORT=ON ..
+option(TESTING_SYS3_R1384J "Special closed-loop testing mode" OFF)
 
 if (IS_RELEASE)
   set(CMAKE_BUILD_TYPE Release)
@@ -75,6 +76,8 @@ endif(WIN32)
 
 set (BAYES_DIR "include/BayesGPc")
 set (BOOST_DIR "include/boost_math/include")
+set (BOOST_DIR "include/boost_math/include")
+set (DSPFILT_DIR "include/DSPFilters")
 
 include_directories(${BAYES_DIR}
                     ${BOOST_DIR}
@@ -129,6 +132,28 @@ set (BAYES_FILES
   ${BAYES_DIR}/CNoise.cpp
   ${BAYES_DIR}/CNoise.h
   ${BAYES_DIR}/version.h
+  )
+
+set (DSPFILT_FILES
+  ${DSPFILT_DIR}/Biquad.h
+  ${DSPFILT_DIR}/Biquad.cpp
+  ${DSPFILT_DIR}/Butterworth.h
+  ${DSPFILT_DIR}/Butterworth.cpp
+  ${DSPFILT_DIR}/Cascade.h
+  ${DSPFILT_DIR}/Cascade.cpp
+  ${DSPFILT_DIR}/Common.h
+  ${DSPFILT_DIR}/Design.h
+  ${DSPFILT_DIR}/Dsp.h
+  ${DSPFILT_DIR}/Filter.h
+  ${DSPFILT_DIR}/Filter.cpp
+  ${DSPFILT_DIR}/Layout.h
+  ${DSPFILT_DIR}/MathSupplement.h
+  ${DSPFILT_DIR}/Params.h
+  ${DSPFILT_DIR}/Param.cpp
+  ${DSPFILT_DIR}/PoleFilter.h
+  ${DSPFILT_DIR}/PoleFilter.cpp
+  ${DSPFILT_DIR}/State.h
+  ${DSPFILT_DIR}/Types.h
   )
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
@@ -334,6 +359,7 @@ add_executable (${PROJECT_NAME} "${BUILD_TYPE}"
   include/edflib/edflib.cpp
   ${PTSA_FILES}
   ${BAYES_FILES}
+  ${DSPFILT_FILES}
 )
 
 
@@ -481,6 +507,10 @@ target_link_libraries (${PROJECT_NAME}
 target_compile_definitions (${PROJECT_NAME} PUBLIC
   ${ELEMEM_DEFINES}
 )
+
+if (TESTING_SYS3_R1384J)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC TESTING_SYS3_R1384J)
+endif(TESTING_SYS3_R1384J)
 
 
 ########################################################

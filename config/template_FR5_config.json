@@ -1,6 +1,8 @@
 {
-  "electrode_config_file": "R1384J_20220518_mono_L0M0",
-  "bipolar_electrode_config_file": "R1384J_20220518_bi_L0M0",
+  "electrode_config_file": "R1384J_20220803_mono_L0M0.csv",
+  "bipolar_electrode_config_file": "R1384J_20220803_bi_L0M0.csv",
+  //"electrode_config_file": "R1384J_20220518_mono_L0M0",
+  //"bipolar_electrode_config_file": "R1384J_20220518_bi_L0M0",
   "experiment": {
     "stim_mode": "closed",
     "stim_channels": [
@@ -26,6 +28,7 @@
     "experiment_specs": {},
     "classifier": {
       "classifier_file": "converted_classifier_R1384J_session_0.json",
+      "butter_freq_bands": [[58, 62]],
       "morlet_cycles": 5,
       "circular_buffer_duration_ms": 5000
     },

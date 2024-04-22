@@ -523,6 +523,7 @@ namespace CML {
           "classifier_file");
       // Save copy of classifier file.
       auto jf = JSONFile(File::FullPath(config_dir, classif_json));
+      jf.Set(settings.butter_freq_bands.RawData(), "butterworth_filter_used");
       jf.Save(File::FullPath(session_dir, File::Basename(classif_json)));
     }
 
@@ -841,6 +842,18 @@ namespace CML {
             "classifier_file");
         settings.weight_manager = MakeAPtr<WeightManager>(
             File::FullPath(config_dir, classif_json), settings.elec_config);
+        RC::Data1D<RC::Data1D<double>> butter_freq_bands;
+        settings.exp_config->TryGet(butter_freq_bands, "experiment", "classifier", "butter_freq_bands");
+
+        // Validate 2D with dims N by 2.
+        for (size_t i=0; i<butter_freq_bands.size(); i++) {
+          if (butter_freq_bands[i].size() != 2) {
+            Throw_RC_Error(("Experiment config butter_freq_bands index " +
+                RC::RStr(i) + " is not two frequencies.").c_str());
+          }
+        }
+        settings.butter_freq_bands.Resize(2, butter_freq_bands.size());
+        settings.butter_freq_bands.RawData() = butter_freq_bands;
       }
     }
     catch (ErrorMsg&) {
@@ -1051,6 +1064,7 @@ namespace CML {
     ButterworthSettings but_set;
     but_set.channels = chans;
     but_set.sampling_rate = settings.binned_sampling_rate;
+    but_set.frequency_bands = settings.butter_freq_bands;
     settings.sys_config->Get(but_set.cpus, "closed_loop_thread_level");
 
     MorletSettings mor_set;

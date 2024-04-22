@@ -714,11 +714,11 @@ namespace CML {
     if (data_callbacks.IsEmpty()) Throw_RC_Error("No FeatureFilters callbacks have been set.");
     if (ShouldAbort()) { return; }
 
-    // This calculates the mirroring duration based on the minimum statistical morlet duration 
+    // This calculates the mirroring duration based on the minimum statistical morlet duration
     size_t mirroring_duration_ms = morlet_transformer.CalcAvgMirroringDurationMs();
 
-//#define TESTING_SYS3_R1384J
-#if defined(TESTING_SYS3_R1384J) && defined(DEBUG)
+// If needed, enable at compile level.  See EEGAcq.cpp
+#ifdef TESTING_SYS3_R1384J
     // For R1384J retrained testing only:
     //RC::Data1D<size_t> indices{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
     //  14, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
@@ -765,9 +765,11 @@ namespace CML {
     auto mirrored_data = MirrorEnds(selected_data, mirroring_duration_ms).ExtractConst();
 #else
     auto mirrored_data = MirrorEnds(data, mirroring_duration_ms).ExtractConst();
-#endif  // TESTING_SYS3_R1384J 
+#endif  // TESTING_SYS3_R1384J
 
-    auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
+    auto filtered_data = butterworth_transformer.Filter(mirrored_data).ExtractConst();
+    auto morlet_data = morlet_transformer.Filter(filtered_data).ExtractConst();
+    //auto morlet_data = morlet_transformer.Filter(mirrored_data).ExtractConst();
     auto unmirrored_data = RemoveMirrorEnds(morlet_data, mirroring_duration_ms).ExtractConst();
 
     auto log_data = Log10Transform(unmirrored_data, log_min_power_clamp, false).ExtractConst();

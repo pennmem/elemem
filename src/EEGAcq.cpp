@@ -90,12 +90,16 @@ namespace CML {
       if (bin_max_len > 0) {
         // Bipolar reference data
         auto out_data_captr = [&] {
+#ifdef TESTING_SYS3_R1384J
+          return FeatureFilters::MonoSelector(binned_data_captr).ExtractConst();
+#else
           if (bipolar_channels.IsEmpty()) { // Mono
             return FeatureFilters::MonoSelector(binned_data_captr).ExtractConst();
           }
           else { // Bipolar
             return FeatureFilters::BipolarReference(binned_data_captr, bipolar_channels).ExtractConst();
           }
+#endif
         }();
 
         // Report bipolar binned data

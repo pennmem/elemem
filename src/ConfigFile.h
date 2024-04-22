@@ -86,6 +86,19 @@ namespace CML {
     }
 
     template<class T, class... Keys>
+    void Get(RC::Data1D<RC::Data1D<T>>& data, Keys... keys) const {
+      std::vector<std::vector<T>> v;
+      Get(v, keys...);
+      data.Resize(v.size());
+      for (size_t i=0; i<v.size(); i++) {
+        data[i].Resize(v[i].size());
+        for (size_t j=0; j<v[i].size(); j++) {
+          data[i][j] = v[i][j];
+        }
+      }
+    }
+
+    template<class T, class... Keys>
     void Get(RC::Data1D<T>& data, Keys... keys) const {
       std::vector<T> v;
       Get(v, keys...);
@@ -156,6 +169,22 @@ namespace CML {
       return retval;
     }
 
+    template<class T, class... Keys>
+    bool TryGet(RC::Data1D<RC::Data1D<T>>& data, Keys... keys) const {
+      std::vector<std::vector<T>> v;
+      bool retval = TryGet(v, keys...);
+      if (retval) {
+        data.Resize(v.size());
+        for (size_t i=0; i<v.size(); i++) {
+          data[i].Resize(v[i].size());
+          for (size_t j=0; j<v[i].size(); j++) {
+            data[i][j] = v[i][j];
+          }
+        }
+      }
+      return retval;
+    }
+
     template<class... Keys>
     bool TryGet(RC::Data1D<RC::RStr>& data, Keys... keys) const {
       std::vector<std::string> v;
@@ -203,7 +232,7 @@ namespace CML {
 
     template<class T, class... Keys>
     void Set(const RC::Data1D<RC::Data1D<T>>& data, Keys... keys) {
-      std::vector<std::vector<std::vector<T>>> v(data.size());
+      std::vector<std::vector<T>> v(data.size());
       for (size_t i=0; i<v.size(); i++) {
         v[i].resize(data[i].size());
         for (size_t j=0; j<v[i].size(); j++) {
