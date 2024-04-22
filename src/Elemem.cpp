@@ -33,7 +33,7 @@ int main (int argc, char *argv[]) {
 #elif defined(unix)
       ErrorMsg::TaskPid(getpid());
 #elif defined(WIN32)
-      ErrorMsg::TaskPid(_getpid());
+      ErrorMsg::TaskPid(size_t(_getpid()));
 #else
       ErrorMsg::TaskPid(0);
 #endif
