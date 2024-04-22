@@ -12,11 +12,18 @@ def get_extras():
     cur = os.path.dirname(os.path.abspath(__file__))
     arch = '64' if '64bit' in platform.architecture() else ''
     # Find all the extra include files, libraries, and link arguments we need to install.
-    x_includes = [os.path.join(cur, 'dist', 'include')]  # Must include cbsdk headers
+    dist_path = os.path.join(cur, 'dist')
+    if "win32" in sys.platform:
+        vs_out = os.path.join(cur, 'out', 'install', 'x64-Release')
+        if os.path.exists(vs_out):
+            dist_path = vs_out
+
+    x_includes = [os.path.join(dist_path, 'include')]  # Must include cbsdk headers
     x_libs = []
     x_link_args = []
 
     if sys.platform == "darwin":
+        x_link_args += ['-L{path}'.format(path=os.path.join(dist_path, 'lib'))]
         # Find Qt framework
         qtfwdir = '/usr/local/opt'  # Default search dir
         import subprocess
@@ -42,7 +49,7 @@ def get_extras():
         # Must include stdint (V2008 does not have it!)
         x_includes += [os.path.join(cur, 'compat')]
         # Must be explicit about cbsdk link path
-        x_link_args += ['/LIBPATH:{path}'.format(path=os.path.join(cur, 'dist', 'lib{arch}'.format(arch=arch)))]
+        x_link_args += ['/LIBPATH:{path}'.format(path=os.path.join(dist_path, 'lib{arch}'.format(arch=arch)))]
         # add winsock, timer, and system libraries
         x_libs += ["ws2_32", "winmm"]
         x_libs += ["kernel32", "user32", "gdi32", "winspool", "shell32",
@@ -57,7 +64,7 @@ def get_extras():
             except ImportError:
                 import winreg as _winreg
             try:
-                path = os.environ['QTDIR']  # e.g. `set QTDIR=C:\Qt\Qt5.10.0\msvc2015_64`
+                path = os.environ['QTDIR']  # e.g. `set QTDIR=C:\Qt\5.15.2\msvc2019_64`
             except:
                 pass
             if not path:
@@ -104,7 +111,7 @@ def get_extras():
         else:
             x_libs += ["QtCore4", "QtXml4"]
     else:  # Linux
-        x_link_args += ['-L{path}'.format(path=os.path.join(cur, 'dist', 'lib{arch}'.format(arch=arch)))]
+        x_link_args += ['-L{path}'.format(path=os.path.join(dist_path, 'lib{arch}'.format(arch=arch)))]
         # For Qt linking at run time, check `qtchooser -print-env`
         # If it is not pointing to correct QtDir, then edit /usr/lib/x86_64-linux-gnu/qt-default/qtchooser/default.conf
         # /opt/Qt/5.9/gcc_64/bin
@@ -137,7 +144,7 @@ cbpy_module = Extension('cerebus.cbpy', **extension_kwargs)
 
 setup(
     name='cerebus',
-    version='0.0.3',
+    version='0.0.4',
     description='Cerebus Link',
     long_description='Cerebus Link Python Package',
     author='dashesy',

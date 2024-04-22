@@ -50,15 +50,14 @@
 #ifndef CBHWLIB_H_INCLUDED
 #define CBHWLIB_H_INCLUDED
 
-#ifdef WIN32
-#include <winsock2.h>
-#include <windows.h>
-#endif
-
 // Only standard headers might be included here
 #if defined(WIN32)
 #ifndef _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_DEPRECATE
+#endif
+#ifdef WIN32
+#include <winsock2.h>
+#include <windows.h>
 #endif
 // It has to be in this order for right version of sockets
 #ifdef NO_AFX
@@ -66,16 +65,14 @@
 #include <windows.h>
 #endif  // NO_AFX
 #endif  // defined(WIN32)
-
 #ifdef __cplusplus
-#include <cstring>
+#include <string.h>
 #endif
-
-#include <cstdint>
-
-#ifndef WIN32
-#include <unistd.h>
-#endif
+//#if defined(WIN32)
+//#include "pstdint.h"
+//#else
+#include "stdint.h"
+//#endif
 
 #pragma pack(push, 1)
 
@@ -164,7 +161,6 @@
 // (includes conditional testing so that there is no clash with win32 headers)
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
 #ifndef WIN32
 typedef const char * LPCSTR;
 typedef void * HANDLE;
@@ -389,7 +385,6 @@ uint32_t cbVersion(void);
 // Systemwide Inquiry and Configuration Functions
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #ifdef __cplusplus
 // Open multiple instances of library as stand-alone or under Central application
@@ -1197,7 +1192,7 @@ cbRESULT cbSSSetDetect(float fThreshold, float fScaling, uint32_t nInstance = 0)
 // To control and keep track of how long an element of spike sorting has been adapting.
 //
 enum ADAPT_TYPE { ADAPT_NEVER, ADAPT_ALWAYS, ADAPT_TIMED };
-typedef struct {
+typedef struct cbAdaptControl_type {
     uint32_t nMode;           // 0-do not adapt at all, 1-always adapt, 2-adapt if timer not timed out
     float fTimeOutMinutes;  // how many minutes until time out
     float fElapsedMinutes;  // the amount of time that has elapsed
@@ -1813,7 +1808,7 @@ struct PktAdaptFiltInfo : public cbPKT_ADAPTFILTINFO
 #define REFELEC_FILT_DISABLED   0
 #define REFELEC_FILT_ALL        1
 #define REFELEC_FILT_SPIKES     2
-typedef struct {
+typedef struct cbPKT_REFELECFILTINFO_type {
     uint32_t time;           // system clock timestamp
     uint16_t chid;           // 0x8000
     uint8_t type;         // cbPKTTYPE_REFELECFILTSET or cbPKTTYPE_REFELECFILTREP
@@ -1858,7 +1853,7 @@ cbRESULT cbSetRefElecFilter(uint32_t  proc,           // which NSP processor?
 #define cbPKTTYPE_REPNTRODEINFO      0x27        /* NSP->PC response...*/
 #define cbPKTTYPE_SETNTRODEINFO      0xA7        /* PC->NSP request */
 #define cbPKTDLEN_NTRODEINFO         ((sizeof(cbPKT_NTRODEINFO) / 4) - cbPKT_HEADER_32SIZE)
-typedef struct {
+typedef struct cbPKT_NTRODEINFO_type {
     uint32_t time;           // system clock timestamp
     uint16_t chid;           // 0x8000
     uint8_t type;         // cbPKTTYPE_REPNTRODEINFO or cbPKTTYPE_SETNTRODEINFO
@@ -2277,7 +2272,7 @@ typedef struct {
 #define cbPKTTYPE_REPMAPFILE 0x68
 #define cbPKTTYPE_SETMAPFILE 0xE8
 #define cbPKTDLEN_MAPFILE ((sizeof(cbPKT_MAPFILE)/4) - cbPKT_HEADER_32SIZE)
-typedef struct {
+typedef struct cbPKT_MAPFILE_type {
     uint32_t time;            // system clock timestamp
     uint16_t chid;            // 0x8000
     uint8_t type;
@@ -2352,7 +2347,7 @@ typedef struct {
 #define cbPKTTYPE_SS_DETECTREP  0x52        /* NSP->PC response */
 #define cbPKTTYPE_SS_DETECTSET  0xD2        /* PC->NSP request  */
 #define cbPKTDLEN_SS_DETECT ((sizeof(cbPKT_SS_DETECT) / 4) - cbPKT_HEADER_32SIZE)
-typedef struct {
+typedef struct cbPKT_SS_DETECT_type {
     uint32_t time;           // system clock timestamp
     uint16_t chid;           // 0x8000
     uint8_t type;         // cbPKTTYPE_SS_DETECTREP or cbPKTTYPE_SS_DETECTSET depending on the direction
@@ -2379,7 +2374,7 @@ typedef struct {
 #define cbPKTTYPE_SS_ARTIF_REJECTREP  0x53        /* NSP->PC response */
 #define cbPKTTYPE_SS_ARTIF_REJECTSET  0xD3        /* PC->NSP request  */
 #define cbPKTDLEN_SS_ARTIF_REJECT ((sizeof(cbPKT_SS_ARTIF_REJECT) / 4) - cbPKT_HEADER_32SIZE)
-typedef struct {
+typedef struct cbPKT_SS_ARTIF_REJECT_type {
     uint32_t time;               // system clock timestamp
     uint16_t chid;               // 0x8000
     uint8_t type;             // cbPKTTYPE_SS_ARTIF_REJECTREP or cbPKTTYPE_SS_ARTIF_REJECTSET depending on the direction
@@ -2406,7 +2401,7 @@ typedef struct {
 #define cbPKTTYPE_SS_NOISE_BOUNDARYREP  0x54        /* NSP->PC response */
 #define cbPKTTYPE_SS_NOISE_BOUNDARYSET  0xD4        /* PC->NSP request  */
 #define cbPKTDLEN_SS_NOISE_BOUNDARY ((sizeof(cbPKT_SS_NOISE_BOUNDARY) / 4) - cbPKT_HEADER_32SIZE)
-typedef struct {
+typedef struct cbPKT_SS_NOISE_BOUNDARY_type {
     uint32_t time;        // system clock timestamp
     uint16_t chid;        // 0x8000
     uint8_t type;      // cbPKTTYPE_SS_NOISE_BOUNDARYREP or cbPKTTYPE_SS_NOISE_BOUNDARYSET depending on the direction
@@ -2473,7 +2468,7 @@ typedef struct {
 #define cbPKTTYPE_SS_STATISTICSREP  0x55        /* NSP->PC response */
 #define cbPKTTYPE_SS_STATISTICSSET  0xD5        /* PC->NSP request  */
 #define cbPKTDLEN_SS_STATISTICS ((sizeof(cbPKT_SS_STATISTICS) / 4) - cbPKT_HEADER_32SIZE)
-typedef struct {
+typedef struct cbPKT_SS_STATISTICS_type{
     uint32_t time;           // system clock timestamp
     uint16_t chid;           // 0x8000
     uint8_t type;         // cbPKTTYPE_SS_STATISTICSREP or cbPKTTYPE_SS_STATISTICSSET depending on the direction
@@ -2532,7 +2527,7 @@ typedef struct {
 #define cbPKTTYPE_SS_RESETREP       0x56        /* NSP->PC response */
 #define cbPKTTYPE_SS_RESETSET       0xD6        /* PC->NSP request  */
 #define cbPKTDLEN_SS_RESET ((sizeof(cbPKT_SS_RESET) / 4) - cbPKT_HEADER_32SIZE)
-typedef struct
+typedef struct cbPKT_SS_RESET_type
 {
     uint32_t time;           // system clock timestamp
     uint16_t chid;           // 0x8000
@@ -2556,7 +2551,7 @@ typedef struct
 #define cbPKTTYPE_SS_STATUSREP  0x57        /* NSP->PC response */
 #define cbPKTTYPE_SS_STATUSSET  0xD7        /* PC->NSP request  */
 #define cbPKTDLEN_SS_STATUS ((sizeof(cbPKT_SS_STATUS) / 4) - cbPKT_HEADER_32SIZE)
-typedef struct {
+typedef struct cbPKT_SS_STATUS_type {
     uint32_t time;           // system clock timestamp
     uint16_t chid;           // 0x8000
     uint8_t type;         // cbPKTTYPE_SS_STATUSREP or cbPKTTYPE_SS_STATUSSET depending on the direction
@@ -2584,7 +2579,7 @@ typedef struct {
 #define cbPKTTYPE_SS_RESET_MODEL_REP    0x58        /* NSP->PC response */
 #define cbPKTTYPE_SS_RESET_MODEL_SET    0xD8        /* PC->NSP request  */
 #define cbPKTDLEN_SS_RESET_MODEL ((sizeof(cbPKT_SS_RESET_MODEL) / 4) - cbPKT_HEADER_32SIZE)
-typedef struct
+typedef struct cbPKT_SS_RESET_MODEL_type
 {
     uint32_t time;           // system clock timestamp
     uint16_t chid;           // 0x8000
@@ -2615,7 +2610,7 @@ typedef struct
 #define cbPKTTYPE_SS_RECALCREP       0x59        /* NSP->PC response */
 #define cbPKTTYPE_SS_RECALCSET       0xD9        /* PC->NSP request  */
 #define cbPKTDLEN_SS_RECALC ((sizeof(cbPKT_SS_RECALC) / 4) - cbPKT_HEADER_32SIZE)
-typedef struct
+typedef struct cbPKT_SS_RECALC_type
 {
     uint32_t time;           // system clock timestamp
     uint16_t chid;           // 0x8000
@@ -2643,7 +2638,7 @@ typedef struct
 #define cbPKTTYPE_FS_BASISSET       0xDB        /* PC->NSP request  */
 #define cbPKTDLEN_FS_BASIS ((sizeof(cbPKT_FS_BASIS) / 4) - cbPKT_HEADER_32SIZE)
 #define cbPKTDLEN_FS_BASISSHORT (cbPKTDLEN_FS_BASIS - ((sizeof(float)* cbMAX_PNTS * 3)/4))
-typedef struct
+typedef struct cbPKT_FS_BASIS_type
 {
     uint32_t time;           // system clock timestamp
     uint16_t chid;           // 0x8000
@@ -2681,7 +2676,7 @@ typedef struct
 #define cbPKTTYPE_LNCREP       0x28        /* NSP->PC response */
 #define cbPKTTYPE_LNCSET       0xA8        /* PC->NSP request  */
 #define cbPKTDLEN_LNC ((sizeof(cbPKT_LNC) / 4) - cbPKT_HEADER_32SIZE)
-typedef struct
+typedef struct cbPKT_LNC_type
 {
     uint32_t time;           // system clock timestamp
     uint16_t chid;           // 0x8000
@@ -2719,7 +2714,7 @@ cbRESULT cbSetLncParameters(uint32_t nLncFreq, uint32_t nLncRefChan, uint32_t nL
 #define cbPKTTYPE_SET_DOUTREP       0x5D        /* NSP->PC response */
 #define cbPKTTYPE_SET_DOUTSET       0xDD        /* PC->NSP request  */
 #define cbPKTDLEN_SET_DOUT ((sizeof(cbPKT_SET_DOUT) / 4) - cbPKT_HEADER_32SIZE)
-typedef struct {
+typedef struct cbPKT_SET_DOUT_type {
     uint32_t time;        // system clock timestamp
     uint16_t chid;        // 0x8000
     uint8_t type;      // cbPKTTYPE_SET_DOUTREP or cbPKTTYPE_SET_DOUTSET depending on direction
@@ -2786,7 +2781,7 @@ cbRESULT cbGetAoutWaveform(uint32_t channel, uint8_t  trigNum, uint16_t  * mode,
 #define cbPKTTYPE_WAVEFORMREP       0x33        /* NSP->PC response */
 #define cbPKTTYPE_WAVEFORMSET       0xB3        /* PC->NSP request  */
 #define cbPKTDLEN_WAVEFORM   ((sizeof(cbPKT_AOUT_WAVEFORM)/4) - cbPKT_HEADER_32SIZE)
-typedef struct {
+typedef struct cbPKT_AOUT_WAVEFORM_type {
     uint32_t time;        // system clock timestamp
     uint16_t chid;        // cbPKTCHAN_CONFIGURATION
     uint8_t type;      // cbPKTTYPE_WAVEFORMREP or cbPKTTYPE_WAVEFORMSET depending on direction

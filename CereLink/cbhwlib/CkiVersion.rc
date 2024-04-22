@@ -1,7 +1,7 @@
 // =STS=> CkiVersion.rc[2408].aa25   open     SMID:27 
 // Microsoft Visual C++ generated resource script.
 //
-#include "../cbmex/resource.h"
+#include "resource.h"
 #include "..\CentralCommon\BmiVersion.h"
 
 #define APSTUDIO_READONLY_SYMBOLS

@@ -28,29 +28,17 @@
 #else
 #ifndef WIN32
     // For non-windows Qt applications
-    #include <QSharedMemory>
+    #include <sys/mman.h>
     #include <semaphore.h>
     #include <sys/file.h>
     #include <sys/types.h>
+    #include <sys/stat.h>
     #include <unistd.h>
+    #include <time.h>
 #endif
 #endif
-#ifdef _MSC_VER
-    #include <cstdint>
-
-    void usleep(uint64_t usec)
-    {
-        HANDLE timer;
-        LARGE_INTEGER ft;
-
-        ft.QuadPart = -10 * (int64_t)usec;
-
-        timer = CreateWaitableTimer(nullptr, TRUE, nullptr);
-        SetWaitableTimer(timer, &ft, 0, nullptr, nullptr, 0);
-        WaitForSingleObject(timer, INFINITE);
-        CloseHandle(timer);
-    }
-#else
+#ifndef WIN32
+    #define Sleep(x) usleep((x) * 1000)
     #define strncpy_s( dst, dstSize, src, count ) strncpy( dst, src, count < dstSize ? count : dstSize )
 #endif                                // so it should probably be moved...
 #include "debugmacs.h"
@@ -132,7 +120,7 @@ uint32_t cbVersion()
 // Inputs:
 //  hMem - the handle to the memory to free up
 //  ppMem - the pointer to this same memory
-void DestroySharedObject(HANDLE & hMem, void ** ppMem)
+void DestroySharedObject(HANDLE & hMem, void ** ppMem, uint32_t size)
 {
 #ifdef WIN32
     if (*ppMem != NULL)
@@ -142,9 +130,8 @@ void DestroySharedObject(HANDLE & hMem, void ** ppMem)
 #else
     if (*ppMem != NULL)
     {
-        QSharedMemory * pHnd = static_cast<QSharedMemory *>(hMem);
-        if (pHnd)
-            pHnd->detach();
+        if (munmap(hMem, size) == -1)
+            /* Handle error */;
     }
 #endif
     hMem = 0;
@@ -187,22 +174,22 @@ void DestroySharedObjects(BOOL bStandAlone, uint32_t nInstance)
 #endif
 
     // release the shared pc status memory space
-    DestroySharedObject(cb_pc_status_buffer_hnd[nIdx], (void **)&cb_pc_status_buffer_ptr[nIdx]);
+    DestroySharedObject(cb_pc_status_buffer_hnd[nIdx], (void **)&cb_pc_status_buffer_ptr[nIdx], sizeof(cbPcStatus));
 
     // release the shared configuration memory space
-    DestroySharedObject(cb_spk_buffer_hnd[nIdx], (void **)&cb_spk_buffer_ptr[nIdx]);
+    DestroySharedObject(cb_spk_buffer_hnd[nIdx], (void **)&cb_spk_buffer_ptr[nIdx], sizeof(cbSPKBUFF));
 
     // release the shared configuration memory space
-    DestroySharedObject(cb_cfg_buffer_hnd[nIdx], (void **)&cb_cfg_buffer_ptr[nIdx]);
+    DestroySharedObject(cb_cfg_buffer_hnd[nIdx], (void **)&cb_cfg_buffer_ptr[nIdx], sizeof(cbCFGBUFF));
 
     // release the shared global transmit memory space
-    DestroySharedObject(cb_xmt_global_buffer_hnd[nIdx], (void **)&cb_xmt_global_buffer_ptr[nIdx]);
+    DestroySharedObject(cb_xmt_global_buffer_hnd[nIdx], (void **)&cb_xmt_global_buffer_ptr[nIdx], sizeof(cbXMTBUFF));
 
     // release the shared local transmit memory space
-    DestroySharedObject(cb_xmt_local_buffer_hnd[nIdx], (void **)&cb_xmt_local_buffer_ptr[nIdx]);
+    DestroySharedObject(cb_xmt_local_buffer_hnd[nIdx], (void **)&cb_xmt_local_buffer_ptr[nIdx], sizeof(cbXMTBUFF));
 
     // release the shared receive memory space
-    DestroySharedObject(cb_rec_buffer_hnd[nIdx], (void **)&cb_rec_buffer_ptr[nIdx]);
+    DestroySharedObject(cb_rec_buffer_hnd[nIdx], (void **)&cb_rec_buffer_ptr[nIdx], sizeof(cbRECBUFF));
 }
 
 // Author & Date:   Ehsan Azar     29 April 2012
@@ -215,17 +202,20 @@ HANDLE OpenSharedBuffer(LPCSTR szName, bool bReadOnly)
     HANDLE hnd = NULL;
 #ifdef WIN32
     // Keep windows version unchanged
-    hnd = OpenFileMapping(bReadOnly ? FILE_MAP_READ : FILE_MAP_ALL_ACCESS, 0, szName);
+    hnd = OpenFileMappingA(bReadOnly ? FILE_MAP_READ : FILE_MAP_ALL_ACCESS, 0, szName);
 #else
-    QString strKey(szName);
-    QSharedMemory * pHnd = new QSharedMemory(strKey);
-    if (pHnd)
-    {
-        if (pHnd->attach(bReadOnly ? QSharedMemory::ReadOnly : QSharedMemory::ReadWrite))
-            hnd = pHnd;
-        else
-            delete pHnd;
-    }
+    int oflag = (bReadOnly ? O_RDONLY : O_RDWR);
+    mode_t omode = (bReadOnly ? 0444 : 0660);
+    int fd = shm_open(szName, oflag, omode);
+    if (fd == -1)
+        /* Handle error */;
+    struct stat shm_stat;
+    if (fstat(fd, &shm_stat) == -1)
+        /* Handle error */;
+    int prot = (bReadOnly ? PROT_READ : PROT_READ | PROT_WRITE);
+    hnd = mmap(NULL, shm_stat.st_size, prot, MAP_SHARED, fd, 0);
+    if (hnd == MAP_FAILED || !hnd)
+        /* Handle error */;
 #endif
     return hnd;
 }
@@ -240,20 +230,19 @@ HANDLE CreateSharedBuffer(LPCSTR szName, uint32_t size)
     HANDLE hnd = NULL;
 #ifdef WIN32
     // Keep windows version unchanged
-    hnd = CreateFileMapping((HANDLE)INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, size, szName);
+    hnd = CreateFileMappingA((HANDLE)INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, size, szName);
 #else
-    QString strKey(szName);
-    QSharedMemory * pHnd = new QSharedMemory(strKey);
-    if (pHnd)
-    {
-        if (pHnd->create(size))
-            hnd = pHnd;
-        // Reattach: This might happen as a result of previous crash
-        else if (pHnd->attach(QSharedMemory::ReadWrite))
-            hnd = pHnd;
-        else
-            delete pHnd;
-    }
+    int fd = shm_open(szName, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+    if (fd == -1)
+        /* Handle error */;
+    if (ftruncate(fd, size) == -1)
+        /* Handle error */;
+    void *rptr = mmap(NULL, size,
+                      PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (rptr == MAP_FAILED)
+        /* Handle error */;
+    else
+        hnd = rptr;
 #endif
     return hnd;
 }
@@ -272,9 +261,7 @@ void * GetSharedBuffer(HANDLE hnd, bool bReadOnly)
     // Keep windows version unchanged
     ret = MapViewOfFile(hnd, bReadOnly ? FILE_MAP_READ : FILE_MAP_ALL_ACCESS, 0, 0, 0);
 #else
-    QSharedMemory * pHnd = static_cast<QSharedMemory *>(hnd);
-    if (pHnd)
-        ret = pHnd->data();
+    ret = hnd;
 #endif
     return ret;
 }
@@ -409,7 +396,7 @@ cbRESULT cbOpen(BOOL bStandAlone, uint32_t nInstance)
     else
         _snprintf(buf, sizeof(buf), "%s%d", SIG_EVT_NAME, nInstance);
 #ifdef WIN32
-    cb_sig_event_hnd[nIdx] = OpenEvent(SYNCHRONIZE, TRUE, buf);
+    cb_sig_event_hnd[nIdx] = OpenEventA(SYNCHRONIZE, TRUE, buf);
     if (cb_sig_event_hnd[nIdx] == NULL)  {  cbClose(false, nInstance);  return cbRESULT_LIBINITERROR; }
 #else
     sem_t *sem = sem_open(buf, 0);
@@ -439,7 +426,7 @@ cbRESULT cbCheckApp(const char * lpName)
         return cbRESULT_SYSLOCK;
 #ifdef WIN32
     // Test for availability of central application by attempting to open/close Central App Mutex
-    HANDLE hCentralMutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE, lpName);
+    HANDLE hCentralMutex = OpenMutexA(MUTEX_ALL_ACCESS, FALSE, lpName);
     CloseHandle(hCentralMutex);
     if (hCentralMutex == NULL)
         cbRet = cbRESULT_NOCENTRALAPP;
@@ -477,7 +464,7 @@ cbRESULT cbAquireSystemLock(const char * lpName, HANDLE & hLock)
         return cbRESULT_SYSLOCK;
 #ifdef WIN32
     // Try creating the system mutex
-    HANDLE hMutex = CreateMutex(NULL, TRUE, lpName);
+    HANDLE hMutex = CreateMutexA(NULL, TRUE, lpName);
     if (hMutex == 0 || GetLastError() == ERROR_ACCESS_DENIED || GetLastError() == ERROR_ALREADY_EXISTS)
         return cbRESULT_SYSLOCK;
     hLock = hMutex;
@@ -2386,6 +2373,11 @@ cbRESULT cbGetAoutOptions(uint32_t chan, uint32_t *options, uint32_t *monchan, u
 
     // Test that the addresses are valid and that necessary structures are not empty
     if ((chan - 1) >= cbMAXCHANS) return cbRESULT_INVALIDCHANNEL;
+    // If cb_cfg_buffer_ptr was built for 128-channel system, but passed in channel is for 256-channel firmware.
+    // TODO: Again, maybe we need a m_ChanIdxInType array.
+    if (!(cb_cfg_buffer_ptr[nIdx]->chaninfo[chan - 1].chancaps & cbCHAN_AOUT) && (chan > (cbNUM_FE_CHANS / 2)))
+    if (!(cb_cfg_buffer_ptr[nIdx]->chaninfo[chan - 1].chancaps & cbCHAN_AOUT) && (chan > (cbNUM_FE_CHANS / 2)))
+        chan -= (cbNUM_FE_CHANS / 2);
     if (cb_cfg_buffer_ptr[nIdx]->chaninfo[chan - 1].chid == 0) return cbRESULT_INVALIDCHANNEL;
     if (!(cb_cfg_buffer_ptr[nIdx]->chaninfo[chan - 1].chancaps & cbCHAN_AOUT)) return cbRESULT_INVALIDFUNCTION;
 
@@ -2408,6 +2400,10 @@ cbRESULT cbSetAoutOptions(uint32_t chan, uint32_t options, uint32_t monchan, uin
 
     // Test that the addresses are valid and that necessary structures are not empty
     if ((chan - 1) >= cbMAXCHANS) return cbRESULT_INVALIDCHANNEL;
+    // If cb_cfg_buffer_ptr was built for 128-channel system, but passed in channel is for 256-channel firmware.
+    // TODO: Again, maybe we need a m_ChanIdxInType array.
+    if (!(cb_cfg_buffer_ptr[nIdx]->chaninfo[chan - 1].chancaps & cbCHAN_AOUT) && (chan > (cbNUM_FE_CHANS / 2)))
+        chan -= (cbNUM_FE_CHANS / 2);
     if (cb_cfg_buffer_ptr[nIdx]->chaninfo[chan - 1].chid == 0) return cbRESULT_INVALIDCHANNEL;
     if (!(cb_cfg_buffer_ptr[nIdx]->chaninfo[chan - 1].chancaps & cbCHAN_AOUT)) return cbRESULT_INVALIDFUNCTION;
 
@@ -3339,7 +3335,7 @@ cbRESULT CreateSharedObjects(uint32_t nInstance)
     else
         _snprintf(buf, sizeof(buf), "%s%d", SIG_EVT_NAME, nInstance);
 #ifdef WIN32
-    cb_sig_event_hnd[nIdx] = CreateEvent(NULL, TRUE, FALSE, buf);
+    cb_sig_event_hnd[nIdx] = CreateEventA(NULL, TRUE, FALSE, buf);
     if (cb_sig_event_hnd[nIdx] == NULL)
         return cbRESULT_EVSIGERR;
 #else

@@ -15,28 +15,40 @@
 #    e.g., Matlab R2016a on Mac OS: -DMatlab_ROOT_DIR=/Applications/MATLAB_R2016a.app/
 #    -DCBMEX_INSTALL_PREFIX can be used to install cbmex to given directory
 #
+# General Windows:
+#    - If you are using MSVC and not logged-in as an administrator then you will not be
+#    able to build the INSTALL target, as by default it tries to install to C:\Program Files.
+#    Change the install target using CMAKE_INSTALL_PREFIX. See example CMAKE command below.
+#    - If you would like to build the C# libraries and examples then add -DBUILD_CLI=ON
 # QT:
 #     QT5 ships with its own cmake config files. We need to tell CMake where to find this.
 #     On Mac OS, assuming qt installed with homebrew,
 #     run CMake with -DCMAKE_PREFIX_PATH=$(brew --prefix qt5)
 #     On Windows, run CMake with -DQt5_DIR=path\to\qt\version\platform\lib\cmake\Qt5
-#     For example: cmake .. -G "Visual Studio 14 2015 Win64" -DQt5_DIR=C:\Qt\5.10.0\msvc2015_64\lib\cmake\Qt5
+#     For example: cmake .. -G "Visual Studio 15 2017 Win64" -DQt5_DIR=C:\Qt\5.13.1\msvc2017_64\lib\cmake\Qt5 -DCMAKE_INSTALL_PREFIX=..\dist -DBUILD_CLI=ON
+#
 
 
-CMAKE_MINIMUM_REQUIRED( VERSION 3.1.0 )
+CMAKE_MINIMUM_REQUIRED( VERSION 3.16 )
+# cmake_policy(SET CMP0091 NEW)
 
-PROJECT( CBSDK )
+project(CBSDK
+        DESCRIPTION "Blackrock Neurotech CereBus Software Development Kit"
+        LANGUAGES C CXX
+        VERSION 1.0
+        )
 
-SET( CBSDK_VERSION_MAJOR 1 )
-SET( CBSDK_VERSION_MINOR 0 )
+# Common Configuration
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED On)
 
 ##########################################################################################
 # Optional Targets
 option(BUILD_STATIC "Build static cbsdk library" ON)
 option(BUILD_CBMEX "Build Matlab wrapper" OFF)
-option(BUILD_CBOCT "Build Octave wrapper" ON)
-option(BUILD_TEST "Build testcbsdk" ON)
-option(BUILD_HDF5 "Build HDF5" ON)
+option(BUILD_CBOCT "Build Octave wrapper" OFF)
+option(BUILD_TEST "Build tests" OFF)
+option(BUILD_HDF5 "Build HDF5" OFF)
 
 ##########################################################################################
 # Define target names
@@ -45,29 +57,14 @@ SET( INSTALL_TARGET_LIST ${LIB_NAME} )
 SET( LIB_NAME_STATIC cbsdk_static )
 SET( LIB_NAME_CBMEX cbmex )
 SET( LIB_NAME_CBOCT cboct )
-SET( TEST_NAME testcbsdk )
+SET( TEST_ANAOUT_NAME test_analog_out )
 SET( N2H5_NAME n2h5 )
 
 ##########################################################################################
 # Store some platform-specific strings used to construct lib names / folder structures.
-IF ( WIN32 )
-    SET( PLATFORM_NAME "win" )
-ELSEIF ( APPLE )
-    SET( PLATFORM_NAME "osx" )
-ELSE ( WIN32 )
-    SET( PLATFORM_NAME "linux" )
-ENDIF ( WIN32 )
-# Handle 64 bit binaries
-IF( CMAKE_SIZEOF_VOID_P EQUAL 4 )
-    SET( LIB_SUFFIX "" )
-    SET( PLATFORM_NAME ${PLATFORM_NAME}32 )
-ELSE( CMAKE_SIZEOF_VOID_P EQUAL 4 )
+IF ((CMAKE_SIZEOF_VOID_P EQUAL 8) AND (NOT APPLE))
     SET( LIB_SUFFIX 64 )
-    SET( PLATFORM_NAME ${PLATFORM_NAME}64 )
-ENDIF( CMAKE_SIZEOF_VOID_P EQUAL 4 )
-IF( ${PLATFORM_NAME} STREQUAL osx64 )
-    SET( LIB_SUFFIX "" )
-ENDIF( ${PLATFORM_NAME} STREQUAL osx64 )
+ENDIF()
 
 ##########################################################################################
 # Misc Configuration
@@ -90,9 +87,11 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 ADD_DEFINITIONS( -DCBSDK_EXPORTS )
 IF( WIN32 )
     # From cbhwlib/cbmex.vcproj: PreprocessorDefinitions="WIN32;_WINDOWS;NO_AFX;WINVER=0x0501;CBSDK_EXPORTS;QT_APP"
-    ADD_DEFINITIONS( -DWIN32 -D_WINDOWS -DNO_AFX -DWINVER=0x0501 -DNOMINMAX
+    ADD_DEFINITIONS(
+        -DWIN32 -D_WINDOWS -DNO_AFX -DNOMINMAX
         -D_CRT_SECURE_NO_WARNINGS
-        -D_WINSOCK_DEPRECATED_NO_WARNINGS)  # Not necessary if -DUNICODE
+        -D_WINSOCK_DEPRECATED_NO_WARNINGS  # Not necessary if -DUNICODE
+    )
 ENDIF( WIN32 )
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 cmake_policy(SET CMP0063 NEW) # ENABLE CMP0063: Honor visibility properties for all target types.
@@ -102,23 +101,18 @@ cmake_policy(SET CMP0042 NEW) # ENABLE CMP0042: MACOSX_RPATH is enabled by defau
 # Third party libraries
 
 # -Qt
-#We could use a variable to make this editable by GUI, but then we have to clear Qt4 variables for reconfigure.
-#SET(CMAKE_PREFIX_PATH "." CACHE PATH "Qt path. e.g., C:\\Qt\\5.8\\msvc2015_64\\")
-SET(USING_QT5 OFF)
-find_package(Qt5 COMPONENTS Core)
-IF(Qt5_FOUND)
-    MESSAGE(STATUS "Found Qt ${Qt5Core_VERSION_STRING}")
-    SET(USING_QT5 ON)
-    FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Xml Concurrent)
-ELSE(Qt5_FOUND)
-    FIND_PACKAGE( Qt4 REQUIRED QtCore QtXml)
-ENDIF(Qt5_FOUND)
-IF(${USING_QT5})
-    SET(QT_LIBRARIES Qt5::Core Qt5::Xml Qt5::Concurrent)
-ELSE(${USING_QT5})
-    INCLUDE( ${QT_USE_FILE} )
-ENDIF(${USING_QT5})
-ADD_DEFINITIONS( ${QT_DEFINITIONS} -DQT_APP )
+## For Qt
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Xml Concurrent REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Xml Concurrent REQUIRED)
+get_property(qtloc TARGET Qt${QT_VERSION_MAJOR}::Core PROPERTY IMPORTED_LOCATION_RELEASE)
+message(STATUS "Found Qt lib in ${qtloc} and version Qt${QT_VERSION_MAJOR}")
+SET(QT_LIBRARIES Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Xml Qt${QT_VERSION_MAJOR}::Concurrent)
+# qt_standard_project_setup()
+ADD_DEFINITIONS( ${QT_DEFINITIONS} -DQT_APP)
 
 # -HDF5
 IF(${BUILD_HDF5})
@@ -133,6 +127,20 @@ IF(${BUILD_CBMEX})
         "${PROJECT_SOURCE_DIR}/Matlab/include"
     )
     IF ( Matlab_INCLUDE_DIRS )
+        # Local Matlab mex libraries are stored in platform-specific paths
+        IF ( WIN32 )
+            SET( PLATFORM_NAME "win" )
+        ELSEIF ( APPLE )
+            SET( PLATFORM_NAME "osx" )
+        ELSE ( WIN32 )
+            SET( PLATFORM_NAME "linux" )
+        ENDIF ( WIN32 )
+        IF( CMAKE_SIZEOF_VOID_P EQUAL 4 )
+            SET( PLATFORM_NAME ${PLATFORM_NAME}32 )
+        ELSE( CMAKE_SIZEOF_VOID_P EQUAL 4 )
+            SET( PLATFORM_NAME ${PLATFORM_NAME}64 )
+        ENDIF( CMAKE_SIZEOF_VOID_P EQUAL 4 )
+        
         SET( MATLAB_ROOT "${PROJECT_SOURCE_DIR}/Matlab" )
         MESSAGE ( STATUS "Search mex libraries at " ${Matlab_INCLUDE_DIRS}/../lib/${PLATFORM_NAME} )
         FILE( GLOB_RECURSE Matlab_LIBRARIES ${Matlab_INCLUDE_DIRS}/../lib/${PLATFORM_NAME}/libm*.* )
@@ -163,9 +171,9 @@ IF( WIN32 )
 ENDIF( WIN32 )
 
 SET( LIB_SOURCE
-    ${PROJECT_SOURCE_DIR}/cbmex/cbsdk.cpp
-    ${PROJECT_SOURCE_DIR}/cbmex/cbsdk.h
-    ${PROJECT_SOURCE_DIR}/cbmex/SdkApp.h
+    ${PROJECT_SOURCE_DIR}/cbsdk/cbsdk.cpp
+    ${PROJECT_SOURCE_DIR}/cbsdk/cbsdk.h
+    ${PROJECT_SOURCE_DIR}/cbsdk/SdkApp.h
     ${PROJECT_SOURCE_DIR}/cbhwlib/cbhwlib.cpp
     ${PROJECT_SOURCE_DIR}/cbhwlib/cbhwlib.h
     ${PROJECT_SOURCE_DIR}/cbhwlib/cbHwlibHi.cpp
@@ -190,58 +198,65 @@ SET( LIB_SOURCE
     ${PROJECT_SOURCE_DIR}/Central/UDPsocket.h
 )
 IF( WIN32 )
-    LIST ( APPEND LIB_SOURCE ${PROJECT_SOURCE_DIR}/cbmex/cbMex.rc )  # ??
+    LIST ( APPEND LIB_SOURCE
+    ${PROJECT_SOURCE_DIR}/cbmex/cbMex.rc
+    ${PROJECT_SOURCE_DIR}/cbhwlib/DataVector.h
+    )  # ??
 ENDIF( WIN32 )
 
 # Qt-MOC headers that need it
 SET( LIB_HEADERS
     ${PROJECT_SOURCE_DIR}/cbhwlib/InstNetwork.h
 )
-IF(${USING_QT5})
-    QT5_WRAP_CPP( LIB_HEADERS_MOC ${LIB_HEADERS} )
-ELSE(${USING_QT5})
-    QT4_WRAP_CPP( LIB_HEADERS_MOC ${LIB_HEADERS} )
-ENDIF(${USING_QT5})
+message(STATUS LIB_HEADERS_MOC ${LIB_HEADERS} )
+qt5_wrap_cpp( LIB_HEADERS_MOC ${LIB_HEADERS} )
 
 # Source for both cbmex and octave targets
 SET( LIB_SOURCE_CBMEX
     ${PROJECT_SOURCE_DIR}/cbmex/cbmex.cpp
 )
+IF( WIN32 )
+    LIST ( APPEND LIB_SOURCE_CBMEX ${PROJECT_SOURCE_DIR}/cbmex/cbMex.rc )
+ENDIF( WIN32 )
+
 
 ##########################################################################################
 # Targets
 
+
 ##
 # cbsdk shared / dynamic
 ADD_LIBRARY( ${LIB_NAME} SHARED ${LIB_SOURCE} ${LIB_HEADERS_MOC} )
-IF (NOT WIN32)
-    # Hide unexported symbols
-    IF( NOT APPLE )
-        SET_TARGET_PROPERTIES( ${LIB_NAME} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL" )
-    ENDIF( NOT APPLE )
-ENDIF(NOT WIN32)
 TARGET_INCLUDE_DIRECTORIES( ${LIB_NAME} PRIVATE ${LIB_INCL_DIRS})
-TARGET_LINK_LIBRARIES( ${LIB_NAME} ${QT_LIBRARIES} )
+TARGET_LINK_LIBRARIES( ${LIB_NAME} PRIVATE ${QT_LIBRARIES} )
 IF( WIN32 )
-    # From cbhw/cbmex.vcproj: AdditionalDependencies="ws2_32.lib winmm.lib libmx.lib libmex.lib libmat.lib QtXmlx644.lib QtCorex644.lib"
-    TARGET_LINK_LIBRARIES( ${LIB_NAME} ws2_32 winmm )
+    TARGET_LINK_LIBRARIES( ${LIB_NAME} PRIVATE wsock32 ws2_32 winmm )
+ELSE()
+    IF(NOT APPLE)
+        # Hide unexported symbols
+        TARGET_LINK_LIBRARIES(${LIB_NAME} PRIVATE rt)
+        SET_TARGET_PROPERTIES( ${LIB_NAME} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL" )
+    ENDIF(NOT APPLE)
 ENDIF( WIN32 )
+
 
 ##
 # cbsdk_static (optional)
 IF(${BUILD_STATIC})
     ADD_LIBRARY( ${LIB_NAME_STATIC} STATIC ${LIB_SOURCE} ${LIB_HEADERS_MOC} )
     TARGET_INCLUDE_DIRECTORIES( ${LIB_NAME_STATIC} PRIVATE ${LIB_INCL_DIRS})
-    TARGET_LINK_LIBRARIES( ${LIB_NAME_STATIC} ${QT_LIBRARIES} )
-    IF (WIN32 )
-        TARGET_LINK_LIBRARIES( ${LIB_NAME_STATIC} ws2_32 winmm )
-    ENDIF( WIN32 )
+    TARGET_LINK_LIBRARIES( ${LIB_NAME_STATIC} PRIVATE ${QT_LIBRARIES} )
     IF( WIN32 )
-        SET_TARGET_PROPERTIES( ${LIB_NAME_STATIC} PROPERTIES COMPILE_FLAGS "-DSTATIC_CBSDK_LINK")
+        TARGET_LINK_LIBRARIES( ${LIB_NAME_STATIC} PRIVATE ws2_32 winmm )
+        SET_TARGET_PROPERTIES( ${LIB_NAME_STATIC} PROPERTIES
+            COMPILE_FLAGS "-DSTATIC_CBSDK_LINK"
+            # MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+        )
     ELSE( WIN32 )
         # Need relocatable static library
-        SET_TARGET_PROPERTIES( ${LIB_NAME_STATIC} PROPERTIES COMPILE_FLAGS "-fPIC")  #-DSTATIC_CBSDK_LINK
-        SET_TARGET_PROPERTIES( ${LIB_NAME_STATIC} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL" )
+        SET_TARGET_PROPERTIES( ${LIB_NAME_STATIC} PROPERTIES
+            LINK_FLAGS "-Wl,--exclude-libs,ALL"
+            POSITION_INDEPENDENT_CODE ON)
         #SET_TARGET_PROPERTIES(${LIB_NAME_STATIC} PROPERTIES XCODE_ATTRIBUTE_GENERATE_MASTER_OBJECT_FILE "YES")
         #SET_TARGET_PROPERTIES(${LIB_NAME_STATIC} PROPERTIES XCODE_ATTRIBUTE_STRIP_STYLE "non-global")
         #SET_TARGET_PROPERTIES(${LIB_NAME_STATIC} PROPERTIES XCODE_ATTRIBUTE_DEPLOYMENT_POSTPROCESSING "YES")
@@ -254,17 +269,17 @@ ENDIF(${BUILD_STATIC})
 # cbmex
 IF(${BUILD_CBMEX} AND MATLAB_FOUND )
     MESSAGE ( STATUS "Add cbmex build target using MATLAB libs at " ${Matlab_ROOT_DIR})
-    IF( WIN32 )
-        SET ( LIB_SOURCE_CBMEX ${LIB_SOURCE_CBMEX} ${PROJECT_SOURCE_DIR}/cbmex/cbMex.rc )
-    ENDIF( WIN32 )
     ADD_LIBRARY( ${LIB_NAME_CBMEX} SHARED ${LIB_SOURCE_CBMEX} )
     
     # Want package name to be cbmex without prefix
     IF( WIN32 )
-        # Do not output to Debug/Release directories on Windows
-        SET_TARGET_PROPERTIES( ${LIB_NAME_CBMEX} PROPERTIES PREFIX "../" )
-        # Manually export mexFunction because __declspec(dllexport) conflicts with its definition in mex.h
-        SET_TARGET_PROPERTIES( ${LIB_NAME_CBMEX} PROPERTIES LINK_FLAGS "/EXPORT:mexFunction" )
+        SET_TARGET_PROPERTIES( ${LIB_NAME_CBMEX} PROPERTIES
+            # Do not output to Debug/Release directories on Windows
+            PREFIX "../" 
+            # Manually export mexFunction because __declspec(dllexport) conflicts with its definition in mex.h
+            LINK_FLAGS "/EXPORT:mexFunction"
+            # MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+        )
     ELSEIF( APPLE )
         SET_TARGET_PROPERTIES( ${LIB_NAME_CBMEX} PROPERTIES PREFIX "" )
         # This is for normal users of MATLAB on OSX without homebrew 
@@ -282,7 +297,7 @@ IF(${BUILD_CBMEX} AND MATLAB_FOUND )
     # Use static library to build cbmex
     ADD_DEPENDENCIES( ${LIB_NAME_CBMEX} ${LIB_NAME_STATIC} )
     TARGET_INCLUDE_DIRECTORIES( ${LIB_NAME_CBMEX}
-        PRIVATE ${LIB_INCL_DIRS} ${Matlab_INCLUDE_DIRS}
+        PRIVATE ${LIB_INCL_DIRS} ${Matlab_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/cbsdk
     )
     TARGET_LINK_LIBRARIES( ${LIB_NAME_CBMEX}
         ${LIB_NAME_STATIC}
@@ -300,9 +315,6 @@ ENDIF( ${BUILD_CBMEX} AND MATLAB_FOUND )
 # octave
 IF( ${BUILD_CBOCT} AND OCTAVE_FOUND )
     MESSAGE ( STATUS "Add cbmex build target using Octave libs at " ${OCTAVE_OCT_LIB_DIR})
-    IF( WIN32 )
-        SET ( LIB_SOURCE_CBMEX ${LIB_SOURCE_CBMEX} ../cbmex/cbMex.rc )
-    ENDIF( WIN32 )
     ADD_LIBRARY( ${LIB_NAME_CBOCT} SHARED ${LIB_SOURCE_CBMEX} )
     
     # Want package name to be cbmex without prefix
@@ -328,7 +340,7 @@ IF( ${BUILD_CBOCT} AND OCTAVE_FOUND )
     # Use static library to build cbmex
     ADD_DEPENDENCIES( ${LIB_NAME_CBOCT} ${LIB_NAME_STATIC} )
     TARGET_INCLUDE_DIRECTORIES( ${LIB_NAME_CBOCT}
-        PRIVATE ${LIB_INCL_DIRS} ${OCTAVE_INCLUDE_DIR}
+        PRIVATE ${LIB_INCL_DIRS} ${OCTAVE_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/cbsdk
     )
     TARGET_LINK_LIBRARIES( ${LIB_NAME_CBOCT} ${LIB_NAME_STATIC} ${QT_LIBRARIES} ${OCTAVE_LIBRARIES} )
     INSTALL( TARGETS ${LIB_NAME_CBOCT}
@@ -338,27 +350,73 @@ IF( ${BUILD_CBOCT} AND OCTAVE_FOUND )
     )
 ENDIF( ${BUILD_CBOCT} AND OCTAVE_FOUND )
 
+# Some Test applications.
+# These all use deployqt so let's create some helper functions for that.
+function(findQtInstallationTool qtdeploytoolname)
+    if(QT_DEPLOYQT_EXECUTABLE)
+        return()
+    endif()
+    get_target_property(QT_QMAKE_EXE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
+    get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXE}" DIRECTORY)
+    find_program (QT_DEPLOYQT_EXECUTABLE ${qtdeploytoolname} HINTS "${QT_BIN_DIR}")
+    if (QT_DEPLOYQT_EXECUTABLE)
+        message(STATUS "Qt deploy tool found at ${QT_DEPLOYQT_EXECUTABLE}")
+    else()
+        message(WARNING "Qt deploy tool wasn't found, installing ${PROJECT_NAME} will fail!")
+        return()
+    endif()
+endfunction()
+
 ##
 # test
 IF(${BUILD_TEST})
-    ADD_EXECUTABLE( ${TEST_NAME} ${PROJECT_SOURCE_DIR}/cbmex/testcbsdk.cpp )
-    TARGET_INCLUDE_DIRECTORIES( ${TEST_NAME} PRIVATE ${LIB_INCL_DIRS})
-    TARGET_LINK_LIBRARIES( ${TEST_NAME} ${LIB_NAME} )
-    LIST(APPEND INSTALL_TARGET_LIST ${TEST_NAME})
-    
+    ADD_EXECUTABLE(testcbsdk
+            ${PROJECT_SOURCE_DIR}/samples/TestCBSDK/testcbsdk.cpp
+            ${LIB_SOURCE} ${LIB_HEADERS_MOC}
+    )
+    TARGET_INCLUDE_DIRECTORIES(testcbsdk PRIVATE
+        ${LIB_INCL_DIRS}
+        ${PROJECT_SOURCE_DIR}/cbsdk
+    )
+    TARGET_LINK_LIBRARIES(testcbsdk
+            ${QT_LIBRARIES}
+    )
     IF(WIN32)
-        get_target_property(QT5_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
-        get_filename_component(QT5_WINDEPLOYQT_EXECUTABLE ${QT5_QMAKE_EXECUTABLE} PATH)
-        set(QT5_WINDEPLOYQT_EXECUTABLE "${QT5_WINDEPLOYQT_EXECUTABLE}/windeployqt.exe")
-        add_custom_command(TARGET ${TEST_NAME} POST_BUILD
-            COMMAND ${QT5_WINDEPLOYQT_EXECUTABLE} $<TARGET_FILE:${LIB_NAME}>)
+        TARGET_LINK_LIBRARIES(testcbsdk
+               wsock32 ws2_32 winmm
+        )
+    ENDIF(WIN32)
 
-        ADD_EXECUTABLE( test_io ${PROJECT_SOURCE_DIR}/cbmex/test_io.cpp )
-        TARGET_INCLUDE_DIRECTORIES( test_io PRIVATE ${LIB_INCL_DIRS})
-        TARGET_LINK_LIBRARIES( test_io ${LIB_NAME} )
-        LIST(APPEND INSTALL_TARGET_LIST test_io)
+    ADD_EXECUTABLE(test_io ${PROJECT_SOURCE_DIR}/samples/TestIO/test_io.cpp )
+    TARGET_INCLUDE_DIRECTORIES(test_io PRIVATE
+        ${LIB_INCL_DIRS}
+        ${PROJECT_SOURCE_DIR}/cbsdk)
+    TARGET_LINK_LIBRARIES(test_io ${LIB_NAME} )
+
+    ADD_EXECUTABLE(test_comments ${PROJECT_SOURCE_DIR}/samples/TestComments/test_comments.cpp )
+    TARGET_INCLUDE_DIRECTORIES(test_comments PRIVATE
+        ${LIB_INCL_DIRS}
+        ${PROJECT_SOURCE_DIR}/cbsdk)
+    TARGET_LINK_LIBRARIES(test_comments ${LIB_NAME} )
+
+    ADD_EXECUTABLE(test_analog_out ${PROJECT_SOURCE_DIR}/samples/TestAnalogOut/test_analog_out.cpp )
+    TARGET_INCLUDE_DIRECTORIES(test_analog_out PRIVATE
+        ${LIB_INCL_DIRS}
+        ${PROJECT_SOURCE_DIR}/cbsdk)
+    TARGET_LINK_LIBRARIES(test_analog_out ${LIB_NAME})
+
+    LIST(APPEND INSTALL_TARGET_LIST testcbsdk test_io test_comments test_analog_out)
+
+    IF(WIN32)
+        findQtInstallationTool("windeployqt")
+        add_custom_command(TARGET testcbsdk POST_BUILD
+            COMMAND ${QT_DEPLOYQT_EXECUTABLE} $<TARGET_FILE:${LIB_NAME}>)
         add_custom_command(TARGET test_io POST_BUILD
-            COMMAND ${QT5_WINDEPLOYQT_EXECUTABLE} $<TARGET_FILE:${LIB_NAME}>)
+            COMMAND ${QT_DEPLOYQT_EXECUTABLE} $<TARGET_FILE:${LIB_NAME}>)
+        add_custom_command(TARGET test_comments POST_BUILD
+            COMMAND ${QT_DEPLOYQT_EXECUTABLE} $<TARGET_FILE:${LIB_NAME}>)
+        add_custom_command(TARGET test_analog_out POST_BUILD
+            COMMAND ${QT_DEPLOYQT_EXECUTABLE} $<TARGET_FILE:${LIB_NAME}>)
     ENDIF(WIN32)
 ENDIF(${BUILD_TEST})
 
@@ -381,6 +439,10 @@ IF(${BUILD_HDF5} AND HDF5_FOUND )
     LIST(APPEND INSTALL_TARGET_LIST ${N2H5_NAME})
 ENDIF(${BUILD_HDF5} AND HDF5_FOUND )
 
+##
+# C++ / CLI
+add_subdirectory(cli)
+
 #########################################################################################
 # Install libraries, test executable, and headers
 INSTALL( TARGETS ${INSTALL_TARGET_LIST}
@@ -388,13 +450,13 @@ INSTALL( TARGETS ${INSTALL_TARGET_LIST}
     LIBRARY DESTINATION lib${LIB_SUFFIX}
     ARCHIVE DESTINATION lib${LIB_SUFFIX}
 )
-INSTALL( FILES ${PROJECT_SOURCE_DIR}/cbmex/cbsdk.h ${PROJECT_SOURCE_DIR}/cbhwlib/cbhwlib.h DESTINATION include )
+INSTALL( FILES ${PROJECT_SOURCE_DIR}/cbsdk/cbsdk.h ${PROJECT_SOURCE_DIR}/cbhwlib/cbhwlib.h DESTINATION include )
 
 #########################################################################################
 # Shared & Static post-build copy the header files into the dist directory.
 ADD_CUSTOM_COMMAND(
     TARGET "${LIB_NAME}"
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/cbmex/cbsdk.h" "${CMAKE_CURRENT_SOURCE_DIR}/dist/include/cbsdk.h"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/cbsdk/cbsdk.h" "${CMAKE_CURRENT_SOURCE_DIR}/dist/include/cbsdk.h"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/cbhwlib/cbhwlib.h" "${CMAKE_CURRENT_SOURCE_DIR}/dist/include/cbhwlib.h"
 )

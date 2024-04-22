@@ -106,7 +106,7 @@ bool XmlFile::AddList(QVariantList & list, QString nodeName)
         QMap<QString, QVariant> attribs;
         if (subval.type() == QVariant::UserType)
         {
-            const XmlItem * item = static_cast<const XmlItem *>(subval.data());
+            const auto * item = static_cast<const XmlItem *>(subval.data());
             strSubKey = item->XmlName();
             attribs = item->XmlAttribs();
         }
@@ -214,16 +214,16 @@ bool XmlFile::beginGroup(QString nodeName, const QMap<QString, QVariant> attribs
             QString text;
             if (value.type() == QVariant::UserType)
             {
-                const XmlItem * item = static_cast<const XmlItem *>(value.data());
+                const auto * item = static_cast<const XmlItem *>(value.data());
                 QVariant subval = item->XmlValue();
                 
                 if (subval.type() == QVariant::UserType)
                 {
-                    const XmlItem * subitem = static_cast<const XmlItem *>(subval.data());
+                    const auto * subitem = static_cast<const XmlItem *>(subval.data());
                     QString strSubKey = subitem->XmlName();
-                    QMap<QString, QVariant> attribs = subitem->XmlAttribs();
+                    QMap<QString, QVariant> _attribs = subitem->XmlAttribs();
                     // Recursively add this item
-                    beginGroup(strSubKey, attribs, subval);
+                    beginGroup(strSubKey, _attribs, subval);
                     endGroup();
                 } 
                 else if (subval.type() == QVariant::List || subval.type() == QVariant::StringList)
@@ -262,8 +262,8 @@ bool XmlFile::beginGroup(QString nodeName, const QMap<QString, QVariant> attribs
     QMap<QString, QVariant>::const_iterator iterator;
     for (iterator = attribs.begin(); iterator != attribs.end(); ++iterator)
     {
-        QString attrName = iterator.key();
-        QVariant attrValue = iterator.value();
+        const QString& attrName = iterator.key();
+        const QVariant& attrValue = iterator.value();
         switch (attrValue.type())
         {
         case QVariant::String:
