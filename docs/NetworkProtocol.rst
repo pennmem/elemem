@@ -89,7 +89,7 @@ These are messages that Elemem does something as a result of receiving them.
     * Purpose: Indicates the end of a trial
 
 * STIMSELECT:
-    * Message: {“type”: “STIMSELECT”, “data”: {“tag”: <string>}, “id”: 42, “time”: <float>}
+    * Message: {“type”: “STIMSELECT”, “data”: {“stimtag”: <string>}, “id”: 42, “time”: <float>}
     * Response: None
     * Purpose: Selects the pre-approved stim configuration matching the tag for subsequent stim events.
 
