@@ -142,7 +142,7 @@ namespace CML {
       Close();
     }
 
-    cbSdkResult res = cbSdkOpen(instance, CBSDKCONNECTION_DEFAULT);
+    cbSdkResult res = cbSdkOpen(instance, CBSDKCONNECTION_UDP);
 
     if (res == CBSDKRESULT_TIMEOUT) {
       cbSdkClose(instance);
