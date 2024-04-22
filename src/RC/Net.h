@@ -413,7 +413,7 @@ namespace RC {
     }
 
 
-    /// Sends the contents of str throught he socket.
+    /// Sends the contents of str through the socket.
     /** @param str The string containing the data to send.
      *  @param do_block If true, sends all of str.  If false, sends as much of
      *  str as can be sent.

@@ -84,12 +84,12 @@ namespace RC {
         d_size2(0),
         d_size3(new_data.size()),
         data(new_data.size()) {
-        std::copy(new_data.begin(), new_data.end(), data.Raw());
-        if (data.size()) {
-          d_size2 = data[0].size2();
-          d_size1 = data[0].size1();
-        }
+      std::copy(new_data.begin(), new_data.end(), data.Raw());
+      if (data.size()) {
+        d_size2 = data[0].size2();
+        d_size1 = data[0].size1();
       }
+    }
 #endif
 
     /// Deletes all contents upon destruction.

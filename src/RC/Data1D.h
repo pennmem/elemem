@@ -1013,7 +1013,7 @@ namespace RC {
     }
 
     RC_DEFAULT_COMPARISON()
-    
+
 
     /// Direct raw data extraction of type T2 at index.
     /** Bounds are checked.  But if the raw data at the index is invalid
@@ -1105,7 +1105,7 @@ namespace RC {
   };
 
 
-  /// Outputs data to a stream as { a, b, ... }
+  /// Outputs all chars to a stream without terminating at null.
   /** Usage like:  Data1D<char> data;  std::cout << data << std::endl;
    */
   inline std::ostream& operator<< (std::ostream &out, const Data1D<char>& d) {

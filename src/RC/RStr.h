@@ -1740,14 +1740,14 @@ namespace RC {
 
     /// Takes a Data1D<T> array and joins them as one string with spacer
     /// between each element while applying the function to each element.
-    /** Note:  Each element is converted to a string with its RStr(T)
-     *  constructor, and thus only works on types for which a constructor
-     *  exists.
+    /** Note:  The default func converts each element to a string with its
+     *  RStr(T) constructor, and thus only works on types for which a
+     *  constructor exists.
      */
     template <class T>
     static inline RStr Join(const Data1D<T>& str_arr,
                             const RStr& spacer="",
-                            RStr(*func)(T)=nullptr) {
+                            RStr(*func)(const T&)=nullptr) {
       RStr retval;
       size_t i;
 
@@ -1757,11 +1757,11 @@ namespace RC {
       }
 
       if (func == nullptr) {
-        func = [](T in) { return RStr(in); };
+        func = [](const T& in) { return RStr(in); };
       }
 
       retval = func(str_arr[0]);
-      
+
       for (i=1; i<str_arr.size(); i++) {
         retval += spacer;
         retval += func(str_arr[i]);

@@ -268,6 +268,7 @@ namespace RC {
       const u32 empirical_entropy_factor = 32;  // ~20
       u64 loopdiffsum = 0;
       u64 last_loops = 0;
+      Data1D<f64> delta_arr;
 
       for (u32 i=0; i < 64*empirical_entropy_factor; i++) {
         u64 loops = 0;
@@ -275,10 +276,11 @@ namespace RC {
         f64 start_t = RC::Time::Get();
         while (EntAbs(RC::Time::Get() - start_t) <= delta) { loops++; }
         delta /= 0.98 + 0.04*(loops>0); // Adapt time to 50/50 LSB flip
+        delta_arr += delta;
         if (delta < half_prec) { delta = half_prec; }
 
         if (i > 0) {
-          i64 loopdiff = loops - last_loops;
+          i64 loopdiff = (i64)loops - (i64)last_loops;
           if (loopdiff < 0) { loopdiff = -loopdiff; }
           loopdiffsum += loopdiff;
         }
