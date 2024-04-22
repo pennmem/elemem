@@ -9,6 +9,7 @@
   "eeg_system": "Cerebus",
   "eeg_uV_per_unit": 0.25,
   "hardware_lnc": true,
+  "skip_signal_quality": false,
   "stim_system": "CereStim",
   "channel_count": 272,
   "extra_channels": [],
