@@ -1,0 +1,104 @@
+{
+  "bipolar_electrode_config_file": "R1710J_20231120_bi_L0M0.csv",
+  "electrode_config_file": "R1710J_20231120_mono_L0M0.csv",
+  "experiment": {
+    "classifier": {
+      "butter_freq_bands": [[58, 62]],
+      "circular_buffer_duration_ms": 5000,
+      "classifier_file": "classifier_R1710J_ICatFR1_sessions0_1__IFR1_sessions0_exclude_LA11-LA12__LA12-LA13__LA13-LA14__LC8-LC9__LC9-LC10__LC10-LC11.json",
+      "morlet_cycles": 5
+    },
+    "experiment_specs": {
+      "classify_ms": 1366,
+      "intertrial_range_ms": [
+        3800,
+        4000
+      ],
+      "sham_duration_ms": 500
+    },
+    "optimized_stim_parameters": [
+      "amplitude",
+      "location"
+    ],
+    "stim_channels": [
+      {
+        "amplitude_range_mA": [
+          0.1,
+          0.7000000000000001
+        ],
+        "duration_range_ms": [
+          500,
+          500
+        ],
+        "electrodes": "LC9_LC10",
+        "stimtag": "(0,)",
+        "frequency_range_Hz": [
+          200,
+          200
+        ]
+      },
+      {
+        "amplitude_range_mA": [
+          0.1,
+          0.7000000000000001
+        ],
+        "duration_range_ms": [
+          500,
+          500
+        ],
+        "electrodes": "LA12_LA13",
+        "stimtag": "(1,)",
+        "frequency_range_Hz": [
+          200,
+          200
+        ]
+      },
+      {
+        "amplitude_range_mA": [
+          0.1,
+          0.7000000000000001
+        ],
+        "duration_range_ms": [
+          500,
+          500
+        ],
+        "electrodes": "LC9_LC10",
+        "stimtag": "(0, 1)",
+        "frequency_range_Hz": [
+          200,
+          200
+        ]
+      },
+      {
+        "amplitude_range_mA": [
+          0.1,
+          0.7000000000000001
+        ],
+        "duration_range_ms": [
+          500,
+          500
+        ],
+        "electrodes": "LA12_LA13",
+        "stimtag": "(0, 1)",
+        "frequency_range_Hz": [
+          200,
+          200
+        ]
+      }
+    ],
+    "stim_mode": "closed",
+    "type": "ICatFR6"
+  },
+  "global_settings": {
+    "binned_sampling_rate": 1000,
+    "connect_to_task_laptop": true,
+    "data_dir": "AUTOMATIC",
+    "dc_offset_correction": true,
+    "experiment_config_filename": "AUTOMATIC",
+    "hardware_lnc": true,
+    "lnc_time_constant": 10,
+    "macro_sampling_rate": 1000,
+    "plot_window_length": 6000
+  },
+  "subject": "R1710J"
+}
