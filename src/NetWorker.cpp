@@ -66,6 +66,7 @@ namespace CML {
     }
     con = server->nextPendingConnection();
     if (con.IsSet()) {
+      con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
       connect(con, &QTcpSocket::readyRead, this, &NetWorker::DataReady);
       connect(con, &QTcpSocket::disconnected, this, &NetWorker::Disconnected);
       connected = true;
