@@ -17,10 +17,10 @@ option(TESTING_SYS3_R1384J "Special closed-loop testing mode" OFF)
 
 if (IS_RELEASE)
   set(CMAKE_BUILD_TYPE Release)
-  set(BUILD_TYPE "WIN32")
+  #set(BUILD_TYPE "WIN32")
 else (IS_RELEASE)
   set(CMAKE_BUILD_TYPE Debug)
-  set(BUILD_TYPE "")
+  #set(BUILD_TYPE "")
   add_definitions (-DDEBUG)
 endif (IS_RELEASE)
 
@@ -164,12 +164,15 @@ set (ELEMEM_DEFINES)
 ##############
 # Source files
 
-if (NOT WIN32)
-  set (CERESTIM_STUB ON CACHE BOOL "CereStim only supported on Windows" FORCE)
-endif(NOT WIN32)
+if (APPLE)
+  set (CERESTIM_STUB ON CACHE BOOL "CereStim support currently built for Windows and Linux" FORCE)
+endif(APPLE)
+#if (NOT WIN32)
+#  set (CERESTIM_STUB ON CACHE BOOL "CereStim only supported on Windows" FORCE)
+#endif(NOT WIN32)
 
 if (CERESTIM_STUB)
-  set (CERESTIM_STUB_FILE include/stub_CereStimDLL.cpp)
+  set (CERESTIM_STUB_FILE include/stub_CereStimLib.cpp)
   add_definitions (-DCERESTIM_SIMULATOR)
 else (CERESTIM_STUB)
   set (CERESTIM_STUB_FILE "")
@@ -391,9 +394,16 @@ if (WIN32)
       "CereStimDLL library missing from ${PROJECT_SOURCE_DIR}/dll"
     )
   endif ()
-else (WIN32)
+elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+  find_library (CSTIM_LIB "CereStimLinux" PATHS ${PROJECT_SOURCE_DIR}/dll)
+  if (NOT CSTIM_LIB)
+    message (FATAL_ERROR
+      "libCereStimLinux library missing from ${PROJECT_SOURCE_DIR}/dll"
+    )
+  endif ()
+else ()
   set (CSTIM_LIB "")
-endif (WIN32)
+endif ()
 
 if (WIN32)
   set (FFTW_LIB "-L${CMAKE_CURRENT_SOURCE_DIR}/lib64 -lfftw3")

@@ -1,4 +1,4 @@
-#include "CereStimDLL.h"
+#include "CereStimLib.h"
 #include <iostream>
 using namespace std;
 

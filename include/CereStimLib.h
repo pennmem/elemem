@@ -1,5 +1,5 @@
-#ifndef CERESTIMDLL_H
-#define CERESTIMDLL_H
+#ifndef CERESTIMLIB_H
+#define CERESTIMLIB_H
 
 #include <stdint.h>
 
@@ -114,5 +114,5 @@ CS_EXPORT int CS_Play(uint16_t times);
 CS_EXPORT int CS_Pause();
 CS_EXPORT int CS_Stop();
 
-#endif // CERESTIMDLL_H
+#endif // CERESTIMLIB_H
 

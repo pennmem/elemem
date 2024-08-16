@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include "CereStimDLL.h"
+#include "CereStimLib.h"
 #include "StimInterface.h"
 
 
