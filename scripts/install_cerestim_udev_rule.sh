@@ -1,0 +1,1 @@
+sudo cp 69-cerestim-hid.rules /etc/udev/rules.d/
