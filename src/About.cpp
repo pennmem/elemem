@@ -88,6 +88,12 @@ namespace CML {
     "SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>"
   };
 
+  const RC::RStr CREDIT_JeffWeiss {
+    "<p>Credit and thanks to Jeff Weiss, Department of Physical Medicine "
+    "and Rehabilitation, University of Pittsburgh, for the updated CereStim "
+    "driver facilitating Linux usage.</p>"
+  };
+
 
   void AboutWin() {
     RStr year = ElememVersion().SplitWords().Last();
@@ -106,6 +112,7 @@ namespace CML {
               + "<p><a href=\"https://memory.psych.upenn.edu\">https://memory.psych.upenn.edu</a></p>";
     text += "<i>";
     text += "<hr/>";
+    text += CREDIT_JeffWeiss;
     text += LICENSE_JSON;
     text += LICENSE_EDFLIB;
     text += LICENSE_DSPFilters;
