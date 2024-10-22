@@ -44,12 +44,16 @@ namespace CML {
 
     std::string type;
     uint64_t id = uint64_t(-1);
+    double time = -1;
     if (!inp.TryGet(type, "type")) {
       // Not a command.  Ignore.
       return;
     }
     if (!inp.TryGet(id, "id")) {
       // Leave as uint64_t(-1) to disable.
+    }
+    if (!inp.TryGet(time, "time")) {
+      inp.Set(time, "task_time");
     }
 
     inp.Set(Time::Get()*1e3, "time");
@@ -135,6 +139,11 @@ namespace CML {
       else if (type == "EXIT") {
         status_panel->SetEvent(type);
         hndl->ExperimentExit();
+      }
+      else if (type == "TASK_STATUS") {
+        RC::RStr status;
+        inp.Get(status, "data", "status");
+        status_panel->SetEvent(status);
       }
       else {
         if (type ==
