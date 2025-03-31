@@ -205,9 +205,15 @@ namespace RC {
 
       int written = 0;
       if (filename != NULL && filename[0] != '\0') {
+#ifdef MACOS
         written = snprintf(what_msg, ErrorMsg_what_bufsize,
-          "%s, %s, line %d, load address %p%s", err_msg, filename, line_number, (void *)GetLoadAddress(),
+          "%s, %s, line %d, load address %p%s", err_msg, filename,
+          line_number, (void *)GetLoadAddress(), stacktrace_txt);
+#else
+        written = snprintf(what_msg, ErrorMsg_what_bufsize,
+          "%s, %s, line %d%s", err_msg, filename, line_number,
           stacktrace_txt);
+#endif
       }
       else {
         written = snprintf(what_msg, ErrorMsg_what_bufsize, "%s%s", err_msg,

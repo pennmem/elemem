@@ -399,7 +399,7 @@ namespace RC {
       }
       d_size = other.size();
       offset = 0;
-        
+
       std::copy(other.Raw(), other.Raw() + other.size(), data);
 
       rev_ptr = this;
@@ -421,7 +421,13 @@ namespace RC {
                           size_t pos, size_t num_elem=npos) {
       if (reinterpret_cast<void*>(data) ==
           reinterpret_cast<void*>(other.Raw())) {
-        return *this;
+        if (pos == 0 && num_elem > d_size) {
+          return *this;
+        }
+        else {
+          Throw_RC_Type(Bounds, "CopyFrom on a subset of the same underlying "
+              "data is invalid.  Use CopyData.");
+        }
       }
 
       // If out of bounds, but copying no elements, just blank the array.
@@ -441,7 +447,7 @@ namespace RC {
       if (num_elem > (other.size()-pos)) {
         real_num_elem = other.size() - pos;
       }
-        
+
       if (d_alloc < real_num_elem) {
         DelArray();
 

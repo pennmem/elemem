@@ -191,7 +191,7 @@ namespace RC {
           }
 
           RC_SockReturn bytes_sent;
-          bytes_sent = send(socket, arr, len, 0);
+          bytes_sent = send(socket, arr_current, len, 0);
 
           if (bytes_sent == RC_SockErr) {
             if (RC_SockErrorAt == RC_WouldBlock) {

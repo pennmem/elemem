@@ -184,7 +184,7 @@ namespace SP {
           }
 
           Net_SockReturn bytes_sent;
-          bytes_sent = send(socket, arr, len, 0);
+          bytes_sent = send(socket, arr_current, len, 0);
 
           if (bytes_sent == Net_SockErr) {
             if (Net_SockErrorAt == Net_WouldBlock) {
