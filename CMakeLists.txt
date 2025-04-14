@@ -380,12 +380,16 @@ else (HDF5_EXPORT)
   set (ELEMEM_DEFINES ${ELEMEM_DEFINES} NO_HDF5)
 endif (HDF5_EXPORT)
 
-find_library (CBSDK_LIB "cbsdk" PATHS ${PROJECT_SOURCE_DIR}/lib64)
-if (NOT CBSDK_LIB)
-  message (FATAL_ERROR
-    "cbsdk library missing from ${PROJECT_SOURCE_DIR}/lib64"
-  )
-endif ()
+if (WIN32)
+  find_library (CBSDK_LIB "cbsdk" PATHS ${PROJECT_SOURCE_DIR}/lib64)
+  if (NOT CBSDK_LIB)
+    message (FATAL_ERROR
+      "cbsdk library missing from ${PROJECT_SOURCE_DIR}/lib64"
+    )
+  endif ()
+else (WIN32)
+    set(CBSDK_LIB "")
+endif (WIN32)
 
 if (WIN32)
   find_library (CSTIM_LIB "CereStimDLL" PATHS ${PROJECT_SOURCE_DIR}/dll)
@@ -411,7 +415,7 @@ else (WIN32)
   find_package(PkgConfig REQUIRED)
   pkg_search_module(FFTW REQUIRED fftw3 IMPORTED_TARGET)
   include_directories(${FFTW_INCLUDE_DIRS})
-  set(FFTW_LIB ${FFTW_LIBRARIES})
+  set(FFTW_LIB "-L${FFTW_LIBRARY_DIRS} -l${FFTW_LIBRARIES}")
 endif (WIN32)
 
 
