@@ -675,7 +675,7 @@ namespace CML {
   void Handler::RunExperiment() {
     auto SetupNetworkTask = [&]() {
       // Note:  Binding to a specific LAN address is a safety feature.
-      std::string ipaddress = "192.168.137.1";
+      std::string ipaddress = "192.168.215.1";
       uint16_t port = 8889;
       // if (stim_worker.GetStimulatorType() == StimulatorType::Simulator) {
       //  // It's safe to accept connections from anywhere with simulators.
