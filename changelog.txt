@@ -76,6 +76,9 @@ Add unreleased user-relevant updates to Dev section at end.
 2024-04-22
  - Added configurable Butterworth filter support to the closed-loop pipeline.
 
+2025-06-05
+ - First Linux compatibility release.
+
 Dev
  - 
 
