@@ -685,7 +685,7 @@ namespace CML {
       settings.sys_config->Get(port, "taskcom_port");
 
       task_net_worker.Listen(ipaddress, port);
-      main_window->GetStatusPanel()->SetEvent("WAITING");
+      main_window->GetStatusPanel()->SetEvent("NO TASK");
     };
 
     if (settings.grid_exper) {
